@@ -4,16 +4,14 @@ import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.dto.request.UserRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
+import com.thacbao.codeSphere.entity.User;
 import com.thacbao.codeSphere.exceptions.AlreadyException;
 import com.thacbao.codeSphere.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.HashMap;
@@ -71,5 +69,10 @@ public class UserController {
             return CodeSphereResponse.generateResponse(new ApiResponse
                     (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<?> test(){
+        return CodeSphereResponse.generateResponse(new ApiResponse("success", "get all user", userService.getUserDetails()), HttpStatus.OK);
     }
 }

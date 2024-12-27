@@ -3,9 +3,11 @@ package com.thacbao.codeSphere.services.serviceImpl;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.constants.RoleEnum;
 import com.thacbao.codeSphere.dao.AuthorizationDao;
+import com.thacbao.codeSphere.dao.UserDao;
 import com.thacbao.codeSphere.dto.request.UserRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
+import com.thacbao.codeSphere.dto.response.UserDTO;
 import com.thacbao.codeSphere.entity.Authorization;
 import com.thacbao.codeSphere.entity.Role;
 import com.thacbao.codeSphere.entity.User;
@@ -28,8 +30,7 @@ import javax.mail.MessagingException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +44,8 @@ public class UserServiceImpl implements UserService {
     private final EmailUtilService emailUtilService;
 
     private final AuthorizationDao authorizationDao;
+
+    private final UserDao userDao;
 
     @Override
     public ResponseEntity<ApiResponse> signup(UserRequest userRequest) {
@@ -115,5 +118,9 @@ public class UserServiceImpl implements UserService {
         return "OTP regenerate successfully";
     }
 
+    public List<UserDTO> getUserDetails(){
 
+        List<UserDTO> users = userDao.getUserDetails(7);
+        return users;
+    }
 }
