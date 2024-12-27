@@ -4,7 +4,7 @@ import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.dto.request.UserRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
-import com.thacbao.codeSphere.exceptions.UserAlreadyException;
+import com.thacbao.codeSphere.exceptions.AlreadyException;
 import com.thacbao.codeSphere.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,7 +21,7 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v1/auth")
 public class UserController {
 
     private final UserService userService;
@@ -39,13 +39,37 @@ public class UserController {
             }
             return userService.signup(userRequest);
         }
-        catch (UserAlreadyException ex){
+        catch (AlreadyException ex){
             return CodeSphereResponse.generateResponse(new ApiResponse
                     (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
         }
         catch (Exception ex) {
             return CodeSphereResponse.generateResponse(new ApiResponse
                     (CodeSphereConstants.ERROR, "Internal server error", null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/verify-account")
+    public ResponseEntity<ApiResponse> verifyAccount(@RequestBody Map<String, String> request){
+        try {
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    (CodeSphereConstants.SUCCESS, userService.verifyAccount(request), null), HttpStatus.OK);
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/regenerate-otp")
+    public ResponseEntity<ApiResponse> reGenerateOtp(@RequestBody Map<String, String> request){
+        try {
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    (CodeSphereConstants.SUCCESS, userService.regenerateOtp(request), null), HttpStatus.OK);
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
         }
     }
 }

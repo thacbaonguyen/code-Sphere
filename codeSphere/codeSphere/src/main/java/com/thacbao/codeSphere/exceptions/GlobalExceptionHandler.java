@@ -15,15 +15,22 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ApiResponse> handleUserNotFoundException(UserNotFoundException ex) {
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiResponse> handleUserNotFoundException(NotFoundException ex) {
         log.error("exception details: ", ex);
         ApiResponse response = new ApiResponse("error", ex.getMessage(), null);
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(UserAlreadyException.class)
-    public ResponseEntity<ApiResponse> handleUserAlreadyException(UserAlreadyException ex) {
+    @ExceptionHandler(AlreadyException.class)
+    public ResponseEntity<ApiResponse> handleUserAlreadyException(AlreadyException ex) {
+        log.error("exception details: ", ex);
+        ApiResponse response = new ApiResponse("error", ex.getMessage(), null);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidException.class)
+    public ResponseEntity<ApiResponse> handleInvalidException(InvalidException ex) {
         log.error("exception details: ", ex);
         ApiResponse response = new ApiResponse("error", ex.getMessage(), null);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -44,7 +51,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse> handleGlobalException(Exception ex) {
         log.error("exception details: ", ex);
-        ApiResponse response = new ApiResponse("error", "Internal server error occurred", null);
+        ApiResponse response = new ApiResponse("error", "Internal server error occurred", ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
