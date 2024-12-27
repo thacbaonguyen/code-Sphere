@@ -22,6 +22,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(UserAlreadyException.class)
+    public ResponseEntity<ApiResponse> handleUserAlreadyException(UserAlreadyException ex) {
+        log.error("exception details: ", ex);
+        ApiResponse response = new ApiResponse("error", ex.getMessage(), null);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
     //handle input
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -36,6 +43,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse> handleGlobalException(Exception ex) {
+        log.error("exception details: ", ex);
         ApiResponse response = new ApiResponse("error", "Internal server error occurred", null);
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
