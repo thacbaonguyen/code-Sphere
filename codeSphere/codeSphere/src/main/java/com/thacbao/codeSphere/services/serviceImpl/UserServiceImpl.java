@@ -1,9 +1,13 @@
 package com.thacbao.codeSphere.services.serviceImpl;
 
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
+import com.thacbao.codeSphere.constants.RoleEnum;
+import com.thacbao.codeSphere.dao.AuthorizationDao;
 import com.thacbao.codeSphere.dto.request.UserRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
+import com.thacbao.codeSphere.entity.Authorization;
+import com.thacbao.codeSphere.entity.Role;
 import com.thacbao.codeSphere.entity.User;
 import com.thacbao.codeSphere.exceptions.AlreadyException;
 import com.thacbao.codeSphere.exceptions.InvalidException;
@@ -37,6 +41,8 @@ public class UserServiceImpl implements UserService {
     private final OtpUtils otpUtils;
 
     private final EmailUtilService emailUtilService;
+
+    private final AuthorizationDao authorizationDao;
 
     @Override
     public ResponseEntity<ApiResponse> signup(UserRequest userRequest) {
@@ -82,6 +88,7 @@ public class UserServiceImpl implements UserService {
                 LocalDateTime.now()).getSeconds() < (2* 60)){
             user.setIsActive(true);
             userRepository.save(user);
+            authorizationDao.insertIntoAuthorization(user.getId(), RoleEnum.USER.getId());
             return "Account verified successfully";
         }
         else if(!request.get("otp").equals(user.getOTP())){

@@ -1,6 +1,8 @@
 package com.thacbao.codeSphere.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -24,4 +26,14 @@ public class Role {
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Authorization> authorizations;
+
+    public Role(Integer id, String name, String code) {
+        this.id = id;
+        this.name = name;
+        this.code = code;
+    }
+
+    public Role() {
+
+    }
 }
