@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import java.sql.SQLDataException;
+import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,6 +51,27 @@ public class UserDao {
             ex.printStackTrace();
         }
         return null;
+    }
+
+    @Transactional
+    public UserDTO getProfile(String username) throws SQLDataException {
+        try {
+            String sql = "SELECT u.user_name, u.full_name, u.email, u.phone_number, u.dob, u.created_at, u.updated_at, " +
+                    "GROUP_CONCAT(r.name) as roles_name from users as u " +
+                    "JOIN authorization as a on a.user_id = u.id " +
+                    "JOIN roles as r on a.role_id = r.id " +
+                    "where u.user_name = :username " +
+                    "group by u.id";
+            Object[] results = (Object[]) entityManager.createNativeQuery(sql)
+                    .setParameter("username", username)
+                    .getSingleResult();
+            return new UserDTO((String) results[0], (String) results[1], (String) results[2],
+                    (String) results[3], results[4].toString(),results[5].toString(), results[6].toString(),
+                    Arrays.asList(results[7].toString().split(",")));
+        }
+        catch (Exception ex){
+            throw new SQLDataException(ex.getMessage());
+        }
     }
 
     @Transactional

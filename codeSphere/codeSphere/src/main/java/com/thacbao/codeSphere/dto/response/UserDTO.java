@@ -6,11 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class UserDTO {
     private String username;
 
@@ -20,14 +19,29 @@ public class UserDTO {
 
     private String phoneNumber;
 
-    private LocalDate dob;
+    private String dob;
 
-    private LocalDate createdAt;
-    private LocalDate updatedAt;
+    private String createdAt;
+    private String updatedAt;
+
+    private List<String> roles;
 
     private String roleName;
 
     private String roleCode;
+
+    public UserDTO(String username, String fullName, String email,
+                   String phoneNumber, String dob, String createdAt,
+                   String updatedAt, List<String> roles) {
+        this.username = username;
+        this.fullName = fullName;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.dob = dob;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.roles = roles;
+    }
 
     public UserDTO(String username, String fullName, String roleName, String roleCode) {
         this.username = username;

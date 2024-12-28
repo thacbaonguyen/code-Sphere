@@ -4,10 +4,7 @@ import com.thacbao.codeSphere.dto.request.UserLoginRequest;
 import com.thacbao.codeSphere.dto.request.UserRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.UserDTO;
-import com.thacbao.codeSphere.entity.User;
 import org.springframework.http.ResponseEntity;
-
-import javax.mail.MessagingException;
 import java.util.List;
 import java.util.Map;
 
@@ -20,4 +17,6 @@ public interface UserService {
     List<UserDTO> getUserDetails();
 
     ResponseEntity<?> login(UserLoginRequest request);
+
+    ResponseEntity<ApiResponse> getProfile();
 }

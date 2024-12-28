@@ -1,6 +1,7 @@
 package com.thacbao.codeSphere.services.serviceImpl;
 
 import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
+import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.configurations.JwtUtils;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.constants.RoleEnum;
@@ -11,8 +12,6 @@ import com.thacbao.codeSphere.dto.request.UserRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.dto.response.UserDTO;
-import com.thacbao.codeSphere.entity.Authorization;
-import com.thacbao.codeSphere.entity.Role;
 import com.thacbao.codeSphere.entity.User;
 import com.thacbao.codeSphere.exceptions.AlreadyException;
 import com.thacbao.codeSphere.exceptions.InvalidException;
@@ -34,6 +33,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
+import java.sql.SQLDataException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -56,6 +56,7 @@ public class UserServiceImpl implements UserService {
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtUtils jwtUtils;
+    private final JwtFilter jwtFilter;
 
     @Override
     public ResponseEntity<ApiResponse> signup(UserRequest userRequest) {
@@ -180,6 +181,22 @@ public class UserServiceImpl implements UserService {
         catch (Exception ex){
             return CodeSphereResponse.generateResponse(new ApiResponse
                     (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getProfile() {
+        try{
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    ("success", "Get profile successfully",
+                            userDao.getProfile(jwtFilter.getCurrentUsername())), HttpStatus.OK);
+        }
+        catch (SQLDataException exception){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    ("error", exception.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse("error", ex.getMessage(), null), HttpStatus.BAD_REQUEST);
         }
     }
 }
