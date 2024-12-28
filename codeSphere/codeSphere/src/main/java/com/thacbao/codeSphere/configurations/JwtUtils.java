@@ -13,10 +13,10 @@ public class JwtUtils {
     @Value("${jwt.secretKey}")
     private String secretKey;
 
-    public String generateToken(String username, Map<String, String> claim){
+    public String generateToken(String username, Map<String, Object> claim){
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", username);
-        for (Map.Entry<String, String> entry : claim.entrySet()) {
+        for (Map.Entry<String, Object> entry : claim.entrySet()) {
             claims.put(entry.getKey(), entry.getValue());
         }
         return createToken(claims, username);

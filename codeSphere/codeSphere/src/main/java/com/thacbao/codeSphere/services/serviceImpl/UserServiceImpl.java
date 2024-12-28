@@ -1,9 +1,12 @@
 package com.thacbao.codeSphere.services.serviceImpl;
 
+import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
+import com.thacbao.codeSphere.configurations.JwtUtils;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.constants.RoleEnum;
 import com.thacbao.codeSphere.dao.AuthorizationDao;
 import com.thacbao.codeSphere.dao.UserDao;
+import com.thacbao.codeSphere.dto.request.UserLoginRequest;
 import com.thacbao.codeSphere.dto.request.UserRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
@@ -14,6 +17,7 @@ import com.thacbao.codeSphere.entity.User;
 import com.thacbao.codeSphere.exceptions.AlreadyException;
 import com.thacbao.codeSphere.exceptions.InvalidException;
 import com.thacbao.codeSphere.exceptions.NotFoundException;
+import com.thacbao.codeSphere.exceptions.PermissionException;
 import com.thacbao.codeSphere.repositories.UserRepository;
 import com.thacbao.codeSphere.services.UserService;
 import com.thacbao.codeSphere.utils.EmailUtilService;
@@ -22,6 +26,9 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,16 +53,29 @@ public class UserServiceImpl implements UserService {
     private final AuthorizationDao authorizationDao;
 
     private final UserDao userDao;
+    private final AuthenticationManager authenticationManager;
+    private final CustomUserDetailsService customUserDetailsService;
+    private final JwtUtils jwtUtils;
 
     @Override
     public ResponseEntity<ApiResponse> signup(UserRequest userRequest) {
         Optional<User> user = userRepository.findByUsername(userRequest.getUsername());
         Optional<User> userByEmail = userRepository.findByEmail(userRequest.getEmail());
-        if(userByEmail.isPresent() || user.isPresent()){
-            throw new AlreadyException("This username or email already exists");
+        if(user.isPresent()){
+            if(user.get().getIsActive()){
+                throw new AlreadyException("This username already exists");
+            }
+            else {
+                userDao.deleteUser(user.get().getId());
+            }
         }
-        if(!userRequest.getPassword().equals(userRequest.getRetypePassword())){
-            throw new InvalidException("Password not match");
+        if(userByEmail.isPresent()){
+            if(userByEmail.get().getIsActive()){
+                throw new AlreadyException("This email already exists");
+            }
+            else {
+                userDao.deleteUser(userByEmail.get().getId());
+            }
         }
         try{
             String OTP = otpUtils.generateOtp();
@@ -69,6 +89,7 @@ public class UserServiceImpl implements UserService {
             newUser.setOtpGenerateTime(LocalDateTime.now());
             newUser.setCreatedAt(LocalDate.now());
             newUser.setUpdatedAt(LocalDate.now());
+            newUser.setIsActive(false);
             userRepository.save(newUser);
             // return
             return CodeSphereResponse.generateResponse(new ApiResponse
@@ -122,5 +143,43 @@ public class UserServiceImpl implements UserService {
 
         List<UserDTO> users = userDao.getUserDetails(7);
         return users;
+    }
+
+    @Override
+    public ResponseEntity<?> login(UserLoginRequest request) {
+        User user = userRepository.findByUsername(request.getUsername()).orElseThrow(
+                () -> new NotFoundException("Can not found this user")
+        );
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        Boolean isPasswordCorrect = passwordEncoder.matches(request.getPassword(), user.getPassword());
+        if(!isPasswordCorrect){
+            throw new InvalidException("Invalid password");
+        }
+        if(!user.getIsActive()){
+            throw new PermissionException("Account is not active, please create account one more time");
+        }
+        try{
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
+            if(authentication.isAuthenticated()){
+                String username = customUserDetailsService.getUserDetails().getUsername();
+                Map<String, Object> claim = new HashMap<>();
+                List<String> roles = userDao.getRolesUser(customUserDetailsService.getUserDetails().getId());
+                claim.put("name", customUserDetailsService.getUserDetails().getFullName());
+                claim.put("role", roles);
+                claim.put("dob", customUserDetailsService.getUserDetails().getDob().toString());
+                claim.put("email", customUserDetailsService.getUserDetails().getEmail());
+                claim.put("phoneNumber", customUserDetailsService.getUserDetails().getPhoneNumber());
+                String token = jwtUtils.generateToken(username, claim);
+                return new ResponseEntity<>("{\"token\":\"" + token + "\"}", HttpStatus.OK);
+            }
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    ("error", "Authentication failed", null), HttpStatus.BAD_REQUEST);
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+        }
     }
 }

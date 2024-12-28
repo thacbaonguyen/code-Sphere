@@ -1,5 +1,6 @@
 package com.thacbao.codeSphere.services;
 
+import com.thacbao.codeSphere.dto.request.UserLoginRequest;
 import com.thacbao.codeSphere.dto.request.UserRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.UserDTO;
@@ -17,4 +18,6 @@ public interface UserService {
     String regenerateOtp(Map<String, String> request);
 
     List<UserDTO> getUserDetails();
+
+    ResponseEntity<?> login(UserLoginRequest request);
 }

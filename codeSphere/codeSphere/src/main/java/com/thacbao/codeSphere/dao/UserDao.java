@@ -49,4 +49,49 @@ public class UserDao {
         }
         return null;
     }
+
+    @Transactional
+    public void deleteUser(Integer id){
+        try{
+            String sql = "DELETE FROM users WHERE id = :userId";
+            entityManager.createNativeQuery(sql)
+                    .setParameter("userId", id)
+                    .executeUpdate();
+        }
+        catch (Exception ex){
+            ex.printStackTrace();
+        }
+    }
+
+    @Transactional
+    public Integer existUsername(String username){
+        try{
+            String sql = "SELECT u.id FROM users AS u WHERE u.username = :username";
+            return (Integer) entityManager.createNativeQuery(sql)
+                    .setParameter("username", username)
+                    .getSingleResult();
+        }
+        catch (Exception ex){
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    @Transactional
+    public List<String> getRolesUser(Integer id){
+        try{
+            String sql = "SELECT r.name " +
+                    "FROM roles AS r " +
+                    "JOIN authorization AS a ON r.id = a.role_id " +
+                    "JOIN users AS u ON u.id = a.user_id " +
+                    "WHERE u.id = :userId";
+            return entityManager.createNativeQuery(sql)
+                    .setParameter("userId", id)
+                    .getResultList();
+        }
+        catch (Exception ex){
+            ex.printStackTrace();
+            return null;
+        }
+    }
 }

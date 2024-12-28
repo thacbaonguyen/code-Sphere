@@ -18,22 +18,29 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiResponse> handleUserNotFoundException(NotFoundException ex) {
         log.error("exception details: ", ex);
-        ApiResponse response = new ApiResponse("error", ex.getMessage(), null);
+        ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(AlreadyException.class)
     public ResponseEntity<ApiResponse> handleUserAlreadyException(AlreadyException ex) {
         log.error("exception details: ", ex);
-        ApiResponse response = new ApiResponse("error", ex.getMessage(), null);
+        ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidException.class)
     public ResponseEntity<ApiResponse> handleInvalidException(InvalidException ex) {
         log.error("exception details: ", ex);
-        ApiResponse response = new ApiResponse("error", ex.getMessage(), null);
+        ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(PermissionException.class)
+    public ResponseEntity<ApiResponse> handlePermissionException(PermissionException ex) {
+        log.error("exception details: ", ex);
+        ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
     //handle input

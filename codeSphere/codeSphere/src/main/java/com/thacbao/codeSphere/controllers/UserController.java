@@ -1,6 +1,7 @@
 package com.thacbao.codeSphere.controllers;
 
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
+import com.thacbao.codeSphere.dto.request.UserLoginRequest;
 import com.thacbao.codeSphere.dto.request.UserRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
@@ -10,6 +11,7 @@ import com.thacbao.codeSphere.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,6 +66,17 @@ public class UserController {
         try {
             return CodeSphereResponse.generateResponse(new ApiResponse
                     (CodeSphereConstants.SUCCESS, userService.regenerateOtp(request), null), HttpStatus.OK);
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody UserLoginRequest request){
+        try {
+            return userService.login(request);
         }
         catch (Exception ex){
             return CodeSphereResponse.generateResponse(new ApiResponse
