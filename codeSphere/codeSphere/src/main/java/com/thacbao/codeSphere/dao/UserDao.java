@@ -75,6 +75,27 @@ public class UserDao {
     }
 
     @Transactional
+    public List<UserDTO> getAllUser() throws SQLDataException {
+        try{
+            String sql = "SELECT u.user_name, u.full_name, u.email, u.phone_number, u.dob, u.created_at, u.updated_at, " +
+                    "GROUP_CONCAT(r.name) as roles_name from users as u " +
+                    "JOIN authorization as a on a.user_id = u.id " +
+                    "JOIN roles as r on a.role_id = r.id " +
+                    "where u.is_active = true " +
+                    "group by u.id";
+            List<Object[]> results = entityManager.createNativeQuery(sql)
+                    .getResultList();
+            return results.stream()
+                    .map(result -> new UserDTO(result[0].toString(), result[1].toString(), result[2].toString(),
+                            result[3].toString(), result[4].toString(), result[5].toString(), result[6].toString(),
+                            Arrays.asList(result[7].toString().split(",")))).collect(Collectors.toList());
+        }
+        catch (Exception exception){
+            throw new SQLDataException(exception.getMessage());
+        }
+    }
+
+    @Transactional
     public void deleteUser(Integer id){
         try{
             String sql = "DELETE FROM users WHERE id = :userId";

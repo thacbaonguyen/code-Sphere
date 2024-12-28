@@ -19,4 +19,10 @@ public interface UserService {
     ResponseEntity<?> login(UserLoginRequest request);
 
     ResponseEntity<ApiResponse> getProfile();
+
+    ResponseEntity<ApiResponse> getAllUser();
+
+    ResponseEntity<?> forgotPassword(Map<String, String> request);
+
+    ResponseEntity<?> setPassword(String email, String otp, Map<String, String> request);
 }

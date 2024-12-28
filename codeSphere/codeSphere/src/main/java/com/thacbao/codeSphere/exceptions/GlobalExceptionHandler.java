@@ -44,6 +44,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(EmailSenderException.class)
+    public ResponseEntity<ApiResponse> handleEmailSenderException(EmailSenderException ex) {
+        log.error("exception details: ", ex);
+        ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     //handle input
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {

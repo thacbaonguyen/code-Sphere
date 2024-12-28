@@ -93,6 +93,42 @@ public class UserController {
         }
     }
 
+    @GetMapping("/all-user")
+    public ResponseEntity<?> getAllUser(){
+        try {
+            return userService.getAllUser();
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request){
+        try{
+            return userService.forgotPassword(request);
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping("/set-password")
+    public ResponseEntity<?> setPassword(@RequestParam String email, @RequestParam String otp,
+                                         @RequestBody Map<String, String> request){
+        try{
+            return userService.setPassword(email, otp, request);
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
+
     @GetMapping("/test")
     public ResponseEntity<?> test(){
         return CodeSphereResponse.generateResponse(new ApiResponse

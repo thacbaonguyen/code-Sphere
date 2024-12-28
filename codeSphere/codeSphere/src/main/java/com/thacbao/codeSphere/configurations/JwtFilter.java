@@ -14,6 +14,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -26,7 +28,8 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         if (request.getServletPath().matches("/api/v1/auth/login|/api/v1/auth/signup|" +
-                "/api/v1/auth/forgot-password|/api/v1/auth/verify-account|/api/v1/auth/regenerate-otp|/api/v1/auth/test")){
+                "/api/v1/auth/forgot-password|/api/v1/auth/verify-account|" +
+                "/api/v1/auth/regenerate-otp|/api/v1/auth/test|/api/v1/auth/set-password.*")){
             filterChain.doFilter(request, response);
         }
         else{
@@ -51,13 +54,16 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     public Boolean isAdmin(){
-        return "admin".equalsIgnoreCase(claims.get("role", String.class));
+        List<String> roles = claims.get("role", List.class);
+        return roles.contains("admin".toUpperCase());
     }
     public Boolean isUser(){
-        return "user".equalsIgnoreCase(claims.get("role", String.class));
+        List<String> roles = claims.get("role", List.class);
+        return roles.contains("user".toUpperCase());
     }
     public Boolean isManager(){
-        return "manager".equalsIgnoreCase(claims.get("role", String.class));
+        List<String> roles = claims.get("role", List.class);
+        return roles.contains("manager".toUpperCase());
     }
     public String getCurrentUsername(){
         return username;
