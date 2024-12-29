@@ -9,6 +9,7 @@ import com.thacbao.codeSphere.dao.AuthorizationDao;
 import com.thacbao.codeSphere.dao.UserDao;
 import com.thacbao.codeSphere.dto.request.UserLoginRequest;
 import com.thacbao.codeSphere.dto.request.UserRequest;
+import com.thacbao.codeSphere.dto.request.UserUpdateRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.dto.response.UserDTO;
@@ -19,6 +20,7 @@ import com.thacbao.codeSphere.services.UserService;
 import com.thacbao.codeSphere.utils.EmailUtilService;
 import com.thacbao.codeSphere.utils.OtpUtils;
 import lombok.RequiredArgsConstructor;
+import org.aspectj.apache.bcel.classfile.Code;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,7 +58,7 @@ public class UserServiceImpl implements UserService {
     private final JwtFilter jwtFilter;
 
     @Override
-    public ResponseEntity<ApiResponse> signup(UserRequest userRequest) {
+    public ResponseEntity<ApiResponse> signup(UserRequest userRequest) throws SQLDataException {
         Optional<User> user = userRepository.findByUsername(userRequest.getUsername());
         Optional<User> userByEmail = userRepository.findByEmail(userRequest.getEmail());
         if(user.isPresent()){
@@ -95,7 +97,7 @@ public class UserServiceImpl implements UserService {
                             null), HttpStatus.OK);
         }
         catch (MessagingException ex){
-            throw new EmailSenderException("Some thing went wrong with email server, please try again later or contact admin to fix this issue");
+            throw new EmailSenderException(CodeSphereConstants.EMAIL_SENDER_ERROR);
         }
         catch (Exception ex){
             return CodeSphereResponse.generateResponse(new ApiResponse
@@ -132,7 +134,7 @@ public class UserServiceImpl implements UserService {
             emailUtilService.sentOtpEmail(request.get("email"), otp);
         }
         catch (MessagingException ex){
-            throw new EmailSenderException("Some thing went wrong with email server, please try again later or contact admin to fix this issue");
+            throw new EmailSenderException(CodeSphereConstants.EMAIL_SENDER_ERROR);
         }
         user.setOTP(otp);
         user.setOtpGenerateTime(LocalDateTime.now());
@@ -209,7 +211,8 @@ public class UserServiceImpl implements UserService {
                         ("success", "Get all user successfully", users), HttpStatus.OK);
             }
             else{
-                throw new PermissionException("Permission required: admin, you don't have permission to access this resource");
+                return CodeSphereResponse.generateResponse(new ApiResponse
+                        ("success", CodeSphereConstants.PERMISSION_DENIED, null), HttpStatus.FORBIDDEN);
             }
         }
         catch (Exception ex){
@@ -232,7 +235,7 @@ public class UserServiceImpl implements UserService {
             return CodeSphereResponse.generateResponse(new ApiResponse
                     ("success", "OTP sent to " + request.get("email") + ", please verify to reset password", null), HttpStatus.OK);
         } catch (MessagingException e) {
-            throw new EmailSenderException("Some thing went wrong with email server, please try again later or contact admin to fix this issue");
+            throw new EmailSenderException(CodeSphereConstants.EMAIL_SENDER_ERROR);
         }
     }
 
@@ -257,5 +260,50 @@ public class UserServiceImpl implements UserService {
             return CodeSphereResponse.generateResponse(new ApiResponse
                     (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> changePassword(Map<String, String> request) {
+        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
+                () -> new NotFoundException("Can not found this user")
+        );
+        try{
+            PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+            if(passwordEncoder.matches(request.get("oldPassword"), user.getPassword())){
+                user.setPassword(passwordEncoder.encode(request.get("newPassword")));
+                userRepository.save(user);
+                return CodeSphereResponse.generateResponse(new ApiResponse
+                        ("success", "Password change successfully", null), HttpStatus.OK);
+            }
+            else{
+                return CodeSphereResponse.generateResponse(new ApiResponse
+                        ("error", "Old password is incorrect", null), HttpStatus.BAD_REQUEST);
+            }
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> updateProfile(UserUpdateRequest request) {
+        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
+                () -> new NotFoundException("Can not found this user")
+        );
+        try{
+            userDao.updateUser(request, user.getId());
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    ("success", "Update profile successfully", null), HttpStatus.OK);
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> checkToken() {
+        return CodeSphereResponse.generateResponse(new ApiResponse("success", "Check success", null), HttpStatus.OK);
     }
 }

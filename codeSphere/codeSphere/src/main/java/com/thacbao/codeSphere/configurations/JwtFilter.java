@@ -25,11 +25,22 @@ public class JwtFilter extends OncePerRequestFilter {
 
     Claims claims = null;
     String username = null;
+
+    private static final String[] PUBLIC_PATHS = {
+            "/api/v1/auth/login",
+            "/api/v1/auth/signup",
+            "/api/v1/auth/forgot-password",
+            "/api/v1/auth/verify-account",
+            "/api/v1/auth/regenerate-otp",
+            "/api/v1/auth/test",
+            "/api/v1/auth/set-password.*"
+    };
+    private Boolean isPublicPath(String path){
+        return Arrays.stream(PUBLIC_PATHS).anyMatch(path::matches);
+    }
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getServletPath().matches("/api/v1/auth/login|/api/v1/auth/signup|" +
-                "/api/v1/auth/forgot-password|/api/v1/auth/verify-account|" +
-                "/api/v1/auth/regenerate-otp|/api/v1/auth/test|/api/v1/auth/set-password.*")){
+        if (isPublicPath(request.getServletPath())){
             filterChain.doFilter(request, response);
         }
         else{

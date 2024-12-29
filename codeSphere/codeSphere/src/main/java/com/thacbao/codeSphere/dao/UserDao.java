@@ -1,5 +1,6 @@
 package com.thacbao.codeSphere.dao;
 
+import com.thacbao.codeSphere.dto.request.UserUpdateRequest;
 import com.thacbao.codeSphere.dto.response.UserDTO;
 import com.thacbao.codeSphere.entity.User;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.sql.SQLDataException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -96,7 +98,25 @@ public class UserDao {
     }
 
     @Transactional
-    public void deleteUser(Integer id){
+    public void updateUser(UserUpdateRequest request, Integer userId) throws SQLDataException {
+        try{
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            String sql = "UPDATE users as u set u.full_name = :fullName, u.phone_number = :phoneNumber, u.dob = :dob " +
+                    "where u.id = :userId";
+            entityManager.createNativeQuery(sql)
+                    .setParameter("fullName", request.getFullName())
+                    .setParameter("phoneNumber", request.getPhoneNumber())
+                    .setParameter("dob", LocalDate.parse(request.getDob(), formatter))
+                    .setParameter("userId", userId)
+                    .executeUpdate();
+        }
+        catch (Exception ex){
+            throw new SQLDataException(ex.getMessage());
+        }
+    }
+
+    @Transactional
+    public void deleteUser(Integer id) throws SQLDataException {
         try{
             String sql = "DELETE FROM users WHERE id = :userId";
             entityManager.createNativeQuery(sql)
@@ -104,12 +124,12 @@ public class UserDao {
                     .executeUpdate();
         }
         catch (Exception ex){
-            ex.printStackTrace();
+            throw new SQLDataException(ex.getMessage());
         }
     }
 
     @Transactional
-    public Integer existUsername(String username){
+    public Integer existUsername(String username) throws SQLDataException {
         try{
             String sql = "SELECT u.id FROM users AS u WHERE u.username = :username";
             return (Integer) entityManager.createNativeQuery(sql)
@@ -117,13 +137,12 @@ public class UserDao {
                     .getSingleResult();
         }
         catch (Exception ex){
-            ex.printStackTrace();
-            return null;
+            throw new SQLDataException(ex.getMessage());
         }
     }
 
     @Transactional
-    public List<String> getRolesUser(Integer id){
+    public List<String> getRolesUser(Integer id) throws SQLDataException {
         try{
             String sql = "SELECT r.name " +
                     "FROM roles AS r " +
@@ -135,8 +154,7 @@ public class UserDao {
                     .getResultList();
         }
         catch (Exception ex){
-            ex.printStackTrace();
-            return null;
+            throw new SQLDataException(ex.getMessage());
         }
     }
 }

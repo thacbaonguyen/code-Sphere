@@ -19,6 +19,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final JwtFilter jwtFilter;
     private final CustomUserDetailsService customUserDetailsService;
 
+    private static final String[] PUBLIC_MATCHERS = {
+            "/api/v1/auth/login",
+            "/api/v1/auth/signup",
+            "/api/v1/auth/forgot-password",
+            "/api/v1/auth/verify-account",
+            "/api/v1/auth/regenerate-otp",
+            "/api/v1/auth/test",
+            "/api/v1/auth/set-password/**"
+    };
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(customUserDetailsService);
@@ -41,10 +51,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/api/v1/auth/login", "/api/v1/auth/signup", "/api/v1/auth/forgot-password",
-                        "/api/v1/auth/verify-account", "/api/v1/auth/regenerate-otp", "/api/v1/auth/test",
-                                "/api/v1/auth/set-password/**"
-                        ).permitAll()
+                .antMatchers(PUBLIC_MATCHERS).permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(jwtFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
