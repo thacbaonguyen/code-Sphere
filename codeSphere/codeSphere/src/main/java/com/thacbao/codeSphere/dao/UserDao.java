@@ -38,8 +38,6 @@ public class UserDao {
             List<Object[]> results = entityManager.createNativeQuery(sql)
                     .setParameter("userId", id)
                     .getResultList();
-
-            // Ánh xạ kết quả từ Object[] sang UserDTO
             return results.stream()
                     .map(result -> new UserDTO(
                             (String) result[0], // userName
@@ -122,19 +120,6 @@ public class UserDao {
             entityManager.createNativeQuery(sql)
                     .setParameter("userId", id)
                     .executeUpdate();
-        }
-        catch (Exception ex){
-            throw new SQLDataException(ex.getMessage());
-        }
-    }
-
-    @Transactional
-    public Integer existUsername(String username) throws SQLDataException {
-        try{
-            String sql = "SELECT u.id FROM users AS u WHERE u.username = :username";
-            return (Integer) entityManager.createNativeQuery(sql)
-                    .setParameter("username", username)
-                    .getSingleResult();
         }
         catch (Exception ex){
             throw new SQLDataException(ex.getMessage());

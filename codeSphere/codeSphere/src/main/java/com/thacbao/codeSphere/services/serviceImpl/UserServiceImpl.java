@@ -20,7 +20,6 @@ import com.thacbao.codeSphere.services.UserService;
 import com.thacbao.codeSphere.utils.EmailUtilService;
 import com.thacbao.codeSphere.utils.OtpUtils;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.apache.bcel.classfile.Code;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
