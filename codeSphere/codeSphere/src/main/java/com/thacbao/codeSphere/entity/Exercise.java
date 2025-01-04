@@ -44,6 +44,10 @@ public class Exercise {
     @Column(name = "created_at")
     private LocalDate createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
+
     @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Contribute> contributors;
 

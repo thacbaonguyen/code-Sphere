@@ -44,7 +44,7 @@ public class UserController {
         }
         catch (Exception ex) {
             return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, "Internal server error", null), HttpStatus.INTERNAL_SERVER_ERROR);
+                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
