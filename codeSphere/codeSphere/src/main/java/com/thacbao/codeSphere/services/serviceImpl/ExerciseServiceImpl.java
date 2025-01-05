@@ -4,6 +4,7 @@ import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.dao.ExerciseDao;
 import com.thacbao.codeSphere.dto.request.ExerciseRequest;
+import com.thacbao.codeSphere.dto.request.ExerciseUpdateRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.dto.response.ExerciseDTO;
@@ -67,19 +68,6 @@ public class ExerciseServiceImpl implements ExerciseService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getAllExercises() {
-        try {
-            List<ExerciseDTO> exerciseDTOS = exerciseDao.getAllExercise();
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "All exercises successfully", exerciseDTOS), HttpStatus.OK);
-        }
-        catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @Override
     public ResponseEntity<ApiResponse> filterExerciseBySubject(Map<String, String> request) {
         try{
             List<ExerciseDTO> exerciseDTOS = exerciseDao.filterExerciseBySubject(request.get("subject"));
@@ -100,7 +88,74 @@ public class ExerciseServiceImpl implements ExerciseService {
                     ("success", "Exercise details successfully", exerciseDTO), HttpStatus.OK);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @Override
+    public ResponseEntity<ApiResponse> filterExBySubjectAndOrder( Map<String, String> request, String order, String by) {
+        try{
+            List<ExerciseDTO> exerciseDTOS = exerciseDao.filterExerciseBySubjectAndOrder(request.get("subject"), order, by);
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    ("success", "Exercise order by " + by, exerciseDTOS), HttpStatus.OK);
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> activateExercise(Map<String, String> request) {
+        Exercise exercise = exerciseRepository.findByCode(request.get("code"));
+        if(exercise == null){
+            throw new NotFoundException("Exercise not found");
+        }
+        try{
+            exerciseDao.activateExercise(request.get("code"), Boolean.valueOf(request.get("isActive")));
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    ("success", "Activate exercise successfully", null), HttpStatus.OK);
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> updateExercise(ExerciseUpdateRequest request) {
+        Exercise exercise = exerciseRepository.findByCode(request.getCode());
+        if(exercise == null){
+            throw new NotFoundException("Exercise not found");
+        }
+        try {
+            exerciseDao.updateExercise(request);
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    ("success", "Update exercise successfully", null), HttpStatus.OK);
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> deleteExercise(String code) {
+        Exercise exercise = exerciseRepository.findByCode(code);
+        if(exercise == null){
+            throw new NotFoundException("Exercise not found");
+        }
+        try{
+            exerciseDao.deleteExercise(code);
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    ("success", "Delete exercise successfully", null), HttpStatus.OK);
+        }
+        catch (Exception ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse
+                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 }

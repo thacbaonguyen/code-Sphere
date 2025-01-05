@@ -36,19 +36,6 @@ public class ExerciseDTO {
 
     private int memoryLimit;
 
-    public ExerciseDTO(String code, String title, String paper, String input, String output,
-                       String note, String createdBy, String createdAt, String subject) {
-        this.code = code;
-        this.title = title;
-        this.paper = paper;
-        this.input = input;
-        this.output = output;
-        this.note = note;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.subject = subject;
-    }
-
     public ExerciseDTO(String code, String title, String description, int level, String subject) {
         this.code = code;
         this.title = title;
