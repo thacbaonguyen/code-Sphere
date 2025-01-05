@@ -48,4 +48,24 @@ public class ExerciseController {
             return CodeSphereResponse.generateResponse(new ApiResponse("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("/subject")
+    public ResponseEntity<ApiResponse> filterExerciseBySubject(@RequestBody Map<String, String> request) {
+        try{
+            return exerciseService.filterExerciseBySubject(request);
+        }
+        catch (Exception ex) {
+            return CodeSphereResponse.generateResponse(new ApiResponse("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/view/{code}")
+    public ResponseEntity<ApiResponse> viewExerciseDetails(@PathVariable String code) {
+        try{
+            return exerciseService.viewExerciseDetails(code);
+        }
+        catch (Exception ex) {
+            return CodeSphereResponse.generateResponse(new ApiResponse("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

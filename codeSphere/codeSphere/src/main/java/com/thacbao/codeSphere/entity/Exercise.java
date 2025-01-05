@@ -44,13 +44,23 @@ public class Exercise {
     @Column(name = "created_at")
     private LocalDate createdAt;
 
+    @Column(name = "time_limit")
+    private int timeLimit;
+
+    @Column(name = "memory_limit")
+    private int memoryLimit;
+
+    private int level;
+
+    private String description;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
+    private Subject subject;
 
-    @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Contribute> contributors;
-
-    @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CommentExercise> commentExercises;
+//    @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Contribute> contributors;
+//
+//    @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<CommentExercise> commentExercises;
 }

@@ -1,12 +1,14 @@
 package com.thacbao.codeSphere.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.List;
+import lombok.NoArgsConstructor;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExerciseDTO {
     private String code;
 
@@ -24,9 +26,18 @@ public class ExerciseDTO {
 
     private String createdAt;
 
-    private String categories;
+    private String subject;
 
-    public ExerciseDTO(String code, String title, String paper, String input, String output, String note, String createdBy, String createdAt, String categories) {
+    private String description;
+
+    private int level;
+
+    private int timeLimit;
+
+    private int memoryLimit;
+
+    public ExerciseDTO(String code, String title, String paper, String input, String output,
+                       String note, String createdBy, String createdAt, String subject) {
         this.code = code;
         this.title = title;
         this.paper = paper;
@@ -35,6 +46,14 @@ public class ExerciseDTO {
         this.note = note;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
-        this.categories = categories;
+        this.subject = subject;
+    }
+
+    public ExerciseDTO(String code, String title, String description, int level, String subject) {
+        this.code = code;
+        this.title = title;
+        this.description = description;
+        this.level = level;
+        this.subject = subject;
     }
 }

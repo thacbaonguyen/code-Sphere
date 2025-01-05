@@ -30,6 +30,18 @@ public class ExerciseRequest {
 
     private String note;
 
-    @NotNull(message = "Category cannot be empty")
-    private Integer categoryId;
+    @NotNull(message = "Subject cannot be empty")
+    private Integer subjectId;
+
+    @NotBlank(message = "Description cannot be empty")
+    private String description;
+
+    @NotNull(message = "Level cannot be empty")
+    private Integer level;
+
+    @NotNull(message = "Time limit cannot be empty")
+    private Integer timeLimit;
+
+    @NotNull(message = "Memory limit cannot be empty")
+    private Integer memoryLimit;
 }

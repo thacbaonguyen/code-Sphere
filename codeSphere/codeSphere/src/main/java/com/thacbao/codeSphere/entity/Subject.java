@@ -8,13 +8,13 @@ import java.util.List;
 @Entity
 @Table(name = "exercise_categories")
 @Data
-public class Category {
+public class Subject {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String name;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Exercise> exercises;
 }
