@@ -3,7 +3,7 @@ package com.thacbao.codeSphere.controllers;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.dto.request.UserLoginRequest;
 import com.thacbao.codeSphere.dto.request.UserRequest;
-import com.thacbao.codeSphere.dto.request.UserUpdateRequest;
+import com.thacbao.codeSphere.dto.request.UserUdRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.exceptions.AlreadyException;
@@ -140,7 +140,7 @@ public class UserController {
     }
 
     @PutMapping("/update-profile")
-    public ResponseEntity<?> updateProfile(@RequestBody UserUpdateRequest request){
+    public ResponseEntity<?> updateProfile(@RequestBody UserUdRequest request){
         try{
             return userService.updateProfile(request);
         }

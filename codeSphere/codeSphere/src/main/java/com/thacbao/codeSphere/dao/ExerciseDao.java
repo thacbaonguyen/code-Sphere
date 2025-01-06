@@ -1,6 +1,6 @@
 package com.thacbao.codeSphere.dao;
 
-import com.thacbao.codeSphere.dto.request.ExerciseUpdateRequest;
+import com.thacbao.codeSphere.dto.request.ExerciseUdRequest;
 import com.thacbao.codeSphere.dto.response.ExerciseDTO;
 import com.thacbao.codeSphere.exceptions.NotFoundException;
 import org.springframework.stereotype.Service;
@@ -50,7 +50,7 @@ public class ExerciseDao {
                     (search != null ? "and (lower(e.title) like concat('%', :search, '%') " +
                             "or lower(e.code) like concat('%', :search, '%')) " : "") +
                     (order != null && by != null ? " order by " + by + " " + order + " " : "") +
-                    "limit 50 offset :start";
+                    "limit 50 offset :start"; //tham so co dinh se la 50 ban ghi tren 1 trang
             Query query = entityManager.createNativeQuery(sql);
             if(search != null){
                 query.setParameter("search", search);
@@ -94,7 +94,7 @@ public class ExerciseDao {
     }
 
     @Transactional
-    public void updateExercise(ExerciseUpdateRequest request) throws SQLDataException {
+    public void updateExercise(ExerciseUdRequest request) throws SQLDataException {
         try {
             String sql = "UPDATE exercises SET code = :code, title = :title, paper = :paper, input = :input, output = :output, " +
                     "note = :note, description = :description, level = :level, time_limit = :timeLimit, memory_limit = :memoryLimit " +

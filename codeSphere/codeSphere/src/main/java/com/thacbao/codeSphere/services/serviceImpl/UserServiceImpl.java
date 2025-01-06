@@ -9,7 +9,7 @@ import com.thacbao.codeSphere.dao.AuthorizationDao;
 import com.thacbao.codeSphere.dao.UserDao;
 import com.thacbao.codeSphere.dto.request.UserLoginRequest;
 import com.thacbao.codeSphere.dto.request.UserRequest;
-import com.thacbao.codeSphere.dto.request.UserUpdateRequest;
+import com.thacbao.codeSphere.dto.request.UserUdRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.dto.response.UserDTO;
@@ -286,7 +286,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> updateProfile(UserUpdateRequest request) {
+    public ResponseEntity<ApiResponse> updateProfile(UserUdRequest request) {
         User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
                 () -> new NotFoundException("Can not found this user")
         );

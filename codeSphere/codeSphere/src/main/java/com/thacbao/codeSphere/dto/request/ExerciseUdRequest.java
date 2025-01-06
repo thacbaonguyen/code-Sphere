@@ -7,7 +7,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Data
-public class ExerciseUpdateRequest {
+public class ExerciseUdRequest {
     @NotBlank(message = "Code can not be empty")
     @Size(min = 2, max = 10, message = "Code must be between 2 and 10 character")
     private String code;

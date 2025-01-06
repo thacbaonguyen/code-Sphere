@@ -4,7 +4,7 @@ import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.dao.ExerciseDao;
 import com.thacbao.codeSphere.dto.request.ExerciseRequest;
-import com.thacbao.codeSphere.dto.request.ExerciseUpdateRequest;
+import com.thacbao.codeSphere.dto.request.ExerciseUdRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.dto.response.ExerciseDTO;
@@ -21,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.rmi.AlreadyBoundException;
-import java.sql.SQLDataException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -88,9 +87,6 @@ public class ExerciseServiceImpl implements ExerciseService {
             return CodeSphereResponse.generateResponse(new ApiResponse
                     ("success", "Exercise search successfully", exerciseDTOS), HttpStatus.OK);
         }
-        catch (SQLDataException ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse("error", ex.getMessage(), null), HttpStatus.NOT_FOUND);
-        }
         catch (Exception ex){
             return CodeSphereResponse.generateResponse(new ApiResponse
                     ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -115,7 +111,7 @@ public class ExerciseServiceImpl implements ExerciseService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> updateExercise(ExerciseUpdateRequest request) {
+    public ResponseEntity<ApiResponse> updateExercise(ExerciseUdRequest request) {
         Exercise exercise = exerciseRepository.findByCode(request.getCode());
         if(exercise == null){
             throw new NotFoundException("Exercise not found");

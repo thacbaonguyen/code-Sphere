@@ -1,7 +1,7 @@
 package com.thacbao.codeSphere.controllers;
 
 import com.thacbao.codeSphere.dto.request.ExerciseRequest;
-import com.thacbao.codeSphere.dto.request.ExerciseUpdateRequest;
+import com.thacbao.codeSphere.dto.request.ExerciseUdRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.services.ExerciseService;
@@ -79,7 +79,7 @@ public class ExerciseController {
     }
     //update
     @PutMapping("/update")
-    public ResponseEntity<ApiResponse> updateExercise(@Valid @RequestBody ExerciseUpdateRequest request, BindingResult bindingResult) {
+    public ResponseEntity<ApiResponse> updateExercise(@Valid @RequestBody ExerciseUdRequest request, BindingResult bindingResult) {
         try {
             if (bindingResult.hasErrors()) {
                 Map<String, String> errors = new HashMap<>();

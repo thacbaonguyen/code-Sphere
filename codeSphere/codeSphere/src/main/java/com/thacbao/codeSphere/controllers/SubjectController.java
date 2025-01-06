@@ -2,7 +2,7 @@ package com.thacbao.codeSphere.controllers;
 
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
-import com.thacbao.codeSphere.services.serviceImpl.SubjectService;
+import com.thacbao.codeSphere.services.serviceImpl.SubjectServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import java.util.Map;
 public class SubjectController {
 
     @Autowired
-    private SubjectService subjectService;
+    private SubjectServiceImpl subjectService;
 
     @PostMapping("/insert")
     public ResponseEntity<ApiResponse> insert(@RequestBody Map<String, String> request) {

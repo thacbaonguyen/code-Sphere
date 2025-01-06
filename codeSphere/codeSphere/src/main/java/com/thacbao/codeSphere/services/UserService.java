@@ -2,7 +2,7 @@ package com.thacbao.codeSphere.services;
 
 import com.thacbao.codeSphere.dto.request.UserLoginRequest;
 import com.thacbao.codeSphere.dto.request.UserRequest;
-import com.thacbao.codeSphere.dto.request.UserUpdateRequest;
+import com.thacbao.codeSphere.dto.request.UserUdRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.UserDTO;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +31,7 @@ public interface UserService {
 
     ResponseEntity<ApiResponse> changePassword(Map<String, String> request);
 
-    ResponseEntity<ApiResponse> updateProfile(UserUpdateRequest request);
+    ResponseEntity<ApiResponse> updateProfile(UserUdRequest request);
 
     ResponseEntity<?> checkToken();
 }
