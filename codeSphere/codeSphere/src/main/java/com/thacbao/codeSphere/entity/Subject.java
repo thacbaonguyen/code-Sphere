@@ -6,7 +6,7 @@ import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "exercise_categories")
+@Table(name = "subjects")
 @Data
 public class Subject {
     @Id

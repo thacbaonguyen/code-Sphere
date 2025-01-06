@@ -22,15 +22,18 @@ public class ExerciseDao {
     @Transactional
     public List<ExerciseDTO> filterExerciseBySubject(String subject) throws SQLDataException {
         try {
-            String sql = "SELECT e.code, e.title, e.description, e.level, exc.name FROM exercises as e " +
-                    "join exercise_categories as exc on e.category_id = exc.id " +
-                    "where exc.name = :subject";
+            String sql = "SELECT e.code, e.title, e.description, e.level, s.name, e.topic, e.time_limit, e.memory_limit" +
+                    " FROM exercises as e " +
+                    "join subjects as s on e.subject_id = s.id " +
+                    "where s.name = :subject";
             List<Object[]> result = entityManager.createNativeQuery(sql)
                     .setParameter("subject", subject)
                     .getResultList();
             return result.stream().map(rs -> new ExerciseDTO(rs[0].toString(), rs[1].toString(),
                     rs[2].toString(), Integer.parseInt(rs[3].toString()),
-                    rs[4].toString())).collect(Collectors.toList());
+                    rs[4].toString(), rs[5].toString(),
+                    Integer.parseInt(rs[6].toString()), Integer.parseInt(rs[7].toString())))
+                    .collect(Collectors.toList());
         }
         catch (Exception ex){
             throw new SQLDataException(ex.getMessage());
@@ -40,15 +43,15 @@ public class ExerciseDao {
     @Transactional
     public ExerciseDTO viewExerciseDetails(String code) throws SQLDataException {
         try {
-            String sql = "SELECT e.code, e.title, e.paper, e.input, e.output, e.note, e.created_by, e.created_at, ex.name, " +
-                    "e.description, e.level, e.time_limit, e.memory_limit FROM exercises as e " +
-                    "join exercise_categories as ex on e.category_id = ex.id " +
+            String sql = "SELECT e.code, e.title, e.paper, e.input, e.output, e.note, e.created_by, e.created_at, s.name, " +
+                    "e.description, e.level, e.time_limit, e.memory_limit, e.topic FROM exercises as e " +
+                    "join subjects as s on e.subject_id = s.id " +
                     "where e.code = :code";
             Object[] result = (Object[]) entityManager.createNativeQuery(sql).setParameter("code", code).getSingleResult();
             return new ExerciseDTO(result[0].toString(), result[1].toString(), result[2].toString(), result[3].toString(),
                     result[4].toString(), result[5].toString(), result[6].toString(), result[7].toString(), result[8].toString(),
                     result[9].toString(), Integer.parseInt(result[10].toString()),
-                    Integer.parseInt(result[11].toString()), Integer.parseInt(result[12].toString()));
+                    Integer.parseInt(result[11].toString()), Integer.parseInt(result[12].toString()), result[13].toString());
         }
         catch (Exception ex){
             throw new SQLDataException(ex.getMessage());
@@ -58,9 +61,10 @@ public class ExerciseDao {
     @Transactional
     public List<ExerciseDTO> filterExerciseBySubjectAndOrder(String subject, String order, String by) throws SQLDataException {
         try {
-            String sql = "SELECT e.code, e.title, e.description, e.level, exc.name FROM exercises as e " +
-                    "join exercise_categories as exc on e.category_id = exc.id " +
-                    "where exc.name = :subject ";
+            String sql = "SELECT e.code, e.title, e.description, e.level, s.name, e.topic, e.time_limit, e.memory_limit " +
+                    "FROM exercises as e " +
+                    "join subjects as s on e.subject_id = s.id " +
+                    "where s.name = :subject ";
             if (by != null && order != null) {
                 sql += "ORDER BY " + by + " " + order;
             }
@@ -69,7 +73,9 @@ public class ExerciseDao {
                     .getResultList();
             return result.stream().map(rs -> new ExerciseDTO(rs[0].toString(), rs[1].toString(),
                     rs[2].toString(), Integer.parseInt(rs[3].toString()),
-                    rs[4].toString())).collect(Collectors.toList());
+                    rs[4].toString(), rs[5].toString(),
+                    Integer.parseInt(rs[6].toString()), Integer.parseInt(rs[7].toString())))
+                    .collect(Collectors.toList());
         }
         catch (Exception ex){
             throw new SQLDataException(ex.getMessage());

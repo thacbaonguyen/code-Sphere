@@ -33,6 +33,9 @@ public class ExerciseRequest {
     @NotNull(message = "Subject cannot be empty")
     private Integer subjectId;
 
+    @NotBlank(message = "Topic cannot be empty")
+    private String topic;
+
     @NotBlank(message = "Description cannot be empty")
     private String description;
 
