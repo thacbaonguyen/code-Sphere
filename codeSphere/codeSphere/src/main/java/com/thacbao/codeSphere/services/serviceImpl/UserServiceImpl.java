@@ -11,12 +11,12 @@ import com.thacbao.codeSphere.dto.request.UserLoginRequest;
 import com.thacbao.codeSphere.dto.request.UserRequest;
 import com.thacbao.codeSphere.dto.request.UserUdRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.dto.response.UserDTO;
 import com.thacbao.codeSphere.entity.User;
 import com.thacbao.codeSphere.exceptions.*;
 import com.thacbao.codeSphere.repositories.UserRepository;
 import com.thacbao.codeSphere.services.UserService;
+import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import com.thacbao.codeSphere.utils.EmailUtilService;
 import com.thacbao.codeSphere.utils.OtpUtils;
 import lombok.RequiredArgsConstructor;
@@ -91,16 +91,14 @@ public class UserServiceImpl implements UserService {
             newUser.setIsActive(false);
             userRepository.save(newUser);
             // return
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.SUCCESS, "OTP sent to " + userRequest.getEmail() + ", please verify to complete registration",
-                            null), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(null, "OTP sent to " + userRequest.getEmail()
+                    + ", please verify to complete registration", HttpStatus.OK);
         }
         catch (MessagingException ex){
             throw new EmailSenderException(CodeSphereConstants.EMAIL_SENDER_ERROR);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -176,28 +174,21 @@ public class UserServiceImpl implements UserService {
                 String token = jwtUtils.generateToken(username, claim);
                 return new ResponseEntity<>("{\"token\":\"" + token + "\"}", HttpStatus.OK);
             }
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", "Authentication failed", null), HttpStatus.BAD_REQUEST);
+            return CodeSphereResponses.generateResponse(null, "Authentication failed", HttpStatus.FORBIDDEN);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @Override
     public ResponseEntity<ApiResponse> getProfile() {
         try{
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "Get profile successfully",
-                            userDao.getProfile(jwtFilter.getCurrentUsername())), HttpStatus.OK);
-        }
-        catch (SQLDataException exception){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", exception.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse
+                    (userDao.getProfile(jwtFilter.getCurrentUsername()), "Get profile successfully", HttpStatus.OK);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse("error", ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -206,17 +197,14 @@ public class UserServiceImpl implements UserService {
         try{
             if(jwtFilter.isAdmin()){
                 List<UserDTO> users = userDao.getAllUser();
-                return CodeSphereResponse.generateResponse(new ApiResponse
-                        ("success", "Get all user successfully", users), HttpStatus.OK);
+                return CodeSphereResponses.generateResponse(users, "Get all user successfully", HttpStatus.OK);
             }
             else{
-                return CodeSphereResponse.generateResponse(new ApiResponse
-                        ("success", CodeSphereConstants.PERMISSION_DENIED, null), HttpStatus.FORBIDDEN);
+                return CodeSphereResponses.generateResponse(null, CodeSphereConstants.PERMISSION_DENIED, HttpStatus.FORBIDDEN);
             }
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -231,8 +219,8 @@ public class UserServiceImpl implements UserService {
             user.setOTP(otp);
             user.setOtpGenerateTime(LocalDateTime.now());
             userRepository.save(user);
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "OTP sent to " + request.get("email") + ", please verify to reset password", null), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse
+                    (null, "OTP sent to " + request.get("email") + ", please verify to reset password", HttpStatus.OK);
         } catch (MessagingException e) {
             throw new EmailSenderException(CodeSphereConstants.EMAIL_SENDER_ERROR);
         }
@@ -248,16 +236,14 @@ public class UserServiceImpl implements UserService {
                 PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
                 user.setPassword(passwordEncoder.encode(request.get("password")));
                 userRepository.save(user);
-                return CodeSphereResponse.generateResponse(new ApiResponse
-                        ("success", "Password reset successfully", null), HttpStatus.OK);
+                return CodeSphereResponses.generateResponse(null, "Password reset successfully", HttpStatus.OK);
             }
             else{
                 throw new InvalidException("Invalid OTP or OTP expired");
             }
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -271,17 +257,14 @@ public class UserServiceImpl implements UserService {
             if(passwordEncoder.matches(request.get("oldPassword"), user.getPassword())){
                 user.setPassword(passwordEncoder.encode(request.get("newPassword")));
                 userRepository.save(user);
-                return CodeSphereResponse.generateResponse(new ApiResponse
-                        ("success", "Password change successfully", null), HttpStatus.OK);
+                return CodeSphereResponses.generateResponse(null, "Password change successfully", HttpStatus.OK);
             }
             else{
-                return CodeSphereResponse.generateResponse(new ApiResponse
-                        ("error", "Old password is incorrect", null), HttpStatus.BAD_REQUEST);
+                return CodeSphereResponses.generateResponse(null, "Old password is incorrect", HttpStatus.BAD_REQUEST);
             }
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -292,17 +275,15 @@ public class UserServiceImpl implements UserService {
         );
         try{
             userDao.updateUser(request, user.getId());
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "Update profile successfully", null), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(null, "Profile updated successfully", HttpStatus.OK);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @Override
     public ResponseEntity<?> checkToken() {
-        return CodeSphereResponse.generateResponse(new ApiResponse("success", "Check success", null), HttpStatus.OK);
+        return CodeSphereResponses.generateResponse(null, "Check success", HttpStatus.OK);
     }
 }

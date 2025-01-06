@@ -3,8 +3,8 @@ package com.thacbao.codeSphere.controllers;
 import com.thacbao.codeSphere.dto.request.ExerciseRequest;
 import com.thacbao.codeSphere.dto.request.ExerciseUdRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.services.ExerciseService;
+import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,14 +30,12 @@ public class ExerciseController {
                 bindingResult.getFieldErrors().forEach(fieldError -> {
                     errors.put(fieldError.getField(), fieldError.getDefaultMessage());
                 });
-                return CodeSphereResponse.generateResponse(new ApiResponse
-                        ("error", "Validation failed", errors), HttpStatus.BAD_REQUEST);
+                return CodeSphereResponses.generateResponse(errors, "Validation failed", HttpStatus.BAD_REQUEST);
             }
             return exerciseService.insertExercise(request);
         }
         catch (Exception ex) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     //tim kiem bai tai theo mon va cac param
@@ -51,8 +49,7 @@ public class ExerciseController {
             return exerciseService.filterExerciseBySubjectAndParam(request, order, by, search, page);
         }
         catch (Exception ex) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     // xem chi tiet bai  tap cu the
@@ -62,8 +59,7 @@ public class ExerciseController {
             return exerciseService.viewExerciseDetails(code);
         }
         catch (Exception ex) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     // sua doi trang thai cua bai tap
@@ -73,8 +69,7 @@ public class ExerciseController {
             return exerciseService.activateExercise(request);
         }
         catch (Exception ex) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     //update
@@ -86,14 +81,12 @@ public class ExerciseController {
                 bindingResult.getFieldErrors().forEach(fieldError -> {
                     errors.put(fieldError.getField(), fieldError.getDefaultMessage());
                 });
-                return CodeSphereResponse.generateResponse(new ApiResponse
-                        ("error", "Validation failed", errors), HttpStatus.BAD_REQUEST);
+                return CodeSphereResponses.generateResponse(errors, "Validation failed", HttpStatus.BAD_REQUEST);
             }
             return exerciseService.updateExercise(request);
         }
         catch (Exception ex) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     //xoa bai tap the code
@@ -103,8 +96,7 @@ public class ExerciseController {
             return exerciseService.deleteExercise(code);
         }
         catch (Exception ex) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

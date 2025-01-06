@@ -2,12 +2,12 @@ package com.thacbao.codeSphere.services.serviceImpl;
 
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.dto.response.SubjectDTO;
 import com.thacbao.codeSphere.entity.Subject;
 import com.thacbao.codeSphere.exceptions.AlreadyException;
 import com.thacbao.codeSphere.exceptions.PermissionException;
 import com.thacbao.codeSphere.repositories.SubjectRepository;
+import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +33,7 @@ public class SubjectServiceImpl {
             Subject newSubject = new Subject();
             newSubject.setName(request.get("name"));
             subjectRepository.save(newSubject);
-            return CodeSphereResponse.generateResponse(new ApiResponse("success", "Insert subject success", null), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(null, "Insert subject success", HttpStatus.OK);
         }
         else {
             throw new PermissionException("You do not have permission to add new subject");
@@ -48,10 +48,10 @@ public class SubjectServiceImpl {
                 subjectDTO.setName(item.getName());
                 return subjectDTO;
             }).collect(Collectors.toList());
-            return CodeSphereResponse.generateResponse(new ApiResponse("success", "All subjects success", subjectDTOS), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(subjectDTOS, "All subjects success", HttpStatus.OK);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse("error", "Internal Server Error", null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, "Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

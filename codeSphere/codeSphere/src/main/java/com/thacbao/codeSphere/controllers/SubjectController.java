@@ -1,8 +1,8 @@
 package com.thacbao.codeSphere.controllers;
 
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.services.serviceImpl.SubjectServiceImpl;
+import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ public class SubjectController {
             return subjectService.insertNewSubject(request);
         }
         catch (Exception e) {
-            return CodeSphereResponse.generateResponse(new ApiResponse("error", e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -33,7 +33,7 @@ public class SubjectController {
             return subjectService.getAll();
         }
         catch (Exception e) {
-            return CodeSphereResponse.generateResponse(new ApiResponse("error", e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

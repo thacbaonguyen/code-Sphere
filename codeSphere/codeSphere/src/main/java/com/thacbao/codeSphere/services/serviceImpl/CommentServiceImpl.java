@@ -5,7 +5,6 @@ import com.thacbao.codeSphere.dao.CommentExDao;
 import com.thacbao.codeSphere.dto.request.CmExRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CmExHistoryDTO;
-import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.dto.response.CommentExDTO;
 import com.thacbao.codeSphere.entity.CmExHistory;
 import com.thacbao.codeSphere.entity.CommentExercise;
@@ -18,6 +17,7 @@ import com.thacbao.codeSphere.repositories.CmExRepository;
 import com.thacbao.codeSphere.repositories.ExerciseRepository;
 import com.thacbao.codeSphere.repositories.UserRepository;
 import com.thacbao.codeSphere.services.CommentService;
+import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,12 +62,10 @@ public class CommentServiceImpl implements CommentService {
                     .updatedAt(LocalDate.now())
                     .build();
             cmExRepository.save(commentExercise);
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "Insert comment success", null), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(null, "Insert comment success", HttpStatus.OK);
         }
         catch (Exception e) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -75,12 +73,10 @@ public class CommentServiceImpl implements CommentService {
     public ResponseEntity<ApiResponse> getCommentEx(Integer exerciseId) {
         try{
             List<CommentExDTO> commentExDTOS = commentExDao.getCommentEx(exerciseId);
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "Comment ex success", commentExDTOS), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(commentExDTOS, "Comment ex success", HttpStatus.OK);
         }
         catch (Exception e) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -97,16 +93,14 @@ public class CommentServiceImpl implements CommentService {
                 cmExHistory.setUpdatedAt(LocalDateTime.now());
                 cmExHistory.setCommentExercise(commentExercise);
                 cmExHistoryRepository.save(cmExHistory);
-                return CodeSphereResponse.generateResponse(new ApiResponse
-                        ("success", "Update comment success", null), HttpStatus.OK);
+                return CodeSphereResponses.generateResponse(null, "Update comment success", HttpStatus.OK);
             }
             else{
                 throw new PermissionException("You do not have permission to update this comment");
             }
         }
         catch (Exception e) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -114,12 +108,10 @@ public class CommentServiceImpl implements CommentService {
     public ResponseEntity<ApiResponse> getCommentHistory(Integer commentExerciseId) {
         try {
             List<CmExHistoryDTO> cmExHistoryDTOS = commentExDao.getCmExHistory(commentExerciseId);
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "Comment history success", cmExHistoryDTOS), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(cmExHistoryDTOS, "Comment history success", HttpStatus.OK);
         }
         catch (Exception e) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

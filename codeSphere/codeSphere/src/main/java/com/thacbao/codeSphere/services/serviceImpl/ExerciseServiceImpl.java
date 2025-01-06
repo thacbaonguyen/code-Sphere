@@ -6,7 +6,6 @@ import com.thacbao.codeSphere.dao.ExerciseDao;
 import com.thacbao.codeSphere.dto.request.ExerciseRequest;
 import com.thacbao.codeSphere.dto.request.ExerciseUdRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.dto.response.ExerciseDTO;
 import com.thacbao.codeSphere.entity.Subject;
 import com.thacbao.codeSphere.entity.Exercise;
@@ -14,6 +13,7 @@ import com.thacbao.codeSphere.exceptions.NotFoundException;
 import com.thacbao.codeSphere.repositories.SubjectRepository;
 import com.thacbao.codeSphere.repositories.ExerciseRepository;
 import com.thacbao.codeSphere.services.ExerciseService;
+import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -53,17 +53,14 @@ public class ExerciseServiceImpl implements ExerciseService {
                 newExercise.setCreatedBy(jwtFilter.getCurrentUsername());
                 newExercise.setCreatedAt(LocalDate.now());
                 exerciseRepository.save(newExercise);
-                return CodeSphereResponse.generateResponse(new ApiResponse
-                        ("success", "Insert exercise successfully", null), HttpStatus.OK);
+                return CodeSphereResponses.generateResponse(null, "Insert exercise successfully", HttpStatus.OK);
             }
             else{
-                return CodeSphereResponse.generateResponse(new ApiResponse
-                        ("error", CodeSphereConstants.PERMISSION_DENIED, null), HttpStatus.FORBIDDEN);
+                return CodeSphereResponses.generateResponse(null, CodeSphereConstants.PERMISSION_DENIED, HttpStatus.FORBIDDEN);
             }
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -71,12 +68,10 @@ public class ExerciseServiceImpl implements ExerciseService {
     public ResponseEntity<ApiResponse> viewExerciseDetails(String code) {
         try{
             ExerciseDTO exerciseDTO = exerciseDao.viewExerciseDetails(code);
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "Exercise details successfully", exerciseDTO), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(exerciseDTO, "Exercise details successfully", HttpStatus.OK);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -84,12 +79,10 @@ public class ExerciseServiceImpl implements ExerciseService {
     public ResponseEntity<ApiResponse> filterExerciseBySubjectAndParam(Map<String, String> request, String order, String by, String search, Integer page) {
         try {
             List<ExerciseDTO> exerciseDTOS = exerciseDao.filterExerciseBySubjectAndParam(request.get("subject"), order, by, search, page);
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "Exercise search successfully", exerciseDTOS), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(exerciseDTOS, "Exercise search successfully", HttpStatus.OK);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -101,12 +94,10 @@ public class ExerciseServiceImpl implements ExerciseService {
         }
         try{
             exerciseDao.activateExercise(request.get("code"), Boolean.valueOf(request.get("isActive")));
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "Activate exercise successfully", null), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(null, "Activate exercise successfully", HttpStatus.OK);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -118,12 +109,10 @@ public class ExerciseServiceImpl implements ExerciseService {
         }
         try {
             exerciseDao.updateExercise(request);
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "Update exercise successfully", null), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(null, "Update exercise successfully", HttpStatus.OK);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -135,12 +124,10 @@ public class ExerciseServiceImpl implements ExerciseService {
         }
         try{
             exerciseDao.deleteExercise(code);
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "Delete exercise successfully", null), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(null, "Delete exercise successfully", HttpStatus.OK);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

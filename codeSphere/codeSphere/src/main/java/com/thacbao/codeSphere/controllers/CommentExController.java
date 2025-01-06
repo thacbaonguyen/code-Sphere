@@ -2,8 +2,8 @@ package com.thacbao.codeSphere.controllers;
 
 import com.thacbao.codeSphere.dto.request.CmExRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.services.CommentService;
+import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,14 +29,12 @@ public class CommentExController {
                 bindingResult.getFieldErrors().forEach(fieldError -> {
                     errors.put(fieldError.getField(), fieldError.getDefaultMessage());
                 });
-                return CodeSphereResponse.generateResponse(new ApiResponse
-                        ("error", "Validation failed", errors), HttpStatus.BAD_REQUEST);
+                return CodeSphereResponses.generateResponse(errors, "Validation failed", HttpStatus.BAD_REQUEST);
             }
             return commentService.insertComment(request);
         }
         catch (Exception e) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -46,8 +44,7 @@ public class CommentExController {
             return commentService.getCommentEx(exerciseId);
         }
         catch (Exception e) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -57,8 +54,7 @@ public class CommentExController {
             return commentService.updateComment(request);
         }
         catch (Exception e) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -68,7 +64,7 @@ public class CommentExController {
             return commentService.getCommentHistory(commentExerciseId);
         }
         catch (Exception e) {
-            return CodeSphereResponse.generateResponse(new ApiResponse("error", e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

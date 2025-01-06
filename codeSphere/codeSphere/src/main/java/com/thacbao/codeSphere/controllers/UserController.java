@@ -1,13 +1,12 @@
 package com.thacbao.codeSphere.controllers;
 
-import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.dto.request.UserLoginRequest;
 import com.thacbao.codeSphere.dto.request.UserRequest;
 import com.thacbao.codeSphere.dto.request.UserUdRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.CodeSphereResponse;
 import com.thacbao.codeSphere.exceptions.AlreadyException;
 import com.thacbao.codeSphere.services.UserService;
+import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,42 +32,35 @@ public class UserController {
                 bindingResult.getFieldErrors().forEach(error ->
                         errors.put(error.getField(), error.getDefaultMessage())
                 );
-                return CodeSphereResponse.generateResponse(new ApiResponse
-                        (CodeSphereConstants.ERROR, "Validation failed", errors), HttpStatus.BAD_REQUEST);
+                return CodeSphereResponses.generateResponse(errors, "Validation failed", HttpStatus.BAD_REQUEST);
             }
             return userService.signup(userRequest);
         }
         catch (AlreadyException ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
         catch (Exception ex) {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PostMapping("/verify-account")
     public ResponseEntity<ApiResponse> verifyAccount(@RequestBody Map<String, String> request){
         try {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.SUCCESS, userService.verifyAccount(request), null), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(null, userService.verifyAccount(request), HttpStatus.OK);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PostMapping("/regenerate-otp")
     public ResponseEntity<ApiResponse> reGenerateOtp(@RequestBody Map<String, String> request){
         try {
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.SUCCESS, userService.regenerateOtp(request), null), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(null, userService.regenerateOtp(request), HttpStatus.OK);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -78,8 +70,7 @@ public class UserController {
             return userService.login(request);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -89,8 +80,7 @@ public class UserController {
             return userService.getProfile();
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -100,8 +90,7 @@ public class UserController {
             return userService.getAllUser();
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -111,8 +100,7 @@ public class UserController {
             return userService.forgotPassword(request);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -123,8 +111,7 @@ public class UserController {
             return userService.setPassword(email, otp, request);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -134,8 +121,7 @@ public class UserController {
             return userService.changePassword(request);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -145,16 +131,14 @@ public class UserController {
             return userService.updateProfile(request);
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
 
     @GetMapping("/test")
     public ResponseEntity<?> test(){
-        return CodeSphereResponse.generateResponse(new ApiResponse
-                ("success", "get all user", userService.getUserDetails()), HttpStatus.OK);
+        return CodeSphereResponses.generateResponse(userService.getUserDetails(), "get all user", HttpStatus.OK);
     }
 
     @GetMapping("/check-token")
@@ -163,8 +147,7 @@ public class UserController {
             return userService.checkToken();
         }
         catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    (CodeSphereConstants.ERROR, ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
