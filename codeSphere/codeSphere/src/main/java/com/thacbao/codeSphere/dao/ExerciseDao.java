@@ -1,12 +1,13 @@
 package com.thacbao.codeSphere.dao;
 
-import com.thacbao.codeSphere.dto.request.ExerciseRequest;
 import com.thacbao.codeSphere.dto.request.ExerciseUpdateRequest;
 import com.thacbao.codeSphere.dto.response.ExerciseDTO;
+import com.thacbao.codeSphere.exceptions.NotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.transaction.Transactional;
 import java.sql.SQLDataException;
 import java.util.List;
@@ -19,26 +20,8 @@ public class ExerciseDao {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Transactional
-    public List<ExerciseDTO> filterExerciseBySubject(String subject) throws SQLDataException {
-        try {
-            String sql = "SELECT e.code, e.title, e.description, e.level, s.name, e.topic, e.time_limit, e.memory_limit" +
-                    " FROM exercises as e " +
-                    "join subjects as s on e.subject_id = s.id " +
-                    "where s.name = :subject";
-            List<Object[]> result = entityManager.createNativeQuery(sql)
-                    .setParameter("subject", subject)
-                    .getResultList();
-            return result.stream().map(rs -> new ExerciseDTO(rs[0].toString(), rs[1].toString(),
-                    rs[2].toString(), Integer.parseInt(rs[3].toString()),
-                    rs[4].toString(), rs[5].toString(),
-                    Integer.parseInt(rs[6].toString()), Integer.parseInt(rs[7].toString())))
-                    .collect(Collectors.toList());
-        }
-        catch (Exception ex){
-            throw new SQLDataException(ex.getMessage());
-        }
-    }
+    private static final String FIND_ALL = "SELECT e.code, e.title, e.description, e.level, s.name, e.topic, e.time_limit, e.memory_limit FROM exercises e ";
+
 
     @Transactional
     public ExerciseDTO viewExerciseDetails(String code) throws SQLDataException {
@@ -59,22 +42,36 @@ public class ExerciseDao {
     }
 
     @Transactional
-    public List<ExerciseDTO> filterExerciseBySubjectAndOrder(String subject, String order, String by) throws SQLDataException {
+    public List<ExerciseDTO> filterExerciseBySubjectAndParam(String subject, String order, String by, String search, Integer page)
+            throws SQLDataException {
         try {
-            String sql = "SELECT e.code, e.title, e.description, e.level, s.name, e.topic, e.time_limit, e.memory_limit " +
-                    "FROM exercises as e " +
-                    "join subjects as s on e.subject_id = s.id " +
-                    "where s.name = :subject ";
-            if (by != null && order != null) {
-                sql += "ORDER BY " + by + " " + order;
+            String sql = FIND_ALL + "join subjects as s on e.subject_id = s.id " +
+                    "where s.name = :subject " +
+                    (search != null ? "and (lower(e.title) like concat('%', :search, '%') " +
+                            "or lower(e.code) like concat('%', :search, '%')) " : "") +
+                    (order != null && by != null ? " order by " + by + " " + order + " " : "") +
+                    "limit 50 offset :start";
+            Query query = entityManager.createNativeQuery(sql);
+            if(search != null){
+                query.setParameter("search", search);
             }
-            List<Object[]> result = entityManager.createNativeQuery(sql)
-                    .setParameter("subject", subject)
-                    .getResultList();
+            if (order != null && by != null) {
+                //duong dan bi thay doi khong hop le
+                if (!order.equalsIgnoreCase("asc") && !order.equalsIgnoreCase("desc")){
+                    throw new NotFoundException("Cannot found this url");
+                }
+                if(!by.equalsIgnoreCase("code") && !by.equalsIgnoreCase("title")
+                        && !by.equalsIgnoreCase("level")){
+                    throw new NotFoundException("Cannot found this url");
+                }
+            }
+            query.setParameter("subject", subject);
+            query.setParameter("start", (page - 1) * 50);
+            List<Object[]> result = query.getResultList();
             return result.stream().map(rs -> new ExerciseDTO(rs[0].toString(), rs[1].toString(),
-                    rs[2].toString(), Integer.parseInt(rs[3].toString()),
-                    rs[4].toString(), rs[5].toString(),
-                    Integer.parseInt(rs[6].toString()), Integer.parseInt(rs[7].toString())))
+                            rs[2].toString(), Integer.parseInt(rs[3].toString()),
+                            rs[4].toString(), rs[5].toString(),
+                            Integer.parseInt(rs[6].toString()), Integer.parseInt(rs[7].toString())))
                     .collect(Collectors.toList());
         }
         catch (Exception ex){

@@ -10,11 +10,9 @@ import java.util.Map;
 public interface ExerciseService {
     ResponseEntity<ApiResponse> insertExercise(ExerciseRequest request);
 
-    ResponseEntity<ApiResponse> filterExerciseBySubject(Map<String, String> request);
-
     ResponseEntity<ApiResponse> viewExerciseDetails(String code);
 
-    ResponseEntity<ApiResponse> filterExBySubjectAndOrder( Map<String, String> request, String order, String by);
+    ResponseEntity<ApiResponse> filterExerciseBySubjectAndParam(Map<String, String> request, String order, String by, String search, Integer page);
 
     ResponseEntity<ApiResponse> activateExercise(Map<String, String> request);
 

@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.rmi.AlreadyBoundException;
+import java.sql.SQLDataException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -68,19 +69,6 @@ public class ExerciseServiceImpl implements ExerciseService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> filterExerciseBySubject(Map<String, String> request) {
-        try{
-            List<ExerciseDTO> exerciseDTOS = exerciseDao.filterExerciseBySubject(request.get("subject"));
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "All exercise with subject " + request.get("subject") + " success", exerciseDTOS), HttpStatus.OK);
-        }
-        catch (Exception ex){
-            return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("error", ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @Override
     public ResponseEntity<ApiResponse> viewExerciseDetails(String code) {
         try{
             ExerciseDTO exerciseDTO = exerciseDao.viewExerciseDetails(code);
@@ -94,11 +82,14 @@ public class ExerciseServiceImpl implements ExerciseService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> filterExBySubjectAndOrder( Map<String, String> request, String order, String by) {
-        try{
-            List<ExerciseDTO> exerciseDTOS = exerciseDao.filterExerciseBySubjectAndOrder(request.get("subject"), order, by);
+    public ResponseEntity<ApiResponse> filterExerciseBySubjectAndParam(Map<String, String> request, String order, String by, String search, Integer page) {
+        try {
+            List<ExerciseDTO> exerciseDTOS = exerciseDao.filterExerciseBySubjectAndParam(request.get("subject"), order, by, search, page);
             return CodeSphereResponse.generateResponse(new ApiResponse
-                    ("success", "Exercise order by " + by, exerciseDTOS), HttpStatus.OK);
+                    ("success", "Exercise search successfully", exerciseDTOS), HttpStatus.OK);
+        }
+        catch (SQLDataException ex){
+            return CodeSphereResponse.generateResponse(new ApiResponse("error", ex.getMessage(), null), HttpStatus.NOT_FOUND);
         }
         catch (Exception ex){
             return CodeSphereResponse.generateResponse(new ApiResponse

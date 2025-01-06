@@ -67,7 +67,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse> handleSQLDataException(SQLDataException ex) {
         log.error("exception details: ", ex);
         ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(Exception.class)
