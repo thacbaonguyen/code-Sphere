@@ -21,6 +21,8 @@ import com.thacbao.codeSphere.utils.EmailUtilService;
 import com.thacbao.codeSphere.utils.OtpUtils;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,6 +38,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -55,6 +58,7 @@ public class UserServiceImpl implements UserService {
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtUtils jwtUtils;
     private final JwtFilter jwtFilter;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public ResponseEntity<ApiResponse> signup(UserRequest userRequest) throws SQLDataException {
@@ -113,6 +117,7 @@ public class UserServiceImpl implements UserService {
             user.setIsActive(true);
             userRepository.save(user);
             authorizationDao.insertIntoAuthorization(user.getId(), RoleEnum.USER.getId());
+            clearCache("allUser:admin"); // khi user duoc active -> clear cache cua get all user
             return "Account verified successfully";
         }
         else if(!request.get("otp").equals(user.getOTP())){
@@ -164,14 +169,7 @@ public class UserServiceImpl implements UserService {
             );
             if(authentication.isAuthenticated()){
                 String username = customUserDetailsService.getUserDetails().getUsername();
-                Map<String, Object> claim = new HashMap<>();
-                List<String> roles = userDao.getRolesUser(customUserDetailsService.getUserDetails().getId());
-                claim.put("name", customUserDetailsService.getUserDetails().getFullName());
-                claim.put("role", roles);
-                claim.put("dob", customUserDetailsService.getUserDetails().getDob().toString());
-                claim.put("email", customUserDetailsService.getUserDetails().getEmail());
-                claim.put("phoneNumber", customUserDetailsService.getUserDetails().getPhoneNumber());
-                String token = jwtUtils.generateToken(username, claim);
+                String token = jwtUtils.generateToken(username, createClaim());
                 return new ResponseEntity<>("{\"token\":\"" + token + "\"}", HttpStatus.OK);
             }
             return CodeSphereResponses.generateResponse(null, "Authentication failed", HttpStatus.FORBIDDEN);
@@ -183,9 +181,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<ApiResponse> getProfile() {
+        String cacheKey = "updateProfile:user:" + jwtFilter.getCurrentUsername(); // khai bao cache key
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
         try{
+            UserDTO cacheUser = (UserDTO) valueOperations.get(cacheKey);// kiem tra cache
+            if(cacheUser != null){
+                System.out.println("caching profile: " + cacheKey);
+                return CodeSphereResponses.generateResponse(cacheUser, "Profile updated successfully", HttpStatus.OK);
+            }
+            UserDTO userDTO = userDao.getProfile(jwtFilter.getCurrentUsername()); // thuc hien truy van moi neu cache rong
+            valueOperations.set(cacheKey, userDTO, 24, TimeUnit.HOURS);
             return CodeSphereResponses.generateResponse
-                    (userDao.getProfile(jwtFilter.getCurrentUsername()), "Get profile successfully", HttpStatus.OK);
+                    (userDTO, "Get profile successfully", HttpStatus.OK);
         }
         catch (Exception ex){
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -194,9 +201,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<ApiResponse> getAllUser() {
+        String cacheKey = "allUser:admin";
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
         try{
             if(jwtFilter.isAdmin()){
+                List<UserDTO> cacheUsers = (List<UserDTO>) valueOperations.get(cacheKey);
+                if(cacheUsers != null){
+                    System.out.println("caching all users");
+                    return CodeSphereResponses.generateResponse(cacheUsers, "Get all user successfully", HttpStatus.OK);
+                }
                 List<UserDTO> users = userDao.getAllUser();
+                valueOperations.set(cacheKey, users, 24, TimeUnit.HOURS);
                 return CodeSphereResponses.generateResponse(users, "Get all user successfully", HttpStatus.OK);
             }
             else{
@@ -274,7 +289,9 @@ public class UserServiceImpl implements UserService {
                 () -> new NotFoundException("Can not found this user")
         );
         try{
+            String cacheKey = "updateProfile:user:" + jwtFilter.getCurrentUsername();
             userDao.updateUser(request, user.getId());
+            clearCache(cacheKey);
             return CodeSphereResponses.generateResponse(null, "Profile updated successfully", HttpStatus.OK);
         }
         catch (Exception ex){
@@ -285,5 +302,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> checkToken() {
         return CodeSphereResponses.generateResponse(null, "Check success", HttpStatus.OK);
+    }
+
+    private Map<String, Object> createClaim() throws SQLDataException {
+        Map<String, Object> claim = new HashMap<>();
+        List<String> roles = userDao.getRolesUser(customUserDetailsService.getUserDetails().getId());
+        claim.put("name", customUserDetailsService.getUserDetails().getFullName());
+        claim.put("role", roles);
+        claim.put("dob", customUserDetailsService.getUserDetails().getDob().toString());
+        claim.put("email", customUserDetailsService.getUserDetails().getEmail());
+        claim.put("phoneNumber", customUserDetailsService.getUserDetails().getPhoneNumber());
+        return claim;
+    }
+    private void clearCache(String cacheKey){
+        System.out.println("clear cache: " + cacheKey);
+        redisTemplate.delete(redisTemplate.keys(cacheKey + "*"));
     }
 }
