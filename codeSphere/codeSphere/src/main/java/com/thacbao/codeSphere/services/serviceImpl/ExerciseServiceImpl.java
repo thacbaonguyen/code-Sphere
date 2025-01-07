@@ -16,6 +16,8 @@ import com.thacbao.codeSphere.services.ExerciseService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import java.rmi.AlreadyBoundException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +40,8 @@ public class ExerciseServiceImpl implements ExerciseService {
     private final ExerciseDao exerciseDao;
 
     private final SubjectRepository subjectRepository;
+
+    private final RedisTemplate<String, Object> redisTemplate;
     @Override
     public ResponseEntity<ApiResponse> insertExercise(ExerciseRequest request) {
         try{
@@ -53,6 +58,7 @@ public class ExerciseServiceImpl implements ExerciseService {
                 newExercise.setCreatedBy(jwtFilter.getCurrentUsername());
                 newExercise.setCreatedAt(LocalDate.now());
                 exerciseRepository.save(newExercise);
+                clearCache("exerciseFilter:"); // clear cache lay tat ca ex
                 return CodeSphereResponses.generateResponse(null, "Insert exercise successfully", HttpStatus.OK);
             }
             else{
@@ -66,8 +72,16 @@ public class ExerciseServiceImpl implements ExerciseService {
 
     @Override
     public ResponseEntity<ApiResponse> viewExerciseDetails(String code) {
+        String cacheKey = "exerciseDetails:" + code;
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
         try{
+            ExerciseDTO cacheExercise = (ExerciseDTO) valueOperations.get(cacheKey);
+            if(cacheExercise != null){
+                System.out.println("cache ex details" + cacheKey);
+                return CodeSphereResponses.generateResponse(cacheExercise, "Exercise details successfully", HttpStatus.OK);
+            }
             ExerciseDTO exerciseDTO = exerciseDao.viewExerciseDetails(code);
+            valueOperations.set(cacheKey, exerciseDTO, 24, TimeUnit.HOURS);
             return CodeSphereResponses.generateResponse(exerciseDTO, "Exercise details successfully", HttpStatus.OK);
         }
         catch (Exception ex){
@@ -77,8 +91,18 @@ public class ExerciseServiceImpl implements ExerciseService {
 
     @Override
     public ResponseEntity<ApiResponse> filterExerciseBySubjectAndParam(Map<String, String> request, String order, String by, String search, Integer page) {
+        String cacheKey = "exerciseFilter:" + request.get("subject") +
+                (order != null && by != null ? order + ":" + by +":" : "") +
+                (search != null ? search + ":" : "") + page;
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
         try {
+            List<ExerciseDTO> cacheExercises = (List<ExerciseDTO>) valueOperations.get(cacheKey);
+            if(cacheExercises != null){
+                System.out.println("cache ex: " + cacheKey);
+                return CodeSphereResponses.generateResponse(cacheExercises, "Filter exercises successfully", HttpStatus.OK);
+            }
             List<ExerciseDTO> exerciseDTOS = exerciseDao.filterExerciseBySubjectAndParam(request.get("subject"), order, by, search, page);
+            valueOperations.set(cacheKey, exerciseDTOS, 5, TimeUnit.HOURS);
             return CodeSphereResponses.generateResponse(exerciseDTOS, "Exercise search successfully", HttpStatus.OK);
         }
         catch (Exception ex){
@@ -94,6 +118,8 @@ public class ExerciseServiceImpl implements ExerciseService {
         }
         try{
             exerciseDao.activateExercise(request.get("code"), Boolean.valueOf(request.get("isActive")));
+            clearCache("exerciseFilter:" + exercise.getSubject().getName()); // clear cache voi mon hoc
+            clearCache("exerciseDetails:" +request.get("code")); // clear cache view detail
             return CodeSphereResponses.generateResponse(null, "Activate exercise successfully", HttpStatus.OK);
         }
         catch (Exception ex){
@@ -109,6 +135,8 @@ public class ExerciseServiceImpl implements ExerciseService {
         }
         try {
             exerciseDao.updateExercise(request);
+            clearCache("exerciseFilter:" + exercise.getSubject().getName());
+            clearCache("exerciseDetails:" +exercise.getCode());
             return CodeSphereResponses.generateResponse(null, "Update exercise successfully", HttpStatus.OK);
         }
         catch (Exception ex){
@@ -124,6 +152,8 @@ public class ExerciseServiceImpl implements ExerciseService {
         }
         try{
             exerciseDao.deleteExercise(code);
+            clearCache("exerciseFilter:" + exercise.getSubject().getName());
+            clearCache("exerciseDetails:" +exercise.getCode());
             return CodeSphereResponses.generateResponse(null, "Delete exercise successfully", HttpStatus.OK);
         }
         catch (Exception ex){
@@ -131,5 +161,8 @@ public class ExerciseServiceImpl implements ExerciseService {
         }
     }
 
-
+    private void clearCache(String cacheKey) {
+        System.out.println("Clearing cache " + cacheKey);
+        redisTemplate.delete(redisTemplate.keys(cacheKey + "*"));
+    }
 }

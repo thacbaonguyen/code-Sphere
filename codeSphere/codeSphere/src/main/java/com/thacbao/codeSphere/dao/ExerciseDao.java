@@ -46,7 +46,7 @@ public class ExerciseDao {
             throws SQLDataException {
         try {
             String sql = FIND_ALL + "join subjects as s on e.subject_id = s.id " +
-                    "where s.name = :subject " +
+                    "where s.name = :subject and e.is_active = true " +
                     (search != null ? "and (lower(e.title) like concat('%', :search, '%') " +
                             "or lower(e.code) like concat('%', :search, '%')) " : "") +
                     (order != null && by != null ? " order by " + by + " " + order + " " : "") +

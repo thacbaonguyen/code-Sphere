@@ -19,6 +19,7 @@ import com.thacbao.codeSphere.repositories.UserRepository;
 import com.thacbao.codeSphere.services.CommentService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,8 @@ public class CommentServiceImpl implements CommentService {
 
     private final CmExHistoryRepository cmExHistoryRepository;
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     @Override
     public ResponseEntity<ApiResponse> insertComment(CmExRequest request) {
         try {
@@ -62,6 +65,7 @@ public class CommentServiceImpl implements CommentService {
                     .updatedAt(LocalDate.now())
                     .build();
             cmExRepository.save(commentExercise);
+            clearCache("exerciseDetails:" + exercise.getCode()); // khi them moi cmt, xoa cache bai tap
             return CodeSphereResponses.generateResponse(null, "Insert comment success", HttpStatus.OK);
         }
         catch (Exception e) {
@@ -115,5 +119,8 @@ public class CommentServiceImpl implements CommentService {
         }
     }
 
-
+    private void clearCache(String cacheKey) {
+        System.out.println("Clearing cache " + cacheKey);
+        redisTemplate.delete(redisTemplate.keys(cacheKey + "*"));
+    }
 }
