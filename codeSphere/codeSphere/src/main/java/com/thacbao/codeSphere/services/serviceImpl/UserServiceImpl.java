@@ -256,20 +256,17 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email).orElseThrow(
                 ()-> new NotFoundException("Can not found this user")
         );
-        try{
-            if(user.getOTP().equals(otp) && Duration.between(user.getOtpGenerateTime(), LocalDateTime.now()).getSeconds() < (60 * 2)){
-                PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-                user.setPassword(passwordEncoder.encode(request.get("password")));
-                userRepository.save(user);
-                return CodeSphereResponses.generateResponse(null, "Password reset successfully", HttpStatus.OK);
-            }
-            else{
-                throw new InvalidException("Invalid OTP or OTP expired");
-            }
+
+        if(user.getOTP().equals(otp) && Duration.between(user.getOtpGenerateTime(), LocalDateTime.now()).getSeconds() < (60 * 2)){
+            PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+            user.setPassword(passwordEncoder.encode(request.get("password")));
+            userRepository.save(user);
+            return CodeSphereResponses.generateResponse(null, "Password reset successfully", HttpStatus.OK);
         }
-        catch (Exception ex){
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        else{
+            throw new InvalidException("Invalid OTP or OTP expired");
         }
+
     }
 
     @Override

@@ -5,10 +5,11 @@ import com.thacbao.codeSphere.dto.request.ExerciseUdReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 
+import java.rmi.AlreadyBoundException;
 import java.util.Map;
 
 public interface ExerciseService {
-    ResponseEntity<ApiResponse> insertExercise(ExerciseReq request);
+    ResponseEntity<ApiResponse> insertExercise(ExerciseReq request) throws AlreadyBoundException;
 
     ResponseEntity<ApiResponse> viewExerciseDetails(String code);
 

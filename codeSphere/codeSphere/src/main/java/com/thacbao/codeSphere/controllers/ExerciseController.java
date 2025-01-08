@@ -12,6 +12,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.rmi.AlreadyBoundException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,21 +23,16 @@ public class ExerciseController {
     private final ExerciseService exerciseService;
     // tao moi bai tap
     @PostMapping("/insert")
-    public ResponseEntity<ApiResponse> insertExercise(@Valid @RequestBody ExerciseReq request, BindingResult bindingResult) {
+    public ResponseEntity<ApiResponse> insertExercise(@Valid @RequestBody ExerciseReq request, BindingResult bindingResult) throws AlreadyBoundException {
 
-        try {
-            if (bindingResult.hasErrors()) {
-                Map<String, String> errors = new HashMap<>();
-                bindingResult.getFieldErrors().forEach(fieldError -> {
-                    errors.put(fieldError.getField(), fieldError.getDefaultMessage());
-                });
-                return CodeSphereResponses.generateResponse(errors, "Validation failed", HttpStatus.BAD_REQUEST);
-            }
-            return exerciseService.insertExercise(request);
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(fieldError -> {
+                errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+            });
+            return CodeSphereResponses.generateResponse(errors, "Validation failed", HttpStatus.BAD_REQUEST);
         }
-        catch (Exception ex) {
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return exerciseService.insertExercise(request);
     }
     //tim kiem bai tai theo mon va cac param
     @GetMapping("/subject/question")
@@ -45,58 +41,41 @@ public class ExerciseController {
                                                                @RequestParam(required = false) String by,
                                                                @RequestParam(required = false) String search,
                                                                @RequestParam(defaultValue = "1") Integer page) {
-        try{
-            return exerciseService.filterExerciseBySubjectAndParam(request, order, by, search, page);
-        }
-        catch (Exception ex) {
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return exerciseService.filterExerciseBySubjectAndParam(request, order, by, search, page);
+
     }
     // xem chi tiet bai  tap cu the
     @GetMapping("/question/{code}")
     public ResponseEntity<ApiResponse> viewExerciseDetails(@PathVariable String code) {
-        try{
-            return exerciseService.viewExerciseDetails(code);
-        }
-        catch (Exception ex) {
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return exerciseService.viewExerciseDetails(code);
+
     }
     // sua doi trang thai cua bai tap
     @PutMapping("/active")
     public ResponseEntity<ApiResponse> activateExercise(@RequestBody Map<String, String> request) {
-        try {
-            return exerciseService.activateExercise(request);
-        }
-        catch (Exception ex) {
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return exerciseService.activateExercise(request);
+
     }
     //update
     @PutMapping("/update")
     public ResponseEntity<ApiResponse> updateExercise(@Valid @RequestBody ExerciseUdReq request, BindingResult bindingResult) {
-        try {
-            if (bindingResult.hasErrors()) {
-                Map<String, String> errors = new HashMap<>();
-                bindingResult.getFieldErrors().forEach(fieldError -> {
-                    errors.put(fieldError.getField(), fieldError.getDefaultMessage());
-                });
-                return CodeSphereResponses.generateResponse(errors, "Validation failed", HttpStatus.BAD_REQUEST);
-            }
-            return exerciseService.updateExercise(request);
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(fieldError -> {
+                errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+            });
+            return CodeSphereResponses.generateResponse(errors, "Validation failed", HttpStatus.BAD_REQUEST);
         }
-        catch (Exception ex) {
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return exerciseService.updateExercise(request);
     }
     //xoa bai tap the code
     @DeleteMapping("/delete/{code}")
     public ResponseEntity<ApiResponse> deleteExercise(@PathVariable String code) {
-        try {
-            return exerciseService.deleteExercise(code);
-        }
-        catch (Exception ex) {
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return exerciseService.deleteExercise(code);
+
     }
 }

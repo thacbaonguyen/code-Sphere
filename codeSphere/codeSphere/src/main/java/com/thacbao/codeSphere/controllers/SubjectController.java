@@ -2,9 +2,7 @@ package com.thacbao.codeSphere.controllers;
 
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.services.serviceImpl.SubjectServiceImpl;
-import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,21 +17,15 @@ public class SubjectController {
 
     @PostMapping("/insert")
     public ResponseEntity<ApiResponse> insert(@RequestBody Map<String, String> request) {
-        try {
-            return subjectService.insertNewSubject(request);
-        }
-        catch (Exception e) {
-            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return subjectService.insertNewSubject(request);
+
     }
 
     @GetMapping("/all")
     public ResponseEntity<ApiResponse> getAllSubjects() {
-        try {
-            return subjectService.getAll();
-        }
-        catch (Exception e) {
-            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return subjectService.getAll();
+
     }
 }

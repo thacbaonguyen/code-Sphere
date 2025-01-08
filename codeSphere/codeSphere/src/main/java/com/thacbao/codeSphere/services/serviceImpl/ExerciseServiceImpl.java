@@ -43,30 +43,25 @@ public class ExerciseServiceImpl implements ExerciseService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     @Override
-    public ResponseEntity<ApiResponse> insertExercise(ExerciseReq request) {
-        try{
-            if(jwtFilter.isAdmin() || jwtFilter.isManager()){
-                Subject subject = subjectRepository.findById(request.getSubjectId()).orElseThrow(
-                        () -> new NotFoundException("Category not found")
-                );
-                Exercise exercise = exerciseRepository.findByCode(request.getCode());
-                if(exercise != null){
-                    throw new AlreadyBoundException("Exercise already exists");
-                }
-                Exercise newExercise = modelMapper.map(request, Exercise.class);
-                newExercise.setIsActive(true);
-                newExercise.setCreatedBy(jwtFilter.getCurrentUsername());
-                newExercise.setCreatedAt(LocalDate.now());
-                exerciseRepository.save(newExercise);
-                clearCache("exerciseFilter:"); // clear cache lay tat ca ex
-                return CodeSphereResponses.generateResponse(null, "Insert exercise successfully", HttpStatus.OK);
+    public ResponseEntity<ApiResponse> insertExercise(ExerciseReq request) throws AlreadyBoundException {
+        if(jwtFilter.isAdmin() || jwtFilter.isManager()){
+            Subject subject = subjectRepository.findById(request.getSubjectId()).orElseThrow(
+                    () -> new NotFoundException("Category not found")
+            );
+            Exercise exercise = exerciseRepository.findByCode(request.getCode());
+            if(exercise != null){
+                throw new AlreadyBoundException("Exercise already exists");
             }
-            else{
-                return CodeSphereResponses.generateResponse(null, CodeSphereConstants.PERMISSION_DENIED, HttpStatus.FORBIDDEN);
-            }
+            Exercise newExercise = modelMapper.map(request, Exercise.class);
+            newExercise.setIsActive(true);
+            newExercise.setCreatedBy(jwtFilter.getCurrentUsername());
+            newExercise.setCreatedAt(LocalDate.now());
+            exerciseRepository.save(newExercise);
+            clearCache("exerciseFilter:"); // clear cache lay tat ca ex
+            return CodeSphereResponses.generateResponse(null, "Insert exercise successfully", HttpStatus.OK);
         }
-        catch (Exception ex){
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        else{
+            return CodeSphereResponses.generateResponse(null, CodeSphereConstants.PERMISSION_DENIED, HttpStatus.FORBIDDEN);
         }
     }
 

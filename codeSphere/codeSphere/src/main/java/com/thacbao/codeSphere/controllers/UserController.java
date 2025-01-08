@@ -4,7 +4,6 @@ import com.thacbao.codeSphere.dto.request.UserLoginReq;
 import com.thacbao.codeSphere.dto.request.UserReq;
 import com.thacbao.codeSphere.dto.request.UserUdReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.exceptions.AlreadyException;
 import com.thacbao.codeSphere.services.UserService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +13,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.sql.SQLDataException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,114 +25,81 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse> signup(@Valid @RequestBody UserReq userReq, BindingResult bindingResult) {
-        try {
-            if(bindingResult.hasErrors()){
-                Map<String, String> errors = new HashMap<>();
-                bindingResult.getFieldErrors().forEach(error ->
-                        errors.put(error.getField(), error.getDefaultMessage())
-                );
-                return CodeSphereResponses.generateResponse(errors, "Validation failed", HttpStatus.BAD_REQUEST);
-            }
-            return userService.signup(userReq);
+    public ResponseEntity<ApiResponse> signup(@Valid @RequestBody UserReq userReq, BindingResult bindingResult) throws SQLDataException {
+
+        if(bindingResult.hasErrors()){
+            Map<String, String> errors = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(error ->
+                    errors.put(error.getField(), error.getDefaultMessage())
+            );
+            return CodeSphereResponses.generateResponse(errors, "Validation failed", HttpStatus.BAD_REQUEST);
         }
-        catch (AlreadyException ex){
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-        catch (Exception ex) {
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return userService.signup(userReq);
+
     }
 
     @PostMapping("/verify-account")
     public ResponseEntity<ApiResponse> verifyAccount(@RequestBody Map<String, String> request){
-        try {
+
             return CodeSphereResponses.generateResponse(null, userService.verifyAccount(request), HttpStatus.OK);
-        }
-        catch (Exception ex){
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
     }
 
     @PostMapping("/regenerate-otp")
     public ResponseEntity<ApiResponse> reGenerateOtp(@RequestBody Map<String, String> request){
-        try {
-            return CodeSphereResponses.generateResponse(null, userService.regenerateOtp(request), HttpStatus.OK);
-        }
-        catch (Exception ex){
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return CodeSphereResponses.generateResponse(null, userService.regenerateOtp(request), HttpStatus.OK);
+
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserLoginReq request){
-        try {
-            return userService.login(request);
-        }
-        catch (Exception ex){
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return userService.login(request);
+
     }
 
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile(){
-        try {
-            return userService.getProfile();
-        }
-        catch (Exception ex){
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return userService.getProfile();
+
     }
 
     @GetMapping("/all-user")
     public ResponseEntity<?> getAllUser(){
-        try {
-            return userService.getAllUser();
-        }
-        catch (Exception ex){
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return userService.getAllUser();
+
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request){
-        try{
-            return userService.forgotPassword(request);
-        }
-        catch (Exception ex){
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return userService.forgotPassword(request);
+
     }
 
     @PutMapping("/set-password")
     public ResponseEntity<?> setPassword(@RequestParam String email, @RequestParam String otp,
                                          @RequestBody Map<String, String> request){
-        try{
-            return userService.setPassword(email, otp, request);
-        }
-        catch (Exception ex){
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return userService.setPassword(email, otp, request);
+
     }
 
     @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody Map<String, String> request){
-        try{
-            return userService.changePassword(request);
-        }
-        catch (Exception ex){
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return userService.changePassword(request);
+
     }
 
     @PutMapping("/update-profile")
     public ResponseEntity<?> updateProfile(@RequestBody UserUdReq request){
-        try{
-            return userService.updateProfile(request);
-        }
-        catch (Exception ex){
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return userService.updateProfile(request);
+
     }
 
 
@@ -143,11 +110,8 @@ public class UserController {
 
     @GetMapping("/check-token")
     public ResponseEntity<?> checkToken(){
-        try {
-            return userService.checkToken();
-        }
-        catch (Exception ex){
-            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        return userService.checkToken();
+
     }
 }

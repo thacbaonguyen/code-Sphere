@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLDataException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -49,13 +50,13 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public ResponseEntity<ApiResponse> insertComment(CmExReq request) {
+        Exercise exercise = exerciseRepository.findById(request.getExerciseId()).orElseThrow(
+                ()-> new NotFoundException("Exercise not found")
+        );
+        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
+                ()-> new NotFoundException("User not found")
+        );
         try {
-            Exercise exercise = exerciseRepository.findById(request.getExerciseId()).orElseThrow(
-                    ()-> new NotFoundException("Exercise not found")
-            );
-            User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                    ()-> new NotFoundException("User not found")
-            );
             CommentExercise commentExercise = CommentExercise.builder()
                     .exercise(exercise)
                     .user(user)
@@ -74,49 +75,38 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getCommentEx(Integer exerciseId) {
-        try{
-            List<CommentExDTO> commentExDTOS = commentExDao.getCommentEx(exerciseId);
-            return CodeSphereResponses.generateResponse(commentExDTOS, "Comment ex success", HttpStatus.OK);
+    public ResponseEntity<ApiResponse> getCommentEx(Integer exerciseId) throws SQLDataException {
+
+        List<CommentExDTO> commentExDTOS = commentExDao.getCommentEx(exerciseId);
+        return CodeSphereResponses.generateResponse(commentExDTOS, "Comment ex success", HttpStatus.OK);
+
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> updateComment(Map<String, String> request) throws SQLDataException {
+        CommentExercise commentExercise = cmExRepository.findById(Integer.parseInt(request.get("id"))).orElseThrow(
+                () -> new NotFoundException("Cannot found this comment")
+        );
+        if(jwtFilter.getCurrentUsername().equals(commentExercise.getAuthorName())){
+            commentExDao.updateCommentEx(request.get("content"), Integer.parseInt(request.get("id")));
+            CmExHistory cmExHistory = new CmExHistory();
+            cmExHistory.setContent(commentExercise.getContent());
+            cmExHistory.setUpdatedAt(LocalDateTime.now());
+            cmExHistory.setCommentExercise(commentExercise);
+            cmExHistoryRepository.save(cmExHistory);
+            return CodeSphereResponses.generateResponse(null, "Update comment success", HttpStatus.OK);
         }
-        catch (Exception e) {
-            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        else{
+            throw new PermissionException("You do not have permission to update this comment");
         }
     }
 
     @Override
-    public ResponseEntity<ApiResponse> updateComment(Map<String, String> request) {
-        try {
-            CommentExercise commentExercise = cmExRepository.findById(Integer.parseInt(request.get("id"))).orElseThrow(
-                    () -> new NotFoundException("Cannot found this comment")
-            );
-            if(jwtFilter.getCurrentUsername().equals(commentExercise.getAuthorName())){
-                commentExDao.updateCommentEx(request.get("content"), Integer.parseInt(request.get("id")));
-                CmExHistory cmExHistory = new CmExHistory();
-                cmExHistory.setContent(commentExercise.getContent());
-                cmExHistory.setUpdatedAt(LocalDateTime.now());
-                cmExHistory.setCommentExercise(commentExercise);
-                cmExHistoryRepository.save(cmExHistory);
-                return CodeSphereResponses.generateResponse(null, "Update comment success", HttpStatus.OK);
-            }
-            else{
-                throw new PermissionException("You do not have permission to update this comment");
-            }
-        }
-        catch (Exception e) {
-            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+    public ResponseEntity<ApiResponse> getCommentHistory(Integer commentExerciseId) throws SQLDataException {
 
-    @Override
-    public ResponseEntity<ApiResponse> getCommentHistory(Integer commentExerciseId) {
-        try {
             List<CmExHistoryDTO> cmExHistoryDTOS = commentExDao.getCmExHistory(commentExerciseId);
             return CodeSphereResponses.generateResponse(cmExHistoryDTOS, "Comment history success", HttpStatus.OK);
-        }
-        catch (Exception e) {
-            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
     }
 
     private void clearCache(String cacheKey) {
