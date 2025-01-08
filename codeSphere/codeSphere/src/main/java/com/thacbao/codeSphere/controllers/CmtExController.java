@@ -1,6 +1,6 @@
 package com.thacbao.codeSphere.controllers;
 
-import com.thacbao.codeSphere.dto.request.CmExRequest;
+import com.thacbao.codeSphere.dto.request.CmExReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.services.CommentService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
@@ -17,12 +17,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/comment-ex")
 @RequiredArgsConstructor
-public class CommentExController {
+public class CmtExController {
 
     private final CommentService commentService;
 
     @PostMapping("/insert")
-    public ResponseEntity<ApiResponse> insertCommentEx(@Valid @RequestBody CmExRequest request, BindingResult bindingResult) {
+    public ResponseEntity<ApiResponse> insertCommentEx(@Valid @RequestBody CmExReq request, BindingResult bindingResult) {
         try {
             if (bindingResult.hasErrors()) {
                 Map<String, String> errors = new HashMap<>();

@@ -6,7 +6,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class CmExRequest {
+public class CmExReq {
     @NotBlank(message = "content cannot be empty")
     private String content;
 

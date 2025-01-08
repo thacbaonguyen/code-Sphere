@@ -1,13 +1,17 @@
 package com.thacbao.codeSphere.dto.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Data
-public class ExerciseUdRequest {
+@AllArgsConstructor
+@NoArgsConstructor
+public class ExerciseReq {
     @NotBlank(message = "Code can not be empty")
     @Size(min = 2, max = 10, message = "Code must be between 2 and 10 character")
     private String code;
@@ -25,6 +29,12 @@ public class ExerciseUdRequest {
     private String output;
 
     private String note;
+
+    @NotNull(message = "Subject cannot be empty")
+    private Integer subjectId;
+
+    @NotBlank(message = "Topic cannot be empty")
+    private String topic;
 
     @NotBlank(message = "Description cannot be empty")
     private String description;

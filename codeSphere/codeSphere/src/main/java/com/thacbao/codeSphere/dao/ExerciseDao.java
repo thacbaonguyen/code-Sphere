@@ -1,6 +1,6 @@
 package com.thacbao.codeSphere.dao;
 
-import com.thacbao.codeSphere.dto.request.ExerciseUdRequest;
+import com.thacbao.codeSphere.dto.request.ExerciseUdReq;
 import com.thacbao.codeSphere.dto.response.ExerciseDTO;
 import com.thacbao.codeSphere.exceptions.NotFoundException;
 import org.springframework.stereotype.Service;
@@ -94,7 +94,7 @@ public class ExerciseDao {
     }
 
     @Transactional
-    public void updateExercise(ExerciseUdRequest request) throws SQLDataException {
+    public void updateExercise(ExerciseUdReq request) throws SQLDataException {
         try {
             String sql = "UPDATE exercises SET code = :code, title = :title, paper = :paper, input = :input, output = :output, " +
                     "note = :note, description = :description, level = :level, time_limit = :timeLimit, memory_limit = :memoryLimit " +

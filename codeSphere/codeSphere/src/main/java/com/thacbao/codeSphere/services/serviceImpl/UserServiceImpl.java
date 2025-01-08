@@ -7,9 +7,9 @@ import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.constants.RoleEnum;
 import com.thacbao.codeSphere.dao.AuthorizationDao;
 import com.thacbao.codeSphere.dao.UserDao;
-import com.thacbao.codeSphere.dto.request.UserLoginRequest;
-import com.thacbao.codeSphere.dto.request.UserRequest;
-import com.thacbao.codeSphere.dto.request.UserUdRequest;
+import com.thacbao.codeSphere.dto.request.UserLoginReq;
+import com.thacbao.codeSphere.dto.request.UserReq;
+import com.thacbao.codeSphere.dto.request.UserUdReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.UserDTO;
 import com.thacbao.codeSphere.entity.User;
@@ -20,6 +20,7 @@ import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import com.thacbao.codeSphere.utils.EmailUtilService;
 import com.thacbao.codeSphere.utils.OtpUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -42,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
@@ -61,9 +63,9 @@ public class UserServiceImpl implements UserService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
-    public ResponseEntity<ApiResponse> signup(UserRequest userRequest) throws SQLDataException {
-        Optional<User> user = userRepository.findByUsername(userRequest.getUsername());
-        Optional<User> userByEmail = userRepository.findByEmail(userRequest.getEmail());
+    public ResponseEntity<ApiResponse> signup(UserReq userReq) throws SQLDataException {
+        Optional<User> user = userRepository.findByUsername(userReq.getUsername());
+        Optional<User> userByEmail = userRepository.findByEmail(userReq.getEmail());
         if(user.isPresent()){
             if(user.get().getIsActive()){
                 throw new AlreadyException("This username already exists");
@@ -82,12 +84,12 @@ public class UserServiceImpl implements UserService {
         }
         try{
             String OTP = otpUtils.generateOtp();
-            emailUtilService.sentOtpEmail(userRequest.getEmail(), OTP);
+            emailUtilService.sentOtpEmail(userReq.getEmail(), OTP);
             // pw encoder
             PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-            userRequest.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+            userReq.setPassword(passwordEncoder.encode(userReq.getPassword()));
             // new user
-            User newUser = modelMapper.map(userRequest, User.class);
+            User newUser = modelMapper.map(userReq, User.class);
             newUser.setOTP(OTP);
             newUser.setOtpGenerateTime(LocalDateTime.now());
             newUser.setCreatedAt(LocalDate.now());
@@ -95,7 +97,7 @@ public class UserServiceImpl implements UserService {
             newUser.setIsActive(false);
             userRepository.save(newUser);
             // return
-            return CodeSphereResponses.generateResponse(null, "OTP sent to " + userRequest.getEmail()
+            return CodeSphereResponses.generateResponse(null, "OTP sent to " + userReq.getEmail()
                     + ", please verify to complete registration", HttpStatus.OK);
         }
         catch (MessagingException ex){
@@ -151,7 +153,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<?> login(UserLoginRequest request) {
+    public ResponseEntity<?> login(UserLoginReq request) {
+        String cacheKey = "user:jwt:" + request.getUsername();
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         User user = userRepository.findByUsername(request.getUsername()).orElseThrow(
                 () -> new NotFoundException("Can not found this user")
         );
@@ -168,8 +172,14 @@ public class UserServiceImpl implements UserService {
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
             if(authentication.isAuthenticated()){
+                String cacheToken = (String) ops.get(cacheKey);
+                if(cacheToken != null){
+                    log.info("cache jwt token {}", cacheKey);
+                    return new ResponseEntity<>("{\"token\":\"" + cacheToken + "\"}", HttpStatus.OK);
+                }
                 String username = customUserDetailsService.getUserDetails().getUsername();
                 String token = jwtUtils.generateToken(username, createClaim());
+                ops.set(cacheKey, token, 24, TimeUnit.HOURS);
                 return new ResponseEntity<>("{\"token\":\"" + token + "\"}", HttpStatus.OK);
             }
             return CodeSphereResponses.generateResponse(null, "Authentication failed", HttpStatus.FORBIDDEN);
@@ -186,7 +196,7 @@ public class UserServiceImpl implements UserService {
         try{
             UserDTO cacheUser = (UserDTO) valueOperations.get(cacheKey);// kiem tra cache
             if(cacheUser != null){
-                System.out.println("caching profile: " + cacheKey);
+                log.info("caching profile: {} ", cacheKey);
                 return CodeSphereResponses.generateResponse(cacheUser, "Profile updated successfully", HttpStatus.OK);
             }
             UserDTO userDTO = userDao.getProfile(jwtFilter.getCurrentUsername()); // thuc hien truy van moi neu cache rong
@@ -207,7 +217,7 @@ public class UserServiceImpl implements UserService {
             if(jwtFilter.isAdmin()){
                 List<UserDTO> cacheUsers = (List<UserDTO>) valueOperations.get(cacheKey);
                 if(cacheUsers != null){
-                    System.out.println("caching all users");
+                    log.info("caching all users: {}", cacheKey);
                     return CodeSphereResponses.generateResponse(cacheUsers, "Get all user successfully", HttpStatus.OK);
                 }
                 List<UserDTO> users = userDao.getAllUser();
@@ -284,7 +294,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> updateProfile(UserUdRequest request) {
+    public ResponseEntity<ApiResponse> updateProfile(UserUdReq request) {
         User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
                 () -> new NotFoundException("Can not found this user")
         );
@@ -315,7 +325,7 @@ public class UserServiceImpl implements UserService {
         return claim;
     }
     private void clearCache(String cacheKey){
-        System.out.println("clear cache: " + cacheKey);
+        log.info("clear cache {} ", cacheKey);
         redisTemplate.delete(redisTemplate.keys(cacheKey + "*"));
     }
 }

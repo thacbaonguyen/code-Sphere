@@ -4,7 +4,7 @@ import com.thacbao.codeSphere.validations.ValidDob;
 import lombok.Data;
 
 @Data
-public class UserUdRequest {
+public class UserUdReq {
     private String fullName;
 
     private String phoneNumber;

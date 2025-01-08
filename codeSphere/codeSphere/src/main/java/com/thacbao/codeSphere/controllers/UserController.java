@@ -1,8 +1,8 @@
 package com.thacbao.codeSphere.controllers;
 
-import com.thacbao.codeSphere.dto.request.UserLoginRequest;
-import com.thacbao.codeSphere.dto.request.UserRequest;
-import com.thacbao.codeSphere.dto.request.UserUdRequest;
+import com.thacbao.codeSphere.dto.request.UserLoginReq;
+import com.thacbao.codeSphere.dto.request.UserReq;
+import com.thacbao.codeSphere.dto.request.UserUdReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.exceptions.AlreadyException;
 import com.thacbao.codeSphere.services.UserService;
@@ -25,7 +25,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse> signup(@Valid @RequestBody UserRequest userRequest, BindingResult bindingResult) {
+    public ResponseEntity<ApiResponse> signup(@Valid @RequestBody UserReq userReq, BindingResult bindingResult) {
         try {
             if(bindingResult.hasErrors()){
                 Map<String, String> errors = new HashMap<>();
@@ -34,7 +34,7 @@ public class UserController {
                 );
                 return CodeSphereResponses.generateResponse(errors, "Validation failed", HttpStatus.BAD_REQUEST);
             }
-            return userService.signup(userRequest);
+            return userService.signup(userReq);
         }
         catch (AlreadyException ex){
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.BAD_REQUEST);
@@ -65,7 +65,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserLoginRequest request){
+    public ResponseEntity<?> login(@RequestBody UserLoginReq request){
         try {
             return userService.login(request);
         }
@@ -126,7 +126,7 @@ public class UserController {
     }
 
     @PutMapping("/update-profile")
-    public ResponseEntity<?> updateProfile(@RequestBody UserUdRequest request){
+    public ResponseEntity<?> updateProfile(@RequestBody UserUdReq request){
         try{
             return userService.updateProfile(request);
         }

@@ -2,6 +2,7 @@ package com.thacbao.codeSphere.dao;
 
 import com.thacbao.codeSphere.dto.response.CmExHistoryDTO;
 import com.thacbao.codeSphere.dto.response.CommentExDTO;
+import com.thacbao.codeSphere.entity.CommentExercise;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -13,10 +14,15 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class CommentExDao {
+public class CmtExDao {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    @Transactional
+    public void save(CommentExercise commentExercise) {
+        entityManager.persist(commentExercise);
+    }
 
     @Transactional
     public List<CommentExDTO> getCommentEx(Integer exerciseId) throws SQLDataException {

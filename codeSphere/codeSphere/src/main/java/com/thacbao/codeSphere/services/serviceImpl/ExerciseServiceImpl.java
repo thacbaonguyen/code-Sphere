@@ -3,8 +3,8 @@ package com.thacbao.codeSphere.services.serviceImpl;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.dao.ExerciseDao;
-import com.thacbao.codeSphere.dto.request.ExerciseRequest;
-import com.thacbao.codeSphere.dto.request.ExerciseUdRequest;
+import com.thacbao.codeSphere.dto.request.ExerciseReq;
+import com.thacbao.codeSphere.dto.request.ExerciseUdReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.ExerciseDTO;
 import com.thacbao.codeSphere.entity.Subject;
@@ -43,7 +43,7 @@ public class ExerciseServiceImpl implements ExerciseService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     @Override
-    public ResponseEntity<ApiResponse> insertExercise(ExerciseRequest request) {
+    public ResponseEntity<ApiResponse> insertExercise(ExerciseReq request) {
         try{
             if(jwtFilter.isAdmin() || jwtFilter.isManager()){
                 Subject subject = subjectRepository.findById(request.getSubjectId()).orElseThrow(
@@ -128,7 +128,7 @@ public class ExerciseServiceImpl implements ExerciseService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> updateExercise(ExerciseUdRequest request) {
+    public ResponseEntity<ApiResponse> updateExercise(ExerciseUdReq request) {
         Exercise exercise = exerciseRepository.findByCode(request.getCode());
         if(exercise == null){
             throw new NotFoundException("Exercise not found");

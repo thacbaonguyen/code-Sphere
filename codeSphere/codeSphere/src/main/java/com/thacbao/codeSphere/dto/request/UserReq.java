@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserRequest {
+public class UserReq {
     @NotBlank(message = "Username cannot be blank")
     @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
     @ValidUsername(message = "Username must only contain letters, numbers, and underscores")

@@ -17,32 +17,17 @@ public class JwtUtils {
     @Value("${jwt.secretKey}")
     private String secretKey;
 
-    private static final String REDIS_KEY_PREFIX = "jwt:";
-    private static final Long EXPIRATION_TIME = 10 * 60 * 60 * 1000L;
-
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
     public String generateToken(String username, Map<String, Object> claim){
-        if(redisTemplate.opsForValue().get(REDIS_KEY_PREFIX + username) != null){ // neu token da duoc cache-> tra ve cache da luu
-            System.out.println("Caching token: " + username);
-            return redisTemplate.opsForValue().get(REDIS_KEY_PREFIX + username);
-        }
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", username);
         for (Map.Entry<String, Object> entry : claim.entrySet()) {
             claims.put(entry.getKey(), entry.getValue());
         }
-        String token = createToken(claims, username);
-        saveToken(token, username); // cache rong -> tao moi token va push vao cache
-        return token;
+        return createToken(claims, username);
     }
-
-    private void saveToken(String token, String username){
-        ValueOperations<String, String> ops = redisTemplate.opsForValue();
-        ops.set(REDIS_KEY_PREFIX + username, token, EXPIRATION_TIME, TimeUnit.MILLISECONDS);
-    }
-
     private String createToken(Map<String, Object> claims, String username) {
         return Jwts.builder()
                 .setClaims(claims)

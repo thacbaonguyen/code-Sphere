@@ -1,8 +1,8 @@
 package com.thacbao.codeSphere.services.serviceImpl;
 
 import com.thacbao.codeSphere.configurations.JwtFilter;
-import com.thacbao.codeSphere.dao.CommentExDao;
-import com.thacbao.codeSphere.dto.request.CmExRequest;
+import com.thacbao.codeSphere.dao.CmtExDao;
+import com.thacbao.codeSphere.dto.request.CmExReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.CmExHistoryDTO;
 import com.thacbao.codeSphere.dto.response.CommentExDTO;
@@ -41,14 +41,14 @@ public class CommentServiceImpl implements CommentService {
 
     private final ExerciseRepository exerciseRepository;
 
-    private final CommentExDao commentExDao;
+    private final CmtExDao commentExDao;
 
     private final CmExHistoryRepository cmExHistoryRepository;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
-    public ResponseEntity<ApiResponse> insertComment(CmExRequest request) {
+    public ResponseEntity<ApiResponse> insertComment(CmExReq request) {
         try {
             Exercise exercise = exerciseRepository.findById(request.getExerciseId()).orElseThrow(
                     ()-> new NotFoundException("Exercise not found")
@@ -64,7 +64,7 @@ public class CommentServiceImpl implements CommentService {
                     .createdAt(LocalDate.now())
                     .updatedAt(LocalDate.now())
                     .build();
-            cmExRepository.save(commentExercise);
+            commentExDao.save(commentExercise);
             clearCache("exerciseDetails:" + exercise.getCode()); // khi them moi cmt, xoa cache bai tap
             return CodeSphereResponses.generateResponse(null, "Insert comment success", HttpStatus.OK);
         }

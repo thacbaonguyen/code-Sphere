@@ -1,6 +1,6 @@
 package com.thacbao.codeSphere.dao;
 
-import com.thacbao.codeSphere.dto.request.UserUdRequest;
+import com.thacbao.codeSphere.dto.request.UserUdReq;
 import com.thacbao.codeSphere.dto.response.UserDTO;
 import com.thacbao.codeSphere.entity.User;
 import org.springframework.stereotype.Service;
@@ -96,7 +96,7 @@ public class UserDao {
     }
 
     @Transactional
-    public void updateUser(UserUdRequest request, Integer userId) throws SQLDataException {
+    public void updateUser(UserUdReq request, Integer userId) throws SQLDataException {
         try{
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
             String sql = "UPDATE users as u set u.full_name = :fullName, u.phone_number = :phoneNumber, u.dob = :dob " +
