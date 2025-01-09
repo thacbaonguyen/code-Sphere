@@ -4,7 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "tags")
@@ -19,6 +21,6 @@ public class Tag {
     @Column(nullable = false, length = 255)
     private String name;
 
-    @OneToMany(mappedBy = "tag", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OnTag> onTags;
+    @ManyToMany(mappedBy = "tags")
+    private Set<Blog> blogs = new HashSet<>();
 }

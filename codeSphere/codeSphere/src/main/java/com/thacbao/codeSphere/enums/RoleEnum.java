@@ -1,4 +1,4 @@
-package com.thacbao.codeSphere.constants;
+package com.thacbao.codeSphere.enums;
 
 import lombok.Getter;
 
