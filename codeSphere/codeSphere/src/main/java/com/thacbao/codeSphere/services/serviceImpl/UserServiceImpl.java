@@ -4,7 +4,7 @@ import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.configurations.JwtUtils;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
-import com.thacbao.codeSphere.constants.RoleEnum;
+import com.thacbao.codeSphere.enums.RoleEnum;
 import com.thacbao.codeSphere.dao.AuthorizationDao;
 import com.thacbao.codeSphere.dao.UserDao;
 import com.thacbao.codeSphere.dto.request.UserLoginReq;
