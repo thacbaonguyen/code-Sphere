@@ -93,10 +93,10 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
     @Override
     public ResponseEntity<ApiResponse> viewFile(String filename) {
         SolutionStorage storage = solutionRepository.findByFilename(filename).orElseThrow(
-                () -> new NotFoundException("Solution not found")
+                () -> new NotFoundException("Solution not found!")
         );
         if (!storage.getUser().getUsername().equals(jwtFilter.getCurrentUsername())){
-            throw new PermissionException("You do not have permission to view file");
+            throw new PermissionException("You do not have permission to view file!");
         }
         try {
             S3Object s3Object = amazonS3.getObject(bucket, filename);
