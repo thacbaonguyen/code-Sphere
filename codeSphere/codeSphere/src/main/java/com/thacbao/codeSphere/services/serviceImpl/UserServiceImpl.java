@@ -1,5 +1,9 @@
 package com.thacbao.codeSphere.services.serviceImpl;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.S3Object;
 import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.configurations.JwtUtils;
@@ -21,10 +25,17 @@ import com.thacbao.codeSphere.utils.EmailUtilService;
 import com.thacbao.codeSphere.utils.OtpUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.BinaryCodec;
+import org.apache.commons.codec.binary.Hex;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,8 +43,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
+import java.io.IOException;
 import java.sql.SQLDataException;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -61,6 +74,10 @@ public class UserServiceImpl implements UserService {
     private final JwtUtils jwtUtils;
     private final JwtFilter jwtFilter;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final AmazonS3 amazonS3;
+
+    @Value("${cloud.aws.s3.bucketAvatar}")
+    private String bucket;
 
     @Override
     public ResponseEntity<ApiResponse> signup(UserReq userReq) throws SQLDataException {
@@ -210,6 +227,58 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public ResponseEntity<ApiResponse> uploadAvatarProfile(MultipartFile file) {
+        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
+                () -> new NotFoundException("Can not found this user")
+        );
+        try {
+            if(file == null ){
+                return CodeSphereResponses.generateResponse(null, "Not found file", HttpStatus.BAD_REQUEST);
+            }
+            if (file.getSize() == 0){
+                return CodeSphereResponses.generateResponse(null, "File is empty", HttpStatus.BAD_REQUEST);
+            }
+            String contentType = file.getContentType();
+            if (!contentType.startsWith("image/")) {
+                return CodeSphereResponses.generateResponse(null, "File is not an image", HttpStatus.BAD_REQUEST);
+            }
+            long maxSize = 5 * 1024 * 1024;
+            if (file.getSize() > maxSize) {
+                return CodeSphereResponses.generateResponse(null, "File is too large", HttpStatus.BAD_REQUEST);
+            }
+            String oldFileName = user.getAvatar();
+            String fileName = uploadToS3(file);
+            user.setAvatar(fileName);
+            userRepository.save(user);
+            if (oldFileName != null) {
+                deleteToS3(oldFileName);
+            }
+            return CodeSphereResponses.generateResponse(fileName, "Avatar upload successfully", HttpStatus.OK);
+        }
+        catch (Exception ex){
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> viewAvatar() {
+        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
+                () -> new NotFoundException("Can not found this user")
+        );
+        try{
+            S3Object s3Object = amazonS3.getObject(new GetObjectRequest(bucket, user.getAvatar()));
+            byte[] bytes = s3Object.getObjectContent().readAllBytes();// lay dang bytes
+
+            String base64 = Base64.getEncoder().encodeToString(bytes);// decode sang base64
+
+            return CodeSphereResponses.generateResponse(base64, "Avatar view successfully", HttpStatus.OK);
+        }
+        catch (Exception ex){
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
     public ResponseEntity<ApiResponse> getAllUser() {
         String cacheKey = "allUser:admin";
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
@@ -324,5 +393,17 @@ public class UserServiceImpl implements UserService {
     private void clearCache(String cacheKey){
         log.info("clear cache {} ", cacheKey);
         redisTemplate.delete(redisTemplate.keys(cacheKey + "*"));
+    }
+
+    private String uploadToS3(MultipartFile file) throws IOException {
+        String fileName = UUID.randomUUID().toString() + "-" + LocalDate.now().toString() + file.getOriginalFilename();
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentType(file.getContentType());
+        metadata.setContentLength(file.getSize());
+        amazonS3.putObject(bucket, fileName, file.getInputStream(), metadata);
+        return fileName;
+    }
+    private void deleteToS3(String oldFileName) {
+        amazonS3.deleteObject(bucket, oldFileName);
     }
 }

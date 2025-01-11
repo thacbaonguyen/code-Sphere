@@ -51,6 +51,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(AppException.class)
+    public ResponseEntity<ApiResponse> handleAppException(AppException ex) {
+        log.error("exception details: ", ex);
+        ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
     //handle input
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {

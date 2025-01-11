@@ -6,6 +6,7 @@ import com.thacbao.codeSphere.dto.request.UserUdReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.UserDTO;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.SQLDataException;
 import java.util.List;
@@ -22,6 +23,10 @@ public interface UserService {
     ResponseEntity<?> login(UserLoginReq request);
 
     ResponseEntity<ApiResponse> getProfile();
+
+    ResponseEntity<ApiResponse> uploadAvatarProfile(MultipartFile file);
+
+    ResponseEntity<ApiResponse> viewAvatar();
 
     ResponseEntity<ApiResponse> getAllUser();
 

@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.sql.SQLDataException;
@@ -64,6 +65,16 @@ public class UserController {
 
         return userService.getProfile();
 
+    }
+
+    @PostMapping("/file/upload/avatar")
+    public ResponseEntity<ApiResponse> uploadAvatar(@RequestParam("file") MultipartFile file){
+        return userService.uploadAvatarProfile(file);
+    }
+
+    @GetMapping("/file/view/avatar")
+    public ResponseEntity<ApiResponse> getAvatar(){
+        return userService.viewAvatar();
     }
 
     @GetMapping("/all-user")

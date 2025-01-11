@@ -52,6 +52,8 @@ public class User {
     @Column(name = "updated_at")
     private LocalDate updatedAt;
 
+    private String avatar;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Authorization> authorizations;
 
