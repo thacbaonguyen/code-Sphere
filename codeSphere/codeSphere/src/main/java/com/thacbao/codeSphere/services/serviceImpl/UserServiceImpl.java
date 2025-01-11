@@ -1,6 +1,8 @@
 package com.thacbao.codeSphere.services.serviceImpl;
 
+import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
@@ -47,6 +49,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
 import java.io.IOException;
+import java.net.URL;
 import java.sql.SQLDataException;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -266,12 +269,13 @@ public class UserServiceImpl implements UserService {
                 () -> new NotFoundException("Can not found this user")
         );
         try{
-            S3Object s3Object = amazonS3.getObject(new GetObjectRequest(bucket, user.getAvatar()));
-            byte[] bytes = s3Object.getObjectContent().readAllBytes();// lay dang bytes
-
-            String base64 = Base64.getEncoder().encodeToString(bytes);// decode sang base64
-
-            return CodeSphereResponses.generateResponse(base64, "Avatar view successfully", HttpStatus.OK);
+            Date expiration = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
+            GeneratePresignedUrlRequest preSignedUrlRequest = new GeneratePresignedUrlRequest
+                    (bucket, user.getAvatar())
+                    .withExpiration(expiration)
+                    .withMethod(HttpMethod.GET);
+            URL url = amazonS3.generatePresignedUrl(preSignedUrlRequest);
+            return CodeSphereResponses.generateResponse(url, "Avatar view successfully", HttpStatus.OK);
         }
         catch (Exception ex){
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);

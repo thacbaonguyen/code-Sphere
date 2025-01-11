@@ -24,6 +24,11 @@ public class SolutionStorageController {
         return storageService.viewFile(filename);
     }
 
+    @GetMapping("/files/download/{file-name}")
+    public ResponseEntity<?> download(@PathVariable("file-name") String filename) {
+        return storageService.downloadFile(filename);
+    }
+
     @GetMapping("/all/{code}")
     public ResponseEntity<ApiResponse> all(@PathVariable String code) {
         return storageService.getAllToList(code);

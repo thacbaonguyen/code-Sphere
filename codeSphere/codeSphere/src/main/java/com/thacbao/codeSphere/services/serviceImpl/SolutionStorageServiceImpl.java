@@ -3,6 +3,7 @@ package com.thacbao.codeSphere.services.serviceImpl;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.util.IOUtils;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.StorageDTO;
@@ -19,7 +20,9 @@ import com.thacbao.codeSphere.services.SolutionStorageService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -104,6 +107,26 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
         }
         catch (Exception ex) {
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> downloadFile(String filename) {
+        try {
+            S3Object s3Object = amazonS3.getObject(bucket, filename);
+            byte[] content = IOUtils.toByteArray(s3Object.getObjectContent());
+
+            String fileDownload = filename.substring(filename.lastIndexOf("/") + 1);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileDownload + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .contentLength(content.length)
+                    .body(content);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(null, "Error downloading file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
         }
     }
 

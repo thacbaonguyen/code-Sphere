@@ -10,6 +10,8 @@ public interface SolutionStorageService {
 
     ResponseEntity<ApiResponse> viewFile(String filename);
 
+    ResponseEntity<?> downloadFile(String filename);
+
     ResponseEntity<ApiResponse> getAllToList(String code);
 
     ResponseEntity<ApiResponse> deleteFile(Integer id);
