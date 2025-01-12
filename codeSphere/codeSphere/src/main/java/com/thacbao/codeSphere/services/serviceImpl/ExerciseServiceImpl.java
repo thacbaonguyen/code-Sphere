@@ -2,16 +2,16 @@ package com.thacbao.codeSphere.services.serviceImpl;
 
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
-import com.thacbao.codeSphere.dao.ExerciseDao;
-import com.thacbao.codeSphere.dto.request.ExerciseReq;
-import com.thacbao.codeSphere.dto.request.ExerciseUdReq;
+import com.thacbao.codeSphere.data.dao.ExerciseDao;
+import com.thacbao.codeSphere.dto.request.exercise.ExerciseReq;
+import com.thacbao.codeSphere.dto.request.exercise.ExerciseUdReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.ExerciseDTO;
-import com.thacbao.codeSphere.entity.Subject;
-import com.thacbao.codeSphere.entity.Exercise;
-import com.thacbao.codeSphere.exceptions.NotFoundException;
-import com.thacbao.codeSphere.repositories.SubjectRepository;
-import com.thacbao.codeSphere.repositories.ExerciseRepository;
+import com.thacbao.codeSphere.dto.response.exercise.ExerciseDTO;
+import com.thacbao.codeSphere.entity.reference.Subject;
+import com.thacbao.codeSphere.entity.core.Exercise;
+import com.thacbao.codeSphere.exceptions.user.NotFoundException;
+import com.thacbao.codeSphere.data.repository.SubjectRepository;
+import com.thacbao.codeSphere.data.repository.ExerciseRepository;
 import com.thacbao.codeSphere.services.ExerciseService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
+import static com.thacbao.codeSphere.constants.CodeSphereConstants.Exercise.EXERCISE_NOT_FOUND;
 @Service
 @RequiredArgsConstructor
 public class ExerciseServiceImpl implements ExerciseService {
@@ -109,7 +109,7 @@ public class ExerciseServiceImpl implements ExerciseService {
     public ResponseEntity<ApiResponse> activateExercise(Map<String, String> request) {
         Exercise exercise = exerciseRepository.findByCode(request.get("code"));
         if(exercise == null){
-            throw new NotFoundException("Exercise not found");
+            throw new NotFoundException(EXERCISE_NOT_FOUND);
         }
         try{
             exerciseDao.activateExercise(request.get("code"), Boolean.valueOf(request.get("isActive")));
@@ -126,7 +126,7 @@ public class ExerciseServiceImpl implements ExerciseService {
     public ResponseEntity<ApiResponse> updateExercise(ExerciseUdReq request) {
         Exercise exercise = exerciseRepository.findByCode(request.getCode());
         if(exercise == null){
-            throw new NotFoundException("Exercise not found");
+            throw new NotFoundException(EXERCISE_NOT_FOUND);
         }
         try {
             exerciseDao.updateExercise(request);
@@ -143,7 +143,7 @@ public class ExerciseServiceImpl implements ExerciseService {
     public ResponseEntity<ApiResponse> deleteExercise(String code) {
         Exercise exercise = exerciseRepository.findByCode(code);
         if(exercise == null){
-            throw new NotFoundException("Exercise not found");
+            throw new NotFoundException(EXERCISE_NOT_FOUND);
         }
         try{
             exerciseDao.deleteExercise(code);

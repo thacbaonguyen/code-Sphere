@@ -1,6 +1,13 @@
 package com.thacbao.codeSphere.exceptions;
 
 import com.thacbao.codeSphere.dto.response.ApiResponse;
+import com.thacbao.codeSphere.exceptions.common.AppException;
+import com.thacbao.codeSphere.exceptions.common.InvalidException;
+import com.thacbao.codeSphere.exceptions.user.AlreadyException;
+import com.thacbao.codeSphere.exceptions.user.EmailSenderException;
+import com.thacbao.codeSphere.exceptions.user.NotFoundException;
+import com.thacbao.codeSphere.exceptions.user.PermissionException;
+import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,43 +26,37 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiResponse> handleUserNotFoundException(NotFoundException ex) {
         log.error("exception details: ", ex);
-        ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(AlreadyException.class)
     public ResponseEntity<ApiResponse> handleUserAlreadyException(AlreadyException ex) {
         log.error("exception details: ", ex);
-        ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidException.class)
     public ResponseEntity<ApiResponse> handleInvalidException(InvalidException ex) {
         log.error("exception details: ", ex);
-        ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(PermissionException.class)
     public ResponseEntity<ApiResponse> handlePermissionException(PermissionException ex) {
         log.error("exception details: ", ex);
-        ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
-        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+        return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(EmailSenderException.class)
     public ResponseEntity<ApiResponse> handleEmailSenderException(EmailSenderException ex) {
         log.error("exception details: ", ex);
-        ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ApiResponse> handleAppException(AppException ex) {
         log.error("exception details: ", ex);
-        ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     //handle input
@@ -65,22 +66,18 @@ public class GlobalExceptionHandler {
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 errors.put(error.getField(), error.getDefaultMessage())
         );
-
-        ApiResponse response = new ApiResponse("error", "Validation failed", errors);
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return CodeSphereResponses.generateResponse(errors, ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(SQLDataException.class)
     public ResponseEntity<ApiResponse> handleSQLDataException(SQLDataException ex) {
         log.error("exception details: ", ex);
-        ApiResponse response = new ApiResponse("error", ex.getMessage(), "No data");
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse> handleGlobalException(Exception ex) {
         log.error("exception details: ", ex);
-        ApiResponse response = new ApiResponse("error", "Internal server error occurred", ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

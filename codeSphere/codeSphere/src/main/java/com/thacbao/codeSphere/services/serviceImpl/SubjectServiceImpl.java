@@ -1,12 +1,13 @@
 package com.thacbao.codeSphere.services.serviceImpl;
 
 import com.thacbao.codeSphere.configurations.JwtFilter;
+import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.SubjectDTO;
-import com.thacbao.codeSphere.entity.Subject;
-import com.thacbao.codeSphere.exceptions.AlreadyException;
-import com.thacbao.codeSphere.exceptions.PermissionException;
-import com.thacbao.codeSphere.repositories.SubjectRepository;
+import com.thacbao.codeSphere.dto.response.exercise.SubjectDTO;
+import com.thacbao.codeSphere.entity.reference.Subject;
+import com.thacbao.codeSphere.exceptions.user.AlreadyException;
+import com.thacbao.codeSphere.exceptions.user.PermissionException;
+import com.thacbao.codeSphere.data.repository.SubjectRepository;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import static com.thacbao.codeSphere.constants.CodeSphereConstants.PERMISSION_DENIED;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +38,7 @@ public class SubjectServiceImpl {
             return CodeSphereResponses.generateResponse(null, "Insert subject success", HttpStatus.OK);
         }
         else {
-            throw new PermissionException("You do not have permission to add new subject");
+            throw new PermissionException(PERMISSION_DENIED);
         }
     }
 
@@ -51,7 +53,7 @@ public class SubjectServiceImpl {
             return CodeSphereResponses.generateResponse(subjectDTOS, "All subjects success", HttpStatus.OK);
         }
         catch (Exception ex){
-            return CodeSphereResponses.generateResponse(null, "Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

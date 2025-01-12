@@ -1,21 +1,21 @@
 package com.thacbao.codeSphere.services.serviceImpl;
 
 import com.thacbao.codeSphere.configurations.JwtFilter;
-import com.thacbao.codeSphere.dao.CmtExDao;
-import com.thacbao.codeSphere.dto.request.CmExReq;
+import com.thacbao.codeSphere.data.dao.CmtExDao;
+import com.thacbao.codeSphere.dto.request.exercise.CmExReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.CmExHistoryDTO;
-import com.thacbao.codeSphere.dto.response.CommentExDTO;
-import com.thacbao.codeSphere.entity.CmExHistory;
-import com.thacbao.codeSphere.entity.CommentExercise;
-import com.thacbao.codeSphere.entity.Exercise;
-import com.thacbao.codeSphere.entity.User;
-import com.thacbao.codeSphere.exceptions.NotFoundException;
-import com.thacbao.codeSphere.exceptions.PermissionException;
-import com.thacbao.codeSphere.repositories.CmExHistoryRepository;
-import com.thacbao.codeSphere.repositories.CmExRepository;
-import com.thacbao.codeSphere.repositories.ExerciseRepository;
-import com.thacbao.codeSphere.repositories.UserRepository;
+import com.thacbao.codeSphere.dto.response.exercise.CmExHistoryDTO;
+import com.thacbao.codeSphere.dto.response.exercise.CommentExDTO;
+import com.thacbao.codeSphere.entity.reference.CmExHistory;
+import com.thacbao.codeSphere.entity.reference.CommentExercise;
+import com.thacbao.codeSphere.entity.core.Exercise;
+import com.thacbao.codeSphere.entity.core.User;
+import com.thacbao.codeSphere.exceptions.user.NotFoundException;
+import com.thacbao.codeSphere.exceptions.user.PermissionException;
+import com.thacbao.codeSphere.data.repository.CmExHistoryRepository;
+import com.thacbao.codeSphere.data.repository.CmExRepository;
+import com.thacbao.codeSphere.data.repository.ExerciseRepository;
+import com.thacbao.codeSphere.data.repository.UserRepository;
 import com.thacbao.codeSphere.services.CommentService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +30,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static com.thacbao.codeSphere.constants.CodeSphereConstants.Exercise.EXERCISE_NOT_FOUND;
+import static com.thacbao.codeSphere.constants.CodeSphereConstants.PERMISSION_DENIED;
 @Service
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
@@ -50,9 +52,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public ResponseEntity<ApiResponse> insertComment(CmExReq request) {
-        Exercise exercise = exerciseRepository.findById(request.getExerciseId()).orElseThrow(
-                ()-> new NotFoundException("Exercise not found")
-        );
+        Exercise exercise = exerciseRepository.findByCode(request.getCode());
         User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
                 ()-> new NotFoundException("User not found")
         );
@@ -75,9 +75,9 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getCommentEx(Integer exerciseId) throws SQLDataException {
+    public ResponseEntity<ApiResponse> getCommentEx(String code) throws SQLDataException {
 
-        List<CommentExDTO> commentExDTOS = commentExDao.getCommentEx(exerciseId);
+        List<CommentExDTO> commentExDTOS = commentExDao.getCommentEx(code);
         return CodeSphereResponses.generateResponse(commentExDTOS, "Comment ex success", HttpStatus.OK);
 
     }
@@ -97,7 +97,7 @@ public class CommentServiceImpl implements CommentService {
             return CodeSphereResponses.generateResponse(null, "Update comment success", HttpStatus.OK);
         }
         else{
-            throw new PermissionException("You do not have permission to update this comment");
+            throw new PermissionException(PERMISSION_DENIED);
         }
     }
 

@@ -3,41 +3,37 @@ package com.thacbao.codeSphere.services.serviceImpl;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
 import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.configurations.JwtUtils;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.enums.RoleEnum;
-import com.thacbao.codeSphere.dao.AuthorizationDao;
-import com.thacbao.codeSphere.dao.UserDao;
-import com.thacbao.codeSphere.dto.request.UserLoginReq;
-import com.thacbao.codeSphere.dto.request.UserReq;
-import com.thacbao.codeSphere.dto.request.UserUdReq;
+import com.thacbao.codeSphere.data.dao.AuthorizationDao;
+import com.thacbao.codeSphere.data.dao.UserDao;
+import com.thacbao.codeSphere.dto.request.user.UserLoginReq;
+import com.thacbao.codeSphere.dto.request.user.UserReq;
+import com.thacbao.codeSphere.dto.request.user.UserUdReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.UserDTO;
-import com.thacbao.codeSphere.entity.User;
-import com.thacbao.codeSphere.exceptions.*;
-import com.thacbao.codeSphere.repositories.UserRepository;
+import com.thacbao.codeSphere.dto.response.user.UserDTO;
+import com.thacbao.codeSphere.entity.core.User;
+import com.thacbao.codeSphere.exceptions.common.InvalidException;
+import com.thacbao.codeSphere.exceptions.user.AlreadyException;
+import com.thacbao.codeSphere.exceptions.user.EmailSenderException;
+import com.thacbao.codeSphere.exceptions.user.NotFoundException;
+import com.thacbao.codeSphere.exceptions.user.PermissionException;
+import com.thacbao.codeSphere.data.repository.UserRepository;
 import com.thacbao.codeSphere.services.UserService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import com.thacbao.codeSphere.utils.EmailUtilService;
 import com.thacbao.codeSphere.utils.OtpUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.BinaryCodec;
-import org.apache.commons.codec.binary.Hex;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -56,6 +52,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import static com.thacbao.codeSphere.constants.CodeSphereConstants.User.USER_NOT_FOUND;
+import static com.thacbao.codeSphere.constants.CodeSphereConstants.User.USER_NAME_EXISTS;
+import static com.thacbao.codeSphere.constants.CodeSphereConstants.User.EMAIL_EXISTS;
 
 @Service
 @RequiredArgsConstructor
@@ -88,7 +87,7 @@ public class UserServiceImpl implements UserService {
         Optional<User> userByEmail = userRepository.findByEmail(userReq.getEmail());
         if(user.isPresent()){
             if(user.get().getIsActive()){
-                throw new AlreadyException("This username already exists");
+                throw new AlreadyException(USER_NAME_EXISTS);
             }
             else {
                 userDao.deleteUser(user.get().getId());
@@ -96,7 +95,7 @@ public class UserServiceImpl implements UserService {
         }
         if(userByEmail.isPresent()){
             if(userByEmail.get().getIsActive()){
-                throw new AlreadyException("This email already exists");
+                throw new AlreadyException(EMAIL_EXISTS);
             }
             else {
                 userDao.deleteUser(userByEmail.get().getId());
@@ -131,7 +130,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String verifyAccount(Map<String, String> request) {
         User user = userRepository.findByEmail(request.get("email")).orElseThrow(
-                () -> new NotFoundException("Can not found this user")
+                () -> new NotFoundException(USER_NOT_FOUND)
         );
 
         if(request.get("otp").equals(user.getOTP()) && Duration.between(user.getOtpGenerateTime(),
@@ -151,7 +150,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String regenerateOtp(Map<String, String> request) {
         User user = userRepository.findByEmail(request.get("email")).orElseThrow(
-                ()-> new NotFoundException("Can not found this user")
+                ()-> new NotFoundException(USER_NOT_FOUND)
         );
         String otp = otpUtils.generateOtp();
         try {
@@ -166,18 +165,12 @@ public class UserServiceImpl implements UserService {
         return "OTP regenerate successfully";
     }
 
-    public List<UserDTO> getUserDetails(){
-
-        List<UserDTO> users = userDao.getUserDetails(7);
-        return users;
-    }
-
     @Override
     public ResponseEntity<?> login(UserLoginReq request) {
         String cacheKey = "user:jwt:" + request.getUsername();
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         User user = userRepository.findByUsername(request.getUsername()).orElseThrow(
-                () -> new NotFoundException("Can not found this user")
+                () -> new NotFoundException(USER_NOT_FOUND)
         );
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         Boolean isPasswordCorrect = passwordEncoder.matches(request.getPassword(), user.getPassword());
@@ -232,7 +225,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<ApiResponse> uploadAvatarProfile(MultipartFile file) {
         User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException("Can not found this user")
+                () -> new NotFoundException(USER_NOT_FOUND)
         );
         try {
             if(file == null ){
@@ -243,11 +236,11 @@ public class UserServiceImpl implements UserService {
             }
             String contentType = file.getContentType();
             if (!contentType.startsWith("image/")) {
-                return CodeSphereResponses.generateResponse(null, "File is not an image", HttpStatus.BAD_REQUEST);
+                return CodeSphereResponses.generateResponse(null, "File is not an image", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
             }
             long maxSize = 5 * 1024 * 1024;
             if (file.getSize() > maxSize) {
-                return CodeSphereResponses.generateResponse(null, "File is too large", HttpStatus.BAD_REQUEST);
+                return CodeSphereResponses.generateResponse(null, "File is too large", HttpStatus.PAYLOAD_TOO_LARGE);
             }
             String oldFileName = user.getAvatar();
             String fileName = uploadToS3(file);
@@ -266,7 +259,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<ApiResponse> viewAvatar() {
         User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException("Can not found this user")
+                () -> new NotFoundException(USER_NOT_FOUND)
         );
         try{
             Date expiration = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
@@ -309,7 +302,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> forgotPassword(Map<String, String> request) {
         User user = userRepository.findByEmail(request.get("email")).orElseThrow(
-                () -> new NotFoundException("Can not found this user")
+                () -> new NotFoundException(USER_NOT_FOUND)
         );
         String otp = otpUtils.generateOtp();
         try{
@@ -327,7 +320,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> setPassword(String email, String otp, Map<String, String> request) {
         User user = userRepository.findByEmail(email).orElseThrow(
-                ()-> new NotFoundException("Can not found this user")
+                ()-> new NotFoundException(USER_NOT_FOUND)
         );
 
         if(user.getOTP().equals(otp) && Duration.between(user.getOtpGenerateTime(), LocalDateTime.now()).getSeconds() < (60 * 2)){
@@ -345,7 +338,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<ApiResponse> changePassword(Map<String, String> request) {
         User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException("Can not found this user")
+                () -> new NotFoundException(USER_NOT_FOUND)
         );
         try{
             PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
@@ -366,7 +359,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<ApiResponse> updateProfile(UserUdReq request) {
         User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException("Can not found this user")
+                () -> new NotFoundException(USER_NOT_FOUND)
         );
         try{
             String cacheKey = "updateProfile:user:" + jwtFilter.getCurrentUsername();

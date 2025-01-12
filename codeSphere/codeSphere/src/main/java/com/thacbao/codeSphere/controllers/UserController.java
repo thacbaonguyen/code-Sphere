@@ -1,8 +1,8 @@
 package com.thacbao.codeSphere.controllers;
 
-import com.thacbao.codeSphere.dto.request.UserLoginReq;
-import com.thacbao.codeSphere.dto.request.UserReq;
-import com.thacbao.codeSphere.dto.request.UserUdReq;
+import com.thacbao.codeSphere.dto.request.user.UserLoginReq;
+import com.thacbao.codeSphere.dto.request.user.UserReq;
+import com.thacbao.codeSphere.dto.request.user.UserUdReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.services.UserService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
@@ -113,11 +113,6 @@ public class UserController {
 
     }
 
-
-    @GetMapping("/test")
-    public ResponseEntity<?> test(){
-        return CodeSphereResponses.generateResponse(userService.getUserDetails(), "get all user", HttpStatus.OK);
-    }
 
     @GetMapping("/check-token")
     public ResponseEntity<?> checkToken(){

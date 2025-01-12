@@ -1,10 +1,10 @@
 package com.thacbao.codeSphere.services;
 
-import com.thacbao.codeSphere.dto.request.UserLoginReq;
-import com.thacbao.codeSphere.dto.request.UserReq;
-import com.thacbao.codeSphere.dto.request.UserUdReq;
+import com.thacbao.codeSphere.dto.request.user.UserLoginReq;
+import com.thacbao.codeSphere.dto.request.user.UserReq;
+import com.thacbao.codeSphere.dto.request.user.UserUdReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.UserDTO;
+import com.thacbao.codeSphere.dto.response.user.UserDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,7 +18,6 @@ public interface UserService {
 
     String regenerateOtp(Map<String, String> request);
 
-    List<UserDTO> getUserDetails();
 
     ResponseEntity<?> login(UserLoginReq request);
 

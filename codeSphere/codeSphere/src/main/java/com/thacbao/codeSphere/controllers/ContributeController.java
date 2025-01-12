@@ -1,6 +1,6 @@
 package com.thacbao.codeSphere.controllers;
 
-import com.thacbao.codeSphere.dto.request.ContributeReq;
+import com.thacbao.codeSphere.dto.request.exercise.ContributeReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.services.ContributeService;
 import org.springframework.beans.factory.annotation.Autowired;

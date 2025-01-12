@@ -1,7 +1,7 @@
 package com.thacbao.codeSphere.configurations;
 
-import com.thacbao.codeSphere.entity.User;
-import com.thacbao.codeSphere.repositories.UserRepository;
+import com.thacbao.codeSphere.entity.core.User;
+import com.thacbao.codeSphere.data.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

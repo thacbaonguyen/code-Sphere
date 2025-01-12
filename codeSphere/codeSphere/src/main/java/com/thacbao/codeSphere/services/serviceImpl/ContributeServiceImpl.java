@@ -2,11 +2,12 @@ package com.thacbao.codeSphere.services.serviceImpl;
 
 import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
-import com.thacbao.codeSphere.dao.ContributeDao;
-import com.thacbao.codeSphere.dto.request.ContributeReq;
+import com.thacbao.codeSphere.constants.CodeSphereConstants;
+import com.thacbao.codeSphere.data.dao.ContributeDao;
+import com.thacbao.codeSphere.dto.request.exercise.ContributeReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.ContributeDTO;
-import com.thacbao.codeSphere.exceptions.PermissionException;
+import com.thacbao.codeSphere.dto.response.exercise.ContributeDTO;
+import com.thacbao.codeSphere.exceptions.user.PermissionException;
 import com.thacbao.codeSphere.services.ContributeService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.thacbao.codeSphere.constants.CodeSphereConstants.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -83,7 +85,7 @@ public class ContributeServiceImpl implements ContributeService {
             return CodeSphereResponses.generateResponse(contribute, "Get contribute successfully", HttpStatus.OK);
 
         else
-            throw new PermissionException("You do not have permission to access this resource");
+            throw new PermissionException(PERMISSION_DENIED);
     }
 
     @Override
@@ -94,7 +96,7 @@ public class ContributeServiceImpl implements ContributeService {
                 clearCache("allContribute:");
                 return CodeSphereResponses.generateResponse(null, "Activate contribute successfully", HttpStatus.OK);
             }
-            throw new PermissionException("You do not have permission to access this resource");
+            throw new PermissionException(PERMISSION_DENIED);
     }
 
     @Override
@@ -117,7 +119,7 @@ public class ContributeServiceImpl implements ContributeService {
             clearCache("allContribute:");
             return CodeSphereResponses.generateResponse(null, "Delete contribute successfully", HttpStatus.OK);
         }
-        throw new PermissionException("You do not have permission to access this resource");
+        throw new PermissionException(PERMISSION_DENIED);
     }
 
     private void  clearCache(String cacheKey){

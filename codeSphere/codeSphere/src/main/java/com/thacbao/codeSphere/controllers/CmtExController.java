@@ -1,6 +1,6 @@
 package com.thacbao.codeSphere.controllers;
 
-import com.thacbao.codeSphere.dto.request.CmExReq;
+import com.thacbao.codeSphere.dto.request.exercise.CmExReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.services.CommentService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
@@ -34,10 +34,10 @@ public class CmtExController {
         return commentService.insertComment(request);
     }
 
-    @GetMapping("/comment/{exercise_id}")
-    public ResponseEntity<ApiResponse> getCommentEx(@PathVariable(name = "exercise_id") Integer exerciseId) throws SQLDataException {
+    @GetMapping("/comment/{code}")
+    public ResponseEntity<ApiResponse> getCommentEx(@PathVariable(name = "code") String code) throws SQLDataException {
 
-        return commentService.getCommentEx(exerciseId);
+        return commentService.getCommentEx(code);
     }
 
     @PutMapping("/update")

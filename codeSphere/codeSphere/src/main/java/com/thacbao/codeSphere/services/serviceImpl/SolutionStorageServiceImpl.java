@@ -6,16 +6,15 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.util.IOUtils;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.StorageDTO;
-import com.thacbao.codeSphere.entity.Exercise;
-import com.thacbao.codeSphere.entity.SolutionStorage;
-import com.thacbao.codeSphere.entity.User;
-import com.thacbao.codeSphere.exceptions.AppException;
-import com.thacbao.codeSphere.exceptions.NotFoundException;
-import com.thacbao.codeSphere.exceptions.PermissionException;
-import com.thacbao.codeSphere.repositories.ExerciseRepository;
-import com.thacbao.codeSphere.repositories.SolutionRepository;
-import com.thacbao.codeSphere.repositories.UserRepository;
+import com.thacbao.codeSphere.dto.response.exercise.StorageDTO;
+import com.thacbao.codeSphere.entity.core.Exercise;
+import com.thacbao.codeSphere.entity.reference.SolutionStorage;
+import com.thacbao.codeSphere.entity.core.User;
+import com.thacbao.codeSphere.exceptions.common.AppException;
+import com.thacbao.codeSphere.exceptions.user.NotFoundException;
+import com.thacbao.codeSphere.data.repository.ExerciseRepository;
+import com.thacbao.codeSphere.data.repository.SolutionRepository;
+import com.thacbao.codeSphere.data.repository.UserRepository;
 import com.thacbao.codeSphere.services.SolutionStorageService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
@@ -30,10 +29,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import static com.thacbao.codeSphere.constants.CodeSphereConstants.User.USER_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -57,7 +57,7 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
     public ResponseEntity<ApiResponse> uploadFile(MultipartFile file, String code) {
         Exercise exercise = exerciseRepository.findByCode(code);
         User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException("User not found")
+                () -> new NotFoundException(USER_NOT_FOUND)
         );
         if (solutionRepository.countSolution(exercise.getId(), user.getId()) > 5){
             throw new AppException("You have stored more than the allowed number of files");
@@ -71,11 +71,11 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
             }
             String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
             if (!FILE_EXTENSIONS.contains(extension)){
-                return CodeSphereResponses.generateResponse(null, "File extension not supported", HttpStatus.BAD_REQUEST);
+                return CodeSphereResponses.generateResponse(null, "File extension not supported", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
             }
             long maxSize = 5 * 1024 * 1024;
             if (file.getSize() > maxSize){
-                return CodeSphereResponses.generateResponse(null, String.format("File is too large %d", maxSize), HttpStatus.BAD_REQUEST);
+                return CodeSphereResponses.generateResponse(null, String.format("File is too large %d", maxSize), HttpStatus.PAYLOAD_TOO_LARGE);
             }
             String fileName = uploadToS3(file);
             SolutionStorage solutionStorage = SolutionStorage.builder()
@@ -126,14 +126,15 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse(null, "Error downloading file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
+                    .body(new ApiResponse(LocalDateTime.now(), 500 ,null,
+                            "Error downloading file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
         }
     }
 
     @Override
     public ResponseEntity<ApiResponse> getAllToList(String code) {
         User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException("User not found")
+                () -> new NotFoundException(USER_NOT_FOUND)
         );
         Exercise exercise = exerciseRepository.findByCode(code);
         List<SolutionStorage> storages = solutionRepository.findByExerciseIdAndUserId(exercise.getId(), user.getId());

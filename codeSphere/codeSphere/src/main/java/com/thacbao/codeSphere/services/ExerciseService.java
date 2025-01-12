@@ -1,7 +1,7 @@
 package com.thacbao.codeSphere.services;
 
-import com.thacbao.codeSphere.dto.request.ExerciseReq;
-import com.thacbao.codeSphere.dto.request.ExerciseUdReq;
+import com.thacbao.codeSphere.dto.request.exercise.ExerciseReq;
+import com.thacbao.codeSphere.dto.request.exercise.ExerciseUdReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 
