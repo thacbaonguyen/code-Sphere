@@ -1,11 +1,17 @@
 package com.thacbao.codeSphere.dto.request.blog;
 
+import com.thacbao.codeSphere.entity.core.Blog;
+import com.thacbao.codeSphere.entity.core.User;
+import com.thacbao.codeSphere.entity.reference.Tag;
 import com.thacbao.codeSphere.enums.BlogStatus;
+import com.thacbao.codeSphere.utils.SlugUtil;
 import lombok.*;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.validation.constraints.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,11 +32,27 @@ public class BlogReq {
 
     private String featuredImage;
 
-    private Set<Long> tagIds = new HashSet<>();
+    private Set<String> tags = new HashSet<>();
 
     private boolean isFeatured;
 
     @Enumerated(EnumType.STRING)
-    private BlogStatus status = BlogStatus.DRAFT;
+    private BlogStatus status = BlogStatus.draft;
 
+    public Blog toEntity(User author, Set<Tag> tags) {
+        Blog blog = new Blog();
+        blog.setTitle(this.title);
+        blog.setContent(this.content);
+        blog.setCreatedAt(LocalDate.now());
+        blog.setUpdatedAt(LocalDate.now());
+        blog.setExcerpt(this.excerpt);
+        blog.setFeaturedImage(this.featuredImage);
+        blog.setStatus(this.status);
+        blog.setFeatured(this.isFeatured);
+        blog.setAuthor(author);
+        blog.setTags(tags);
+        blog.setSlug(SlugUtil.generateSlug(this.title));
+        blog.setPublishedAt(LocalDateTime.now());
+        return blog;
+    }
 }

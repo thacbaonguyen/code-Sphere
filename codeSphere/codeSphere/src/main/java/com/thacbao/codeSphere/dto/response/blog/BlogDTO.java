@@ -3,6 +3,7 @@ package com.thacbao.codeSphere.dto.response.blog;
 import com.thacbao.codeSphere.dto.response.user.UserDTO;
 import com.thacbao.codeSphere.entity.core.Blog;
 import com.thacbao.codeSphere.entity.reference.Reaction;
+import com.thacbao.codeSphere.entity.reference.Tag;
 import com.thacbao.codeSphere.enums.BlogStatus;
 import com.thacbao.codeSphere.enums.ReactionType;
 import lombok.AllArgsConstructor;
@@ -26,8 +27,8 @@ public class BlogDTO {
     private Integer id;
     private String title;
     private String content;
-    private LocalDate createdAt;
-    private LocalDate updatedAt;
+    private String createdAt;
+    private String updatedAt;
     private String excerpt;
 
     private String featuredImage;
@@ -56,8 +57,8 @@ public class BlogDTO {
         this.isFeatured = blog.isFeatured();
         this.viewCount = blog.getViewCount();
         this.publishedAt = blog.getPublishedAt();
-        this.createdAt = blog.getCreatedAt();
-        this.updatedAt = blog.getUpdatedAt();
+        this.createdAt = blog.getCreatedAt().toString();
+        this.updatedAt = blog.getUpdatedAt().toString();
         this.commentCount = blog.getComments().size();
         this.reactionCounts = calculateReactionCounts(blog.getReactions());
     }

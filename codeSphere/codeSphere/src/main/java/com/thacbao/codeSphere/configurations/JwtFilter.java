@@ -76,6 +76,10 @@ public class JwtFilter extends OncePerRequestFilter {
         List<String> roles = claims.get("role", List.class);
         return roles.contains("manager".toUpperCase());
     }
+    public Boolean isBlogger(){
+        List<String> roles = claims.get("role", List.class);
+        return roles.contains("blogger".toUpperCase());
+    }
     public String getCurrentUsername(){
         return username;
     }

@@ -4,5 +4,5 @@ import lombok.Getter;
 
 @Getter
 public enum BlogStatus {
-    DRAFT, PUBLISHED, ARCHIVED
+    draft, published, archived
 }

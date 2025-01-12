@@ -45,7 +45,7 @@ public class Blog {
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private BlogStatus status = BlogStatus.DRAFT;
+    private BlogStatus status = BlogStatus.draft;
 
     @Column(name = "is_featured")
     private boolean isFeatured = false;
@@ -55,6 +55,9 @@ public class Blog {
 
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
+
+    @Column(nullable = false, unique = true)
+    private String slug;
 
     @ManyToOne
     @JoinColumn(name = "author_id", referencedColumnName = "id")

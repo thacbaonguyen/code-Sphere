@@ -32,6 +32,8 @@ public class UserDTO {
 
     private String roleCode;
 
+    private String avatarUrl;
+
     public UserDTO(String username, String fullName, String email,
                    String phoneNumber, String dob, String createdAt,
                    String updatedAt, List<String> roles) {
@@ -45,11 +47,12 @@ public class UserDTO {
         this.roles = roles;
     }
 
-    public UserDTO(String username, String fullName, String roleName, String roleCode) {
+    public UserDTO(String username, String fullName, String avatarUrl, String email, List<String> roles) {
         this.username = username;
         this.fullName = fullName;
-        this.roleName = roleName;
-        this.roleCode = roleCode;
+        this.avatarUrl = avatarUrl;
+        this.email = email;
+        this.roles = roles;
     }
 
     public UserDTO(User author) {

@@ -25,6 +25,7 @@ public class BlogBriefDTO {
     private LocalDateTime publishedAt;
     private long commentCount;
     private long totalReactions;
+    private String slug;
 
     public BlogBriefDTO(Blog blog) {
         this.id = blog.getId();
@@ -39,5 +40,6 @@ public class BlogBriefDTO {
         this.publishedAt = blog.getPublishedAt();
         this.commentCount = blog.getComments().size();
         this.totalReactions = blog.getReactions().size();
+        this.slug = blog.getSlug();
     }
 }
