@@ -26,10 +26,12 @@ public class ExerciseDao {
     @Transactional
     public ExerciseDTO viewExerciseDetails(String code) throws SQLDataException {
         try {
-            String sql = "SELECT e.code, e.title, e.paper, e.input, e.output, e.note, e.created_by, e.created_at, s.name, " +
-                    "e.description, e.level, e.time_limit, e.memory_limit, e.topic FROM exercises as e " +
-                    "join subjects as s on e.subject_id = s.id " +
-                    "where e.code = :code";
+            String sql = """
+                    SELECT e.code, e.title, e.paper, e.input, e.output, e.note, e.created_by, e.created_at, s.name, 
+                    e.description, e.level, e.time_limit, e.memory_limit, e.topic FROM exercises as e 
+                    join subjects as s on e.subject_id = s.id 
+                    where e.code = :code
+                    """;
             Object[] result = (Object[]) entityManager.createNativeQuery(sql).setParameter("code", code).getSingleResult();
             return new ExerciseDTO(result[0].toString(), result[1].toString(), result[2].toString(), result[3].toString(),
                     result[4].toString(), result[5].toString(), result[6].toString(), result[7].toString(), result[8].toString(),
@@ -96,9 +98,11 @@ public class ExerciseDao {
     @Transactional
     public void updateExercise(ExerciseUdReq request) throws SQLDataException {
         try {
-            String sql = "UPDATE exercises SET code = :code, title = :title, paper = :paper, input = :input, output = :output, " +
-                    "note = :note, description = :description, level = :level, time_limit = :timeLimit, memory_limit = :memoryLimit " +
-                    "where code = :code";
+            String sql = """
+                    UPDATE exercises SET code = :code, title = :title, paper = :paper, input = :input, output = :output, 
+                    note = :note, description = :description, level = :level, time_limit = :timeLimit, memory_limit = :memoryLimit 
+                    where code = :code
+                    """;
             entityManager.createNativeQuery(sql)
                     .setParameter("code", request.getCode())
                     .setParameter("title", request.getTitle())

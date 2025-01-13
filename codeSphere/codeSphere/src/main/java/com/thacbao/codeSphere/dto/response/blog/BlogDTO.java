@@ -35,7 +35,7 @@ public class BlogDTO {
     private BlogStatus status;
     private boolean isFeatured;
     private int viewCount;
-    private LocalDateTime publishedAt;
+    private String publishedAt;
     private UserDTO author;
 
     private Set<String> tags;
@@ -56,7 +56,7 @@ public class BlogDTO {
         this.status = blog.getStatus();
         this.isFeatured = blog.isFeatured();
         this.viewCount = blog.getViewCount();
-        this.publishedAt = blog.getPublishedAt();
+        this.publishedAt = blog.getPublishedAt().toString();
         this.createdAt = blog.getCreatedAt().toString();
         this.updatedAt = blog.getUpdatedAt().toString();
         this.commentCount = blog.getComments().size();

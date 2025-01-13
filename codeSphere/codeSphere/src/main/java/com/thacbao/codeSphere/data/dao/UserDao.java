@@ -29,12 +29,14 @@ public class UserDao {
     @Transactional
     public UserDTO getProfile(String username) throws SQLDataException {
         try {
-            String sql = "SELECT u.user_name, u.full_name, u.email, u.phone_number, u.dob, u.created_at, u.updated_at, " +
-                    "GROUP_CONCAT(r.name) as roles_name from users as u " +
-                    "JOIN authorization as a on a.user_id = u.id " +
-                    "JOIN roles as r on a.role_id = r.id " +
-                    "where u.user_name = :username " +
-                    "group by u.id";
+            String sql = """
+                    SELECT u.user_name, u.full_name, u.email, u.phone_number, u.dob, u.created_at, u.updated_at, 
+                    GROUP_CONCAT(r.name) as roles_name from users as u 
+                    JOIN authorization as a on a.user_id = u.id 
+                    JOIN roles as r on a.role_id = r.id 
+                    where u.user_name = :username 
+                    group by u.id
+                    """;
             Object[] results = (Object[]) entityManager.createNativeQuery(sql)
                     .setParameter("username", username)
                     .getSingleResult();
@@ -50,12 +52,14 @@ public class UserDao {
     @Transactional
     public List<UserDTO> getAllUser() throws SQLDataException {
         try{
-            String sql = "SELECT u.user_name, u.full_name, u.email, u.phone_number, u.dob, u.created_at, u.updated_at, " +
-                    "GROUP_CONCAT(r.name) as roles_name from users as u " +
-                    "JOIN authorization as a on a.user_id = u.id " +
-                    "JOIN roles as r on a.role_id = r.id " +
-                    "where u.is_active = true " +
-                    "group by u.id";
+            String sql = """
+                    SELECT u.user_name, u.full_name, u.email, u.phone_number, u.dob, u.created_at, u.updated_at, 
+                    GROUP_CONCAT(r.name) as roles_name from users as u 
+                    JOIN authorization as a on a.user_id = u.id 
+                    JOIN roles as r on a.role_id = r.id 
+                    where u.is_active = true 
+                    group by u.id
+                    """;
             List<Object[]> results = entityManager.createNativeQuery(sql)
                     .getResultList();
             return results.stream()
@@ -72,8 +76,10 @@ public class UserDao {
     public void updateUser(UserUdReq request, Integer userId) throws SQLDataException {
         try{
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-            String sql = "UPDATE users as u set u.full_name = :fullName, u.phone_number = :phoneNumber, u.dob = :dob " +
-                    "where u.id = :userId";
+            String sql = """
+                    UPDATE users as u set u.full_name = :fullName, u.phone_number = :phoneNumber, u.dob = :dob 
+                    where u.id = :userId
+                    """;
             entityManager.createNativeQuery(sql)
                     .setParameter("fullName", request.getFullName())
                     .setParameter("phoneNumber", request.getPhoneNumber())
@@ -102,11 +108,13 @@ public class UserDao {
     @Transactional
     public List<String> getRolesUser(Integer id) throws SQLDataException {
         try{
-            String sql = "SELECT r.name " +
-                    "FROM roles AS r " +
-                    "JOIN authorization AS a ON r.id = a.role_id " +
-                    "JOIN users AS u ON u.id = a.user_id " +
-                    "WHERE u.id = :userId";
+            String sql = """
+                    SELECT r.name 
+                    FROM roles AS r 
+                    JOIN authorization AS a ON r.id = a.role_id 
+                    JOIN users AS u ON u.id = a.user_id 
+                    WHERE u.id = :userId
+                    """;
             return entityManager.createNativeQuery(sql)
                     .setParameter("userId", id)
                     .getResultList();

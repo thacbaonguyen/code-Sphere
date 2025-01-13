@@ -22,7 +22,7 @@ public class BlogBriefDTO {
     private BlogStatus status;
     private boolean isFeatured;
     private int viewCount;
-    private LocalDateTime publishedAt;
+    private String publishedAt;
     private long commentCount;
     private long totalReactions;
     private String slug;
@@ -37,7 +37,7 @@ public class BlogBriefDTO {
         this.status = blog.getStatus();
         this.isFeatured = blog.isFeatured();
         this.viewCount = blog.getViewCount();
-        this.publishedAt = blog.getPublishedAt();
+        this.publishedAt = blog.getPublishedAt().toString();
         this.commentCount = blog.getComments().size();
         this.totalReactions = blog.getReactions().size();
         this.slug = blog.getSlug();

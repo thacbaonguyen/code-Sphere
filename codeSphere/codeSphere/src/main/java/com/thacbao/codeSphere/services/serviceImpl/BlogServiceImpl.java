@@ -5,16 +5,23 @@ import com.thacbao.codeSphere.data.repository.BlogRepository;
 import com.thacbao.codeSphere.data.repository.UserRepository;
 import com.thacbao.codeSphere.dto.request.blog.BlogReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
+import com.thacbao.codeSphere.dto.response.blog.BlogBriefDTO;
 import com.thacbao.codeSphere.dto.response.blog.BlogDTO;
 import com.thacbao.codeSphere.entity.core.Blog;
 import com.thacbao.codeSphere.entity.core.User;
 import com.thacbao.codeSphere.entity.reference.Tag;
+import com.thacbao.codeSphere.enums.BlogStatus;
 import com.thacbao.codeSphere.exceptions.user.NotFoundException;
 import com.thacbao.codeSphere.exceptions.user.PermissionException;
 import com.thacbao.codeSphere.services.BlogService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
@@ -22,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -67,22 +75,68 @@ public class BlogServiceImpl implements BlogService {
         BlogDTO blogCache = (BlogDTO) ops.get(cacheKey);
         if(blogCache != null){
             log.info("cache blog details {}", cacheKey);
+            incrementViewCount(slug);
             return CodeSphereResponses.generateResponse(blogCache, "Blog view successfully", HttpStatus.OK);
         }
-        Blog blog = blogRepository.findBySlug(slug)
-                .orElseThrow(() -> new NotFoundException("Blog not found with slug: " + slug));
 
         // Tăng view count
-        incrementViewCount(blog);
+        Blog blog = incrementViewCount(slug);
         BlogDTO result = new BlogDTO(blog);
         ops.set(cacheKey, result, 24, TimeUnit.HOURS);
 
         return CodeSphereResponses.generateResponse(result, "Blog view successfully", HttpStatus.OK);
     }
 
+    @Override
+    public ResponseEntity<ApiResponse> getAllBlogs(
+            String search,
+            String isFeature,
+            Integer page,
+            Integer pageSize,
+            String order,
+            String by) {
+
+
+        // Create pageable
+        Sort.Direction direction = order != null && order.equalsIgnoreCase("asc") ?
+                Sort.Direction.ASC : Sort.Direction.DESC;
+        String sortBy = by != null && !by.isEmpty() ? by : "createdAt";
+        Pageable pageable = PageRequest.of(
+                page != null ? page : 0,
+                pageSize != null ? pageSize : 10,
+                Sort.by(direction, sortBy)
+        );
+
+        // Create specification
+        Specification<Blog> spec = Specification.where(null);
+
+        if (search != null && !search.isEmpty()) {
+            spec = spec.and((root, query, cb) -> {
+                String likePattern = "%" + search.toLowerCase() + "%";
+                return cb.or(
+                        cb.like(cb.lower(root.get("title")), likePattern),
+                        cb.like(cb.lower(root.get("excerpt")), likePattern)
+                );
+            });
+        }
+
+        if (isFeature != null && !isFeature.isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("isFeatured"), Boolean.parseBoolean(isFeature))
+            );
+        }
+
+        Page<BlogBriefDTO> result = blogRepository.findAll(spec, pageable)
+                .map(BlogBriefDTO::new);
+        return CodeSphereResponses.generateResponse(result, "Blog view successfully", HttpStatus.OK);
+    }
+
     @Transactional
-    public void incrementViewCount(Blog blog) {
+    public Blog incrementViewCount(String slug) {
+        Blog blog = blogRepository.findBySlug(slug)
+                .orElseThrow(() -> new NotFoundException("Blog not found with slug: " + slug));
         blog.setViewCount(blog.getViewCount() + 1);
         blogRepository.save(blog);
+        return blog;
     }
 }
