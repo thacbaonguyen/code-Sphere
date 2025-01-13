@@ -2,15 +2,9 @@ package com.thacbao.codeSphere.controllers;
 
 import com.thacbao.codeSphere.dto.request.blog.BlogReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.blog.BlogBriefDTO;
-import com.thacbao.codeSphere.enums.BlogStatus;
 import com.thacbao.codeSphere.services.BlogService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -47,7 +41,7 @@ public class BlogController {
     }
 
     @GetMapping("/all-blogs")
-    public ResponseEntity<ApiResponse> allBlogs(@RequestParam(required = false) String search,
+    public ResponseEntity<ApiResponse> findAllBlogs(@RequestParam(required = false) String search,
                                                 @RequestParam(required = false) String isFeatured,
                                                 @RequestParam(defaultValue = "0") Integer page,
                                                 @RequestParam(defaultValue = "20") Integer pageSize,
@@ -55,6 +49,16 @@ public class BlogController {
                                                 @RequestParam(required = false) String by){
 
         return blogService.getAllBlogs(search, isFeatured, page, pageSize, order, by);
+    }
+
+    @GetMapping("/list/tags")
+    public ResponseEntity<ApiResponse> findAllByTags(@RequestParam(defaultValue = "") String tagName,
+                                                     @RequestParam(required = false) String isFeatured,
+                                                     @RequestParam(defaultValue = "0") Integer page,
+                                                     @RequestParam(defaultValue = "20") Integer pageSize,
+                                                     @RequestParam(required = false) String order,
+                                                     @RequestParam(required = false) String by){
+        return blogService.findAllByTags(tagName, isFeatured, page, pageSize, order, by);
     }
 
 }

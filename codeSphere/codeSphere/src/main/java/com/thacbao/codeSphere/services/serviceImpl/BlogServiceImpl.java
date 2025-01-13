@@ -10,7 +10,6 @@ import com.thacbao.codeSphere.dto.response.blog.BlogDTO;
 import com.thacbao.codeSphere.entity.core.Blog;
 import com.thacbao.codeSphere.entity.core.User;
 import com.thacbao.codeSphere.entity.reference.Tag;
-import com.thacbao.codeSphere.enums.BlogStatus;
 import com.thacbao.codeSphere.exceptions.user.NotFoundException;
 import com.thacbao.codeSphere.exceptions.user.PermissionException;
 import com.thacbao.codeSphere.services.BlogService;
@@ -29,12 +28,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.thacbao.codeSphere.constants.CodeSphereConstants.User.USER_NOT_FOUND;
 import static com.thacbao.codeSphere.constants.CodeSphereConstants.PERMISSION_DENIED;
+import com.thacbao.codeSphere.data.specification.BlogSpecification;
 
 @Service
 @RequiredArgsConstructor
@@ -98,37 +97,55 @@ public class BlogServiceImpl implements BlogService {
 
 
         // Create pageable
-        Sort.Direction direction = order != null && order.equalsIgnoreCase("asc") ?
-                Sort.Direction.ASC : Sort.Direction.DESC;
-        String sortBy = by != null && !by.isEmpty() ? by : "createdAt";
-        Pageable pageable = PageRequest.of(
-                page != null ? page : 0,
-                pageSize != null ? pageSize : 10,
-                Sort.by(direction, sortBy)
-        );
-
-        // Create specification
-        Specification<Blog> spec = Specification.where(null);
-
-        if (search != null && !search.isEmpty()) {
-            spec = spec.and((root, query, cb) -> {
-                String likePattern = "%" + search.toLowerCase() + "%";
-                return cb.or(
-                        cb.like(cb.lower(root.get("title")), likePattern),
-                        cb.like(cb.lower(root.get("excerpt")), likePattern)
-                );
-            });
-        }
-
-        if (isFeature != null && !isFeature.isEmpty()) {
-            spec = spec.and((root, query, cb) ->
-                    cb.equal(root.get("isFeatured"), Boolean.parseBoolean(isFeature))
+        try{
+            Sort.Direction direction = order != null && order.equalsIgnoreCase("asc") ?
+                    Sort.Direction.ASC : Sort.Direction.DESC;
+            String sortBy = by != null && !by.isEmpty() ? by : "publishedAt";
+            Pageable pageable = PageRequest.of(
+                    page != null ? page : 0,
+                    pageSize != null ? pageSize : 10,
+                    Sort.by(direction, sortBy)
             );
-        }
 
-        Page<BlogBriefDTO> result = blogRepository.findAll(spec, pageable)
-                .map(BlogBriefDTO::new);
-        return CodeSphereResponses.generateResponse(result, "Blog view successfully", HttpStatus.OK);
+            // Create specification
+            Specification<Blog> spec = Specification.where(BlogSpecification.hasStatus())
+                    .and(BlogSpecification.hasSearchText(search))
+                    .and(BlogSpecification.hasIsFeatured(isFeature));
+
+
+            Page<BlogBriefDTO> result = blogRepository.findAll(spec, pageable)
+                    .map(BlogBriefDTO::new);
+            return CodeSphereResponses.generateResponse(result, "Blog view successfully", HttpStatus.OK);
+        }
+        catch (Exception e){
+            log.error("logging error with message {}", e.getMessage());
+            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> findAllByTags(String tagName, String isFeatured, Integer page, Integer pageSize, String order, String by) {
+        try{
+            Sort.Direction direction = order != null && order.equalsIgnoreCase("asc")
+                    ? Sort.Direction.ASC : Sort.Direction.DESC;
+            String sortBy = by != null && !by.isEmpty() ? by : "publishedAt";
+            Pageable pageable = PageRequest.of(
+                    page != null ? page : 0,
+                    pageSize != null ? pageSize : 10,
+                    Sort.by(direction, sortBy)
+
+            );
+            Specification<Blog> spec = Specification.where(BlogSpecification.hasStatus())
+                    .and(BlogSpecification.hasIsFeatured(isFeatured))
+                    .and(BlogSpecification.hasTag(tagName));
+            Page<BlogBriefDTO> result = blogRepository.findAll(spec, pageable)
+                    .map(BlogBriefDTO::new);
+            return CodeSphereResponses.generateResponse(result, "Blog view successfully", HttpStatus.OK);
+        }
+        catch (Exception e){
+            log.error("logging error with message {}", e.getMessage());
+            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Transactional
