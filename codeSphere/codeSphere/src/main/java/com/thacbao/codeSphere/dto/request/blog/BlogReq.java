@@ -34,7 +34,7 @@ public class BlogReq {
 
     private Set<String> tags = new HashSet<>();
 
-    private boolean isFeatured;
+    private String isFeatured;
 
     @Enumerated(EnumType.STRING)
     private BlogStatus status = BlogStatus.draft;
@@ -48,7 +48,7 @@ public class BlogReq {
         blog.setExcerpt(this.excerpt);
         blog.setFeaturedImage(this.featuredImage);
         blog.setStatus(this.status);
-        blog.setFeatured(this.isFeatured);
+        blog.setFeatured(Boolean.parseBoolean(this.isFeatured));
         blog.setAuthor(author);
         blog.setTags(tags);
         blog.setSlug(SlugUtil.generateSlug(this.title));

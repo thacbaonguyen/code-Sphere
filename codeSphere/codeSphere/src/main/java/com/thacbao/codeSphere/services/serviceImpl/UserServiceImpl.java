@@ -128,7 +128,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String verifyAccount(Map<String, String> request) {
+    public String verifyAccount(Map<String, String> request) throws SQLDataException {
         User user = userRepository.findByEmail(request.get("email")).orElseThrow(
                 () -> new NotFoundException(USER_NOT_FOUND)
         );
@@ -224,9 +224,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<ApiResponse> uploadAvatarProfile(MultipartFile file) {
-        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException(USER_NOT_FOUND)
-        );
+        User user = getUser();
         try {
             if(file == null ){
                 return CodeSphereResponses.generateResponse(null, "Not found file", HttpStatus.BAD_REQUEST);
@@ -258,9 +256,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<ApiResponse> viewAvatar() {
-        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException(USER_NOT_FOUND)
-        );
+        User user = getUser();
         try{
             Date expiration = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
             GeneratePresignedUrlRequest preSignedUrlRequest = new GeneratePresignedUrlRequest
@@ -337,9 +333,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<ApiResponse> changePassword(Map<String, String> request) {
-        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException(USER_NOT_FOUND)
-        );
+        User user = getUser();
         try{
             PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
             if(passwordEncoder.matches(request.get("oldPassword"), user.getPassword())){
@@ -358,9 +352,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<ApiResponse> updateProfile(UserUdReq request) {
-        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException(USER_NOT_FOUND)
-        );
+        User user = getUser();
         try{
             String cacheKey = "updateProfile:user:" + jwtFilter.getCurrentUsername();
             userDao.updateUser(request, user.getId());
@@ -402,5 +394,10 @@ public class UserServiceImpl implements UserService {
     }
     private void deleteToS3(String oldFileName) {
         amazonS3.deleteObject(bucket, oldFileName);
+    }
+
+    private User getUser(){
+        return userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
+                () -> new NotFoundException(USER_NOT_FOUND));
     }
 }

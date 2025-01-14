@@ -14,7 +14,7 @@ import java.util.Map;
 
 public interface UserService {
     ResponseEntity<ApiResponse> signup(UserReq userReq) throws SQLDataException;
-    String verifyAccount(Map<String, String> request);
+    String verifyAccount(Map<String, String> request) throws SQLDataException;
 
     String regenerateOtp(Map<String, String> request);
 

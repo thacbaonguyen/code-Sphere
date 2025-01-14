@@ -4,8 +4,7 @@ import com.thacbao.codeSphere.entity.reference.CommentBlog;
 import com.thacbao.codeSphere.entity.reference.Reaction;
 import com.thacbao.codeSphere.entity.reference.Tag;
 import com.thacbao.codeSphere.enums.BlogStatus;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -48,7 +47,7 @@ public class Blog {
     private BlogStatus status = BlogStatus.draft;
 
     @Column(name = "is_featured")
-    private boolean isFeatured = false;
+    private boolean isFeatured;
 
     @Column(name = "view_count")
     private int viewCount = 0;

@@ -1,6 +1,7 @@
 package com.thacbao.codeSphere.data.specification;
 
 import com.thacbao.codeSphere.entity.core.Blog;
+import com.thacbao.codeSphere.entity.core.User;
 import com.thacbao.codeSphere.entity.reference.Tag;
 import com.thacbao.codeSphere.enums.BlogStatus;
 import org.springframework.data.jpa.domain.Specification;
@@ -38,6 +39,27 @@ public class BlogSpecification {
         return (root, query, criteriaBuilder) -> {
             Join<Blog, Tag> tagJoin = root.join("tags", JoinType.INNER);
             return criteriaBuilder.equal(tagJoin.get("name"), tag);
+        };
+    }
+
+    public static Specification<Blog> hasAuthor(String author) {
+        return (root, query, criteriaBuilder) -> {
+            Join<Blog, User> authorJoin = root.join("author", JoinType.INNER);
+            return criteriaBuilder.equal(authorJoin.get("username"), author);
+        };
+    }
+
+    public static Specification<Blog> hasMyStatus(String status) {
+        return (root, query, criteriaBuilder) -> {
+            if (status.equals("published")) {
+                return criteriaBuilder.equal(root.get("status"), BlogStatus.published);
+            }
+            else if (status.equals("draft")) {
+                return criteriaBuilder.equal(root.get("status"), BlogStatus.draft);
+            }
+            else {
+                return criteriaBuilder.equal(root.get("status"), BlogStatus.archived);
+            }
         };
     }
 }

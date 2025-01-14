@@ -1,4 +1,4 @@
-package com.thacbao.codeSphere.controllers;
+package com.thacbao.codeSphere.controllers.blog;
 
 import com.thacbao.codeSphere.dto.request.blog.BlogReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
@@ -61,4 +61,30 @@ public class BlogController {
         return blogService.findAllByTags(tagName, isFeatured, page, pageSize, order, by);
     }
 
+    @GetMapping("/my-blog")
+    public ResponseEntity<ApiResponse> findMyBlogs(@RequestParam(required = false) String search,
+                                                   @RequestParam(required = false) String status,
+                                                   @RequestParam(required = false) String order,
+                                                   @RequestParam(required = false) String by){
+
+        return blogService.findMyBlogs(search, status, order, by);
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ApiResponse> updateBlog(@PathVariable Integer id,
+                                                  @Valid @RequestBody BlogReq request, BindingResult bindingResult){
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(fieldError -> {
+                errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+            });
+            return CodeSphereResponses.generateResponse(errors, "Validation failed", HttpStatus.BAD_REQUEST);
+        }
+        return blogService.updateBlog(id, request);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<ApiResponse> delete(@PathVariable Integer id){
+        return blogService.deleteBlog(id);
+    }
 }

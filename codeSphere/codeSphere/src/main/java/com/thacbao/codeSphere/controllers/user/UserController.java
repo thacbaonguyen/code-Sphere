@@ -1,4 +1,4 @@
-package com.thacbao.codeSphere.controllers;
+package com.thacbao.codeSphere.controllers.user;
 
 import com.thacbao.codeSphere.dto.request.user.UserLoginReq;
 import com.thacbao.codeSphere.dto.request.user.UserReq;
@@ -40,7 +40,7 @@ public class UserController {
     }
 
     @PostMapping("/verify-account")
-    public ResponseEntity<ApiResponse> verifyAccount(@RequestBody Map<String, String> request){
+    public ResponseEntity<ApiResponse> verifyAccount(@RequestBody Map<String, String> request) throws SQLDataException {
 
             return CodeSphereResponses.generateResponse(null, userService.verifyAccount(request), HttpStatus.OK);
 
@@ -112,7 +112,6 @@ public class UserController {
         return userService.updateProfile(request);
 
     }
-
 
     @GetMapping("/check-token")
     public ResponseEntity<?> checkToken(){

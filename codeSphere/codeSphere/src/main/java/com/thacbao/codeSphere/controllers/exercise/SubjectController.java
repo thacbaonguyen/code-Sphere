@@ -1,4 +1,4 @@
-package com.thacbao.codeSphere.controllers;
+package com.thacbao.codeSphere.controllers.exercise;
 
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.services.serviceImpl.SubjectServiceImpl;
