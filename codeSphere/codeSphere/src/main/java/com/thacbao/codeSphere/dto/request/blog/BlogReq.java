@@ -30,8 +30,6 @@ public class BlogReq {
     @Size(max = 500, message = "Excerpt cannot exceed 500 characters")
     private String excerpt;
 
-    private String featuredImage;
-
     private Set<String> tags = new HashSet<>();
 
     private String isFeatured;
@@ -46,7 +44,6 @@ public class BlogReq {
         blog.setCreatedAt(LocalDate.now());
         blog.setUpdatedAt(LocalDate.now());
         blog.setExcerpt(this.excerpt);
-        blog.setFeaturedImage(this.featuredImage);
         blog.setStatus(this.status);
         blog.setFeatured(Boolean.parseBoolean(this.isFeatured));
         blog.setAuthor(author);

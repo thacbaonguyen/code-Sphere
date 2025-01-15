@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.HashMap;
@@ -32,6 +33,12 @@ public class BlogController {
         }
 
         return blogService.insertBlog(request);
+    }
+
+    @PostMapping("/upload/feature-image/{blog-id}")
+    public void uploadFeatureImage(@PathVariable("blog-id") Integer blogId,
+                                                          @RequestParam("featureImage") MultipartFile file) {
+        blogService.uploadFeatureImage(blogId, file);
     }
 
     @GetMapping("/view/{slug}")

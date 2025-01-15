@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,6 +44,8 @@ public class BlogDTO {
     private long commentCount;
 
     private Map<ReactionType, Long> reactionCounts;
+
+    private URL image;
 
 
     public BlogDTO(Blog blog) {

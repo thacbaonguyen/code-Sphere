@@ -4,6 +4,7 @@ import com.thacbao.codeSphere.entity.core.Blog;
 import com.thacbao.codeSphere.enums.BlogStatus;
 import lombok.*;
 
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,6 +27,7 @@ public class BlogBriefDTO {
     private long commentCount;
     private long totalReactions;
     private String slug;
+    private URL image;
 
     public BlogBriefDTO(Blog blog) {
         this.id = blog.getId();
