@@ -19,6 +19,7 @@ import com.thacbao.codeSphere.data.repository.UserRepository;
 import com.thacbao.codeSphere.services.CommentService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,7 @@ import static com.thacbao.codeSphere.constants.CodeSphereConstants.Exercise.EXER
 import static com.thacbao.codeSphere.constants.CodeSphereConstants.PERMISSION_DENIED;
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CommentServiceImpl implements CommentService {
 
     private final CmExRepository cmExRepository;
@@ -50,6 +52,12 @@ public class CommentServiceImpl implements CommentService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
+    /**
+     * Tạo mới comment cho bài tập
+     * clear cache details exercise
+     * @param request
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> insertComment(CmExReq request) {
         Exercise exercise = exerciseRepository.findByCode(request.getCode());
@@ -69,11 +77,18 @@ public class CommentServiceImpl implements CommentService {
             clearCache("exerciseDetails:" + exercise.getCode()); // khi them moi cmt, xoa cache bai tap
             return CodeSphereResponses.generateResponse(null, "Insert comment success", HttpStatus.OK);
         }
-        catch (Exception e) {
-            return CodeSphereResponses.generateResponse(null, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        catch (Exception ex) {
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Show danh sách comment cho bài tập
+     * @param code
+     * @return
+     * @throws SQLDataException
+     */
     @Override
     public ResponseEntity<ApiResponse> getCommentEx(String code) throws SQLDataException {
 
@@ -82,6 +97,13 @@ public class CommentServiceImpl implements CommentService {
 
     }
 
+    /**
+     * chỉnh sửa comment
+     * lưu bản gốc vào history comment
+     * @param request
+     * @return
+     * @throws SQLDataException
+     */
     @Override
     public ResponseEntity<ApiResponse> updateComment(Map<String, String> request) throws SQLDataException {
         CommentExercise commentExercise = cmExRepository.findById(Integer.parseInt(request.get("id"))).orElseThrow(

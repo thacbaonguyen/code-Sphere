@@ -14,6 +14,11 @@ public class TagService {
     @Autowired
     private TagRepository tagRepository;
 
+    /**
+     * Liên kết với blogService, tạo mới hoặc get tag
+     * @param tagNames
+     * @return
+     */
     public Set<Tag> getOrCreateTags(Set<String> tagNames) {
         Set<Tag> tags = new HashSet<>();
 

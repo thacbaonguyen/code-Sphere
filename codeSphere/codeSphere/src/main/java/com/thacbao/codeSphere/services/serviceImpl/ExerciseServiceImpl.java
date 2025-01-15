@@ -15,6 +15,7 @@ import com.thacbao.codeSphere.data.repository.ExerciseRepository;
 import com.thacbao.codeSphere.services.ExerciseService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import static com.thacbao.codeSphere.constants.CodeSphereConstants.Exercise.EXERCISE_NOT_FOUND;
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ExerciseServiceImpl implements ExerciseService {
     private final ExerciseRepository exerciseRepository;
 
@@ -42,6 +44,13 @@ public class ExerciseServiceImpl implements ExerciseService {
     private final SubjectRepository subjectRepository;
 
     private final RedisTemplate<String, Object> redisTemplate;
+
+    /**
+     * Tạo bài tập mới với role admin và manager
+     * @param request
+     * @return
+     * @throws AlreadyBoundException
+     */
     @Override
     public ResponseEntity<ApiResponse> insertExercise(ExerciseReq request) throws AlreadyBoundException {
         if(jwtFilter.isAdmin() || jwtFilter.isManager()){
@@ -65,6 +74,12 @@ public class ExerciseServiceImpl implements ExerciseService {
         }
     }
 
+    /**
+     * Xem bài tập cụ thể
+     * cache
+     * @param code
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> viewExerciseDetails(String code) {
         String cacheKey = "exerciseDetails:" + code;
@@ -80,10 +95,21 @@ public class ExerciseServiceImpl implements ExerciseService {
             return CodeSphereResponses.generateResponse(exerciseDTO, "Exercise details successfully", HttpStatus.OK);
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Tim kiếm danh sách bài tập theo môn học
+     * cache
+     * @param request
+     * @param order
+     * @param by
+     * @param search
+     * @param page
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> filterExerciseBySubjectAndParam(Map<String, String> request, String order, String by, String search, Integer page) {
         String cacheKey = "exerciseFilter:" + request.get("subject") +
@@ -101,10 +127,16 @@ public class ExerciseServiceImpl implements ExerciseService {
             return CodeSphereResponses.generateResponse(exerciseDTOS, "Exercise search successfully", HttpStatus.OK);
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Active hoặc deactive bài tập
+     * @param request
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> activateExercise(Map<String, String> request) {
         Exercise exercise = exerciseRepository.findByCode(request.get("code"));
@@ -118,10 +150,17 @@ public class ExerciseServiceImpl implements ExerciseService {
             return CodeSphereResponses.generateResponse(null, "Activate exercise successfully", HttpStatus.OK);
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Chỉnh sửa bài tập
+     * clear cache details, cache all
+     * @param request
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> updateExercise(ExerciseUdReq request) {
         Exercise exercise = exerciseRepository.findByCode(request.getCode());
@@ -135,10 +174,16 @@ public class ExerciseServiceImpl implements ExerciseService {
             return CodeSphereResponses.generateResponse(null, "Update exercise successfully", HttpStatus.OK);
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * xóa bài tập
+     * @param code
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> deleteExercise(String code) {
         Exercise exercise = exerciseRepository.findByCode(code);
@@ -152,6 +197,7 @@ public class ExerciseServiceImpl implements ExerciseService {
             return CodeSphereResponses.generateResponse(null, "Delete exercise successfully", HttpStatus.OK);
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

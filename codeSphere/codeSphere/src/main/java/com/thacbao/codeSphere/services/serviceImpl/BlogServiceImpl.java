@@ -332,6 +332,12 @@ public class BlogServiceImpl implements BlogService {
         return blog;
     }
 
+    /**
+     * Upload file lên cloud
+     * @param file
+     * @return
+     * @throws IOException
+     */
     private String uploadToS3(MultipartFile file) throws IOException {
         String fileName = UUID.randomUUID().toString() + "-" + LocalDate.now().toString() + file.getOriginalFilename();
         ObjectMetadata objectMetadata = new ObjectMetadata();
@@ -341,10 +347,19 @@ public class BlogServiceImpl implements BlogService {
         return fileName;
     }
 
+    /**
+     * delete file trên cloud
+     * @param oldFileName
+     */
     private void deleteFromS3(String oldFileName) {
         amazonS3.deleteObject(bucketFeature, oldFileName);
     }
 
+    /**
+     * Lấy thông tin hình ảnh dạng presignedUrl
+     * @param fileName
+     * @return
+     */
     private URL viewImageFromS3(String fileName){
         try {
             Date expiration = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
@@ -358,6 +373,11 @@ public class BlogServiceImpl implements BlogService {
         }
     }
 
+    /**
+     * Validate file trước khi up lên cloud
+     * @param file
+     * @return
+     */
     private boolean validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new AppException("File is empty");

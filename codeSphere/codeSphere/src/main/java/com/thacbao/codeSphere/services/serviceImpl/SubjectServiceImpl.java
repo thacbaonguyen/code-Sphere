@@ -26,6 +26,11 @@ public class SubjectServiceImpl {
 
     private final JwtFilter jwtFilter;
 
+    /**
+     * Tạo môn học mới với role admin
+     * @param request
+     * @return
+     */
     public ResponseEntity<ApiResponse> insertNewSubject(Map<String, String> request){
         if(jwtFilter.isAdmin() || jwtFilter.isManager()){
             Subject subject = subjectRepository.findByName(request.get("name"));
@@ -42,6 +47,10 @@ public class SubjectServiceImpl {
         }
     }
 
+    /**
+     * Lấy tất cả các môn học để hiển thị ra client khi đăng tải bài tập
+     * @return
+     */
     public ResponseEntity<ApiResponse> getAll(){
         try {
             List<Subject> subjects = subjectRepository.findAll();

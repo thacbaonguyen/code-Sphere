@@ -35,6 +35,12 @@ public class ContributeServiceImpl implements ContributeService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final JwtFilter jwtFilter;
+
+    /**
+     * Gửi yêu cầu đóng góp bài tập
+     * @param request
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> sendContribute(ContributeReq request) {
         try{
@@ -45,10 +51,17 @@ public class ContributeServiceImpl implements ContributeService {
             return CodeSphereResponses.generateResponse(null, "Send contribute successfully", HttpStatus.OK);
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Lấy tất cả các yêu cầu đóng góp với role admin và manager
+     * @param status
+     * @param dateOrder
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> getAllContributeActive(Boolean status, String dateOrder) {
         String cacheKey = "allContribute:status:" + jwtFilter.getCurrentUsername() + status + (dateOrder != null ? dateOrder : "");
@@ -70,10 +83,19 @@ public class ContributeServiceImpl implements ContributeService {
             }
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Xem chi tiết yêu cầu đóng góp
+     * Admin và manager có thể xem all
+     * user chỉ xem được của bản thân
+     * @param id
+     * @return
+     * @throws SQLDataException
+     */
     @Override
     public ResponseEntity<ApiResponse> getContributeDetails(Integer id) throws SQLDataException {
         ContributeDTO contribute = contributeDao.getContributeDetails(id);
@@ -88,6 +110,12 @@ public class ContributeServiceImpl implements ContributeService {
             throw new PermissionException(PERMISSION_DENIED);
     }
 
+    /**
+     * Accept or reject yêu cầu với role admin and manager
+     * @param request
+     * @return
+     * @throws SQLDataException
+     */
     @Override
     public ResponseEntity<ApiResponse> activateContribute(Map<String, String> request) throws SQLDataException {
 
@@ -99,6 +127,13 @@ public class ContributeServiceImpl implements ContributeService {
             throw new PermissionException(PERMISSION_DENIED);
     }
 
+    /**
+     * Sửa yêu cầu
+     * clear cache all
+     * @param request
+     * @param id
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> updateContribute(ContributeReq request, Integer id) {
         try{
@@ -108,6 +143,7 @@ public class ContributeServiceImpl implements ContributeService {
             return CodeSphereResponses.generateResponse(null, "Update contribute successfully", HttpStatus.OK);
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

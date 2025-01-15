@@ -18,6 +18,7 @@ import com.thacbao.codeSphere.data.repository.UserRepository;
 import com.thacbao.codeSphere.services.SolutionStorageService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ import static com.thacbao.codeSphere.constants.CodeSphereConstants.User.USER_NOT
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SolutionStorageServiceImpl implements SolutionStorageService {
 
     private final SolutionRepository solutionRepository;
@@ -53,6 +55,12 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
     @Value("${cloud.aws.s3.bucketSolution}")
     private String bucket;
 
+    /**
+     * Lưu trữ lời giải bài tập cho bài tập cụ thể, tối đa 5 bài
+     * @param file
+     * @param code
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> uploadFile(MultipartFile file, String code) {
         Exercise exercise = exerciseRepository.findByCode(code);
@@ -89,10 +97,16 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
             return CodeSphereResponses.generateResponse(fileName, String.format("Successfully uploaded %s", fileName), HttpStatus.OK);
         }
         catch (Exception ex) {
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Xem lời giải trực tiếp trên client
+     * @param filename
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> viewFile(String filename) {
         SolutionStorage storage = solutionRepository.findByFilename(filename).orElseThrow(
@@ -106,10 +120,16 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
             return CodeSphereResponses.generateResponse(content, String.format("Successfully viewed %s", filename), HttpStatus.OK);
         }
         catch (Exception ex) {
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Tải bài giải về máy
+     * @param filename
+     * @return
+     */
     @Override
     public ResponseEntity<?> downloadFile(String filename) {
         try {
@@ -124,13 +144,19 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
                     .contentLength(content.length)
                     .body(content);
 
-        } catch (Exception e) {
+        } catch (Exception ex) {
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse(LocalDateTime.now(), 500 ,null,
-                            "Error downloading file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
+                            "Error downloading file: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
         }
     }
 
+    /**
+     * Hiển thị danh sách các bài tập luu trữ trên client
+     * @param code
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> getAllToList(String code) {
         User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(

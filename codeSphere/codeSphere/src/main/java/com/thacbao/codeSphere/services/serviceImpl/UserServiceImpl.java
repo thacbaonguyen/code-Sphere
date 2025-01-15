@@ -81,6 +81,13 @@ public class UserServiceImpl implements UserService {
     @Value("${cloud.aws.s3.bucketAvatar}")
     private String bucket;
 
+    /**
+     * Đăng ký người dùng với role mặc định là user
+     * Thực hiện xác thực với otp email
+     * @param userReq
+     * @return
+     * @throws SQLDataException
+     */
     @Override
     public ResponseEntity<ApiResponse> signup(UserReq userReq) throws SQLDataException {
         Optional<User> user = userRepository.findByUsername(userReq.getUsername());
@@ -120,13 +127,21 @@ public class UserServiceImpl implements UserService {
                     + ", please verify to complete registration", HttpStatus.OK);
         }
         catch (MessagingException ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             throw new EmailSenderException(CodeSphereConstants.EMAIL_SENDER_ERROR);
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Verify account với otp
+     * @param request
+     * @return
+     * @throws SQLDataException
+     */
     @Override
     public String verifyAccount(Map<String, String> request) throws SQLDataException {
         User user = userRepository.findByEmail(request.get("email")).orElseThrow(
@@ -147,6 +162,11 @@ public class UserServiceImpl implements UserService {
         return "OTP expired";
     }
 
+    /**
+     * Gửi lại mã otp nếu xác thực thất bại
+     * @param request
+     * @return
+     */
     @Override
     public String regenerateOtp(Map<String, String> request) {
         User user = userRepository.findByEmail(request.get("email")).orElseThrow(
@@ -165,6 +185,12 @@ public class UserServiceImpl implements UserService {
         return "OTP regenerate successfully";
     }
 
+    /**
+     * Đăng nhập tài khoản, compare với password đã mã hóa và generate token
+     * Lưu token vào redis cache
+     * @param request
+     * @return
+     */
     @Override
     public ResponseEntity<?> login(UserLoginReq request) {
         String cacheKey = "user:jwt:" + request.getUsername();
@@ -198,10 +224,16 @@ public class UserServiceImpl implements UserService {
             return CodeSphereResponses.generateResponse(null, "Authentication failed", HttpStatus.FORBIDDEN);
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Lấy thông tin cá nhân của người đang đăng nhập
+     * cache profile
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> getProfile() {
         String cacheKey = "updateProfile:user:" + jwtFilter.getCurrentUsername(); // khai bao cache key
@@ -218,10 +250,17 @@ public class UserServiceImpl implements UserService {
                     (userDTO, "Get profile successfully", HttpStatus.OK);
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Upload/Update ảnh đại diện của người dùng, lưu trữ trên cloud
+     * Thực hiện xóa file cũ nếu là action update
+     * @param file
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> uploadAvatarProfile(MultipartFile file) {
         User user = getUser();
@@ -250,10 +289,15 @@ public class UserServiceImpl implements UserService {
             return CodeSphereResponses.generateResponse(fileName, "Avatar upload successfully", HttpStatus.OK);
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Lấy avatar của người dùng để hiển thị cho profile
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> viewAvatar() {
         User user = getUser();
@@ -267,10 +311,16 @@ public class UserServiceImpl implements UserService {
             return CodeSphereResponses.generateResponse(url, "Avatar view successfully", HttpStatus.OK);
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Lấy tất cả các người dùng trong hệ thống để quản lý
+     * cache all user
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> getAllUser() {
         String cacheKey = "allUser:admin";
@@ -291,10 +341,16 @@ public class UserServiceImpl implements UserService {
             }
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Quên mật khẩu, thực hiện xác thực qua email
+     * @param request
+     * @return
+     */
     @Override
     public ResponseEntity<?> forgotPassword(Map<String, String> request) {
         User user = userRepository.findByEmail(request.get("email")).orElseThrow(
@@ -313,6 +369,13 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    /**
+     * Đặt lại mật khẩu khi verify thành công
+     * @param email
+     * @param otp
+     * @param request
+     * @return
+     */
     @Override
     public ResponseEntity<?> setPassword(String email, String otp, Map<String, String> request) {
         User user = userRepository.findByEmail(email).orElseThrow(
@@ -331,6 +394,11 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Thay đổi mật khẩu người dùng
+     * @param request
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> changePassword(Map<String, String> request) {
         User user = getUser();
@@ -346,10 +414,17 @@ public class UserServiceImpl implements UserService {
             }
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Chỉnh sửa profile
+     * clear cache profile
+     * @param request
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> updateProfile(UserUdReq request) {
         User user = getUser();
@@ -360,15 +435,25 @@ public class UserServiceImpl implements UserService {
             return CodeSphereResponses.generateResponse(null, "Profile updated successfully", HttpStatus.OK);
         }
         catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Api check token từ client
+     * @return
+     */
     @Override
     public ResponseEntity<?> checkToken() {
         return CodeSphereResponses.generateResponse(null, "Check success", HttpStatus.OK);
     }
 
+    /**
+     * Tạo claim để generate token, được gọi ở hàm signup
+     * @return
+     * @throws SQLDataException
+     */
     private Map<String, Object> createClaim() throws SQLDataException {
         Map<String, Object> claim = new HashMap<>();
         List<String> roles = userDao.getRolesUser(customUserDetailsService.getUserDetails().getId());
@@ -379,11 +464,22 @@ public class UserServiceImpl implements UserService {
         claim.put("phoneNumber", customUserDetailsService.getUserDetails().getPhoneNumber());
         return claim;
     }
+
+    /**
+     * Xóa cache
+     * @param cacheKey
+     */
     private void clearCache(String cacheKey){
         log.info("clear cache {} ", cacheKey);
         redisTemplate.delete(redisTemplate.keys(cacheKey + "*"));
     }
 
+    /**
+     * Upload file lên cloud
+     * @param file
+     * @return
+     * @throws IOException
+     */
     private String uploadToS3(MultipartFile file) throws IOException {
         String fileName = UUID.randomUUID().toString() + "-" + LocalDate.now().toString() + file.getOriginalFilename();
         ObjectMetadata metadata = new ObjectMetadata();
