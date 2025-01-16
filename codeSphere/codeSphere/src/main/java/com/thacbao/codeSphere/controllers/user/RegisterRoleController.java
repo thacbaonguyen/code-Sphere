@@ -2,7 +2,7 @@ package com.thacbao.codeSphere.controllers.user;
 
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.exceptions.user.PermissionException;
-import com.thacbao.codeSphere.services.serviceImpl.RegisterRoleService;
+import com.thacbao.codeSphere.services.userImpl.RegisterRoleService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

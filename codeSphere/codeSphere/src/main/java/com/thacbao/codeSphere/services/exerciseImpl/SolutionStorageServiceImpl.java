@@ -1,4 +1,4 @@
-package com.thacbao.codeSphere.services.serviceImpl;
+package com.thacbao.codeSphere.services.exerciseImpl;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;

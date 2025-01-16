@@ -1,4 +1,4 @@
-package com.thacbao.codeSphere.services.serviceImpl;
+package com.thacbao.codeSphere.services.userImpl;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;

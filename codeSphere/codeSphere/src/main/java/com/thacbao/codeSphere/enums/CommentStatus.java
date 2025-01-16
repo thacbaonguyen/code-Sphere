@@ -4,5 +4,5 @@ import lombok.Getter;
 
 @Getter
 public enum CommentStatus {
-    PENDING, APPROVED, SPAM
+    pending, approved, spam
 }

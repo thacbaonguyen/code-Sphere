@@ -1,4 +1,4 @@
-package com.thacbao.codeSphere.services.serviceImpl;
+package com.thacbao.codeSphere.services.exerciseImpl;
 
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.data.dao.CmtExDao;
@@ -31,7 +31,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static com.thacbao.codeSphere.constants.CodeSphereConstants.Exercise.EXERCISE_NOT_FOUND;
 import static com.thacbao.codeSphere.constants.CodeSphereConstants.PERMISSION_DENIED;
 @Service
 @RequiredArgsConstructor

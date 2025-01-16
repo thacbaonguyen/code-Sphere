@@ -4,5 +4,5 @@ import lombok.Getter;
 
 @Getter
 public enum ReactionType {
-    LIKE, LOVE, HAHA, WOW, SAD, ANGRY
+    like, love, haha, wow, sad, angry
 }

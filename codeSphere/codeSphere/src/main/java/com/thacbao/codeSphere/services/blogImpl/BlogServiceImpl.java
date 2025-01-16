@@ -1,4 +1,4 @@
-package com.thacbao.codeSphere.services.serviceImpl;
+package com.thacbao.codeSphere.services.blogImpl;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
@@ -21,7 +21,6 @@ import com.thacbao.codeSphere.services.BlogService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

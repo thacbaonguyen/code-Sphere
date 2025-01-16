@@ -1,7 +1,7 @@
 package com.thacbao.codeSphere.controllers.exercise;
 
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.services.serviceImpl.SubjectServiceImpl;
+import com.thacbao.codeSphere.services.exerciseImpl.SubjectServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

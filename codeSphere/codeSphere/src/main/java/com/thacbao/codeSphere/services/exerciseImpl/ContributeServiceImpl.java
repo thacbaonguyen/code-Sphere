@@ -1,8 +1,7 @@
-package com.thacbao.codeSphere.services.serviceImpl;
+package com.thacbao.codeSphere.services.exerciseImpl;
 
 import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
-import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.data.dao.ContributeDao;
 import com.thacbao.codeSphere.dto.request.exercise.ContributeReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
