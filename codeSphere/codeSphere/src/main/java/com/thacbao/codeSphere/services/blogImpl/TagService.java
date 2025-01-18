@@ -1,7 +1,7 @@
 package com.thacbao.codeSphere.services.blogImpl;
 
-import com.thacbao.codeSphere.data.repository.TagRepository;
-import com.thacbao.codeSphere.entity.reference.Tag;
+import com.thacbao.codeSphere.data.repository.blog.TagRepository;
+import com.thacbao.codeSphere.entities.reference.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

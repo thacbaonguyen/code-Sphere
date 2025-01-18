@@ -1,6 +1,6 @@
 package com.thacbao.codeSphere.dto.response.user;
 
-import com.thacbao.codeSphere.entity.reference.RegisterRole;
+import com.thacbao.codeSphere.entities.reference.RegisterRole;
 import lombok.Data;
 
 @Data

@@ -2,7 +2,7 @@ package com.thacbao.codeSphere.data.dao;
 
 import com.thacbao.codeSphere.dto.request.exercise.ExerciseUdReq;
 import com.thacbao.codeSphere.dto.response.exercise.ExerciseDTO;
-import com.thacbao.codeSphere.exceptions.user.NotFoundException;
+import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;

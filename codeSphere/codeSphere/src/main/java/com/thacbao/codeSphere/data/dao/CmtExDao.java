@@ -2,7 +2,7 @@ package com.thacbao.codeSphere.data.dao;
 
 import com.thacbao.codeSphere.dto.response.exercise.CmExHistoryDTO;
 import com.thacbao.codeSphere.dto.response.exercise.CommentExDTO;
-import com.thacbao.codeSphere.entity.reference.CommentExercise;
+import com.thacbao.codeSphere.entities.reference.CommentExercise;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;

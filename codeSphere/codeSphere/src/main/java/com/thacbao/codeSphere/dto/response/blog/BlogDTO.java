@@ -1,9 +1,8 @@
 package com.thacbao.codeSphere.dto.response.blog;
 
 import com.thacbao.codeSphere.dto.response.user.UserDTO;
-import com.thacbao.codeSphere.entity.core.Blog;
-import com.thacbao.codeSphere.entity.reference.Reaction;
-import com.thacbao.codeSphere.entity.reference.Tag;
+import com.thacbao.codeSphere.entities.core.Blog;
+import com.thacbao.codeSphere.entities.reference.Reaction;
 import com.thacbao.codeSphere.enums.BlogStatus;
 import com.thacbao.codeSphere.enums.ReactionType;
 import lombok.AllArgsConstructor;
@@ -12,8 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

@@ -5,17 +5,17 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thacbao.codeSphere.configurations.JwtFilter;
-import com.thacbao.codeSphere.data.repository.BlogRepository;
-import com.thacbao.codeSphere.data.repository.UserRepository;
+import com.thacbao.codeSphere.data.repository.blog.BlogRepository;
+import com.thacbao.codeSphere.data.repository.user.UserRepository;
 import com.thacbao.codeSphere.dto.request.blog.BlogReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.blog.BlogBriefDTO;
 import com.thacbao.codeSphere.dto.response.blog.BlogDTO;
-import com.thacbao.codeSphere.entity.core.Blog;
-import com.thacbao.codeSphere.entity.core.User;
-import com.thacbao.codeSphere.entity.reference.Tag;
+import com.thacbao.codeSphere.entities.core.Blog;
+import com.thacbao.codeSphere.entities.core.User;
+import com.thacbao.codeSphere.entities.reference.Tag;
 import com.thacbao.codeSphere.exceptions.common.AppException;
-import com.thacbao.codeSphere.exceptions.user.NotFoundException;
+import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import com.thacbao.codeSphere.exceptions.user.PermissionException;
 import com.thacbao.codeSphere.services.BlogService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
@@ -137,7 +137,7 @@ public class BlogServiceImpl implements BlogService {
         if (blog.getFeaturedImage() != null){
             result.setImage(viewImageFromS3(blog.getFeaturedImage()));
         }
-        ops.set(cacheKey, result, 24, TimeUnit.HOURS);
+        ops.set(cacheKey, result, 5, TimeUnit.HOURS);
 
         return CodeSphereResponses.generateResponse(result, "Blog view successfully", HttpStatus.OK);
     }

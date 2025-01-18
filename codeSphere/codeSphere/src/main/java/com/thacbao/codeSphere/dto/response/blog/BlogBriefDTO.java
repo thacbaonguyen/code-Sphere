@@ -1,11 +1,10 @@
 package com.thacbao.codeSphere.dto.response.blog;
 
-import com.thacbao.codeSphere.entity.core.Blog;
+import com.thacbao.codeSphere.entities.core.Blog;
 import com.thacbao.codeSphere.enums.BlogStatus;
 import lombok.*;
 
 import java.net.URL;
-import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 

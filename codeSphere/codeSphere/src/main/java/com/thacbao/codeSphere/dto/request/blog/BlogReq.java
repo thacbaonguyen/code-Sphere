@@ -1,8 +1,8 @@
 package com.thacbao.codeSphere.dto.request.blog;
 
-import com.thacbao.codeSphere.entity.core.Blog;
-import com.thacbao.codeSphere.entity.core.User;
-import com.thacbao.codeSphere.entity.reference.Tag;
+import com.thacbao.codeSphere.entities.core.Blog;
+import com.thacbao.codeSphere.entities.core.User;
+import com.thacbao.codeSphere.entities.reference.Tag;
 import com.thacbao.codeSphere.enums.BlogStatus;
 import com.thacbao.codeSphere.utils.SlugUtil;
 import lombok.*;

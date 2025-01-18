@@ -2,7 +2,7 @@ package com.thacbao.codeSphere.data.dao;
 
 import com.thacbao.codeSphere.dto.request.user.UserUdReq;
 import com.thacbao.codeSphere.dto.response.user.UserDTO;
-import com.thacbao.codeSphere.entity.core.User;
+import com.thacbao.codeSphere.entities.core.User;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;

@@ -1,7 +1,7 @@
 package com.thacbao.codeSphere.dto.response.user;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.thacbao.codeSphere.entity.core.User;
+import com.thacbao.codeSphere.entities.core.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -59,7 +59,7 @@ public class UserDTO {
         this.username = author.getUsername();
         this.fullName = author.getFullName();
         this.email = author.getEmail();
-        this.phoneNumber = author.getPhoneNumber();
+//        this.phoneNumber = author.getPhoneNumber();
         this.dob = author.getDob().toString();
         this.createdAt = author.getCreatedAt().toString();
         this.updatedAt = author.getUpdatedAt().toString();

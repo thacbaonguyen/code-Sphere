@@ -1,6 +1,6 @@
 package com.thacbao.codeSphere.dto.response.exercise;
 
-import com.thacbao.codeSphere.entity.reference.SolutionStorage;
+import com.thacbao.codeSphere.entities.reference.SolutionStorage;
 import lombok.Data;
 
 @Data
