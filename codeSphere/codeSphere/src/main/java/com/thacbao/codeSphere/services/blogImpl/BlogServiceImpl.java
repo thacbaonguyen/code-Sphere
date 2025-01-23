@@ -4,6 +4,7 @@ import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.data.repository.blog.BlogRepository;
 import com.thacbao.codeSphere.data.repository.user.UserRepository;
@@ -11,6 +12,7 @@ import com.thacbao.codeSphere.dto.request.blog.BlogReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.blog.BlogBriefDTO;
 import com.thacbao.codeSphere.dto.response.blog.BlogDTO;
+import com.thacbao.codeSphere.dto.response.deserialize.ContentResponse;
 import com.thacbao.codeSphere.entities.core.Blog;
 import com.thacbao.codeSphere.entities.core.User;
 import com.thacbao.codeSphere.entities.reference.Tag;
@@ -20,6 +22,7 @@ import com.thacbao.codeSphere.exceptions.user.PermissionException;
 import com.thacbao.codeSphere.services.BlogService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -66,6 +69,9 @@ public class BlogServiceImpl implements BlogService {
     @Value("${cloud.aws.s3.bucketFeature}")
     private String bucketFeature;
 
+    @NonFinal
+    private final String cacheKeyDelete = "allBlogs:*";
+
     @Override
     public ResponseEntity<ApiResponse> insertBlog(BlogReq request) {
         User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
@@ -76,6 +82,8 @@ public class BlogServiceImpl implements BlogService {
             Set<Tag> tags = tagService.getOrCreateTags(request.getTags());
             Blog blog = request.toEntity(user, tags);
             blogRepository.save(blog);
+            redisTemplate.delete(redisTemplate.keys(cacheKeyDelete));
+            log.info("clear cache key {}", cacheKeyDelete);
             return CodeSphereResponses.generateResponse(null, "Blog create successfully", HttpStatus.CREATED);
         }
         else
@@ -155,9 +163,20 @@ public class BlogServiceImpl implements BlogService {
             Integer pageSize,
             String order,
             String by) {
+
+        String cacheKey = "allBlogs:" + (search == null ? "" : search) + (isFeature == null ? "" : isFeature)
+                + (order == null ? "" : order) + (by == null ? "" : by)
+                + page.toString() + pageSize.toString();
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         // Create pageable
         try{
-
+            String content = (String) ops.get(cacheKey);
+            if (content != null){
+                ObjectMapper mapper = new ObjectMapper();
+                ContentResponse response = mapper.readValue(content, ContentResponse.class);
+                log.info("cache all blog key {}", cacheKey);
+                return CodeSphereResponses.generateResponse(response, "All blogs successfully", HttpStatus.OK);
+            }
             Sort.Direction direction = order != null && order.equalsIgnoreCase("asc") ?
                     Sort.Direction.ASC : Sort.Direction.DESC;
             String sortBy = by != null && !by.isEmpty() ? by : "publishedAt";
@@ -182,7 +201,9 @@ public class BlogServiceImpl implements BlogService {
 
                         return blogBriefDTO;
                     });
-
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json = objectMapper.writeValueAsString(result);
+            ops.set(cacheKey, json, 5, TimeUnit.HOURS);
             return CodeSphereResponses.generateResponse(result, "Blog view successfully", HttpStatus.OK);
         }
         catch (Exception e){
@@ -197,7 +218,18 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public ResponseEntity<ApiResponse> findAllByTags(String tagName, String isFeatured,
                                                      Integer page, Integer pageSize, String order, String by) {
+        String cacheKey = "allBlogs:" + (tagName == null ? "" : tagName) + (isFeatured == null ? "" : isFeatured)
+                + (order == null ? "" : order) + (by == null ? "" : by)
+                + page.toString() + pageSize.toString();
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         try{
+            String content = (String) ops.get(cacheKey);
+            if (content != null){
+                ObjectMapper mapper = new ObjectMapper();
+                ContentResponse response = mapper.readValue(content, ContentResponse.class);
+                log.info("cache all blog by tags with key {}", cacheKey);
+                return CodeSphereResponses.generateResponse(response, "All blogs successfully", HttpStatus.OK);
+            }
             Sort.Direction direction = order != null && order.equalsIgnoreCase("asc")
                     ? Sort.Direction.ASC : Sort.Direction.DESC;
             String sortBy = by != null && !by.isEmpty() ? by : "publishedAt";
@@ -218,6 +250,9 @@ public class BlogServiceImpl implements BlogService {
                         }
                         return blogBriefDTO;
                     });
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json = objectMapper.writeValueAsString(result);
+            ops.set(cacheKey, json, 5, TimeUnit.HOURS);
             return CodeSphereResponses.generateResponse(result, "Blog view successfully", HttpStatus.OK);
         }
         catch (Exception ex){
@@ -233,7 +268,17 @@ public class BlogServiceImpl implements BlogService {
      */
     @Override
     public ResponseEntity<ApiResponse> findMyBlogs(String search, String status, String order, String by) {
+        String cacheKey = "allBlogs:myBlogs:" + (search == null ? "" : search) + (status == null ? "" : status)
+                + (order == null ? "" : order) + (by == null ? "" : by);
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         try {
+            String content = (String) ops.get(cacheKey);
+            if (content != null){
+                ObjectMapper mapper = new ObjectMapper();
+                ContentResponse response = mapper.readValue(content, ContentResponse.class);
+                log.info("cache myBlogs with key {}", cacheKey);
+                return CodeSphereResponses.generateResponse(response, "My blogs successfully", HttpStatus.OK);
+            }
             Sort.Direction direction = order != null && by !=null && order.equalsIgnoreCase("asc") ?
                     Sort.Direction.ASC : Sort.Direction.DESC;
 
@@ -253,6 +298,9 @@ public class BlogServiceImpl implements BlogService {
 
                         return blogBriefDTO;
                     });
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json = objectMapper.writeValueAsString(result);
+            ops.set(cacheKey, json, 5, TimeUnit.HOURS);
             return CodeSphereResponses.generateResponse(result, "Blog view successfully", HttpStatus.OK);
         }
         catch (Exception ex){
