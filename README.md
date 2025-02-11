@@ -4,7 +4,7 @@
 
 ### `Enhanced Entity-Relationship Model`
 #### `Some entities will be added during the application development process.`
-![Tên ảnh](https://github.com/thacbaonguyen/codeSphere_repo/blob/master/overview-system/err-diagram.png)
+![Tên ảnh](https://github.com/thacbaonguyen/code-Sphere/blob/master/overview-system/err-diagram-update.png)
 
 
 
