@@ -91,11 +91,17 @@ public class UserController {
 
     }
 
-    @PutMapping("/set-password")
-    public ResponseEntity<?> setPassword(@RequestParam String email, @RequestParam String otp,
-                                         @RequestBody Map<String, String> request){
+    @PostMapping("/verify-forgot-password")
+    public ResponseEntity<ApiResponse> verifyForgotPassword(@RequestBody Map<String, String> request) throws SQLDataException {
 
-        return userService.setPassword(email, otp, request);
+        return CodeSphereResponses.generateResponse(null, userService.verifyForgotPassword(request), HttpStatus.OK);
+
+    }
+
+    @PutMapping("/set-password")
+    public ResponseEntity<?> setPassword(@RequestBody Map<String, String> request){
+
+        return userService.setPassword(request);
 
     }
 

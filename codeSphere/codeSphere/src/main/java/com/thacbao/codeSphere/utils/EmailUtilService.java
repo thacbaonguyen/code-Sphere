@@ -28,11 +28,7 @@ public class EmailUtilService {
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
         mimeMessageHelper.setTo(email);
         mimeMessageHelper.setSubject("Reset Password");
-        mimeMessageHelper.setText("""
-        <div>
-          <a href="http://localhost:8083/api/v1/auth/set-password?email=%s&otp=%s" target="_blank">click link set password</a>
-        </div>
-        """.formatted(email, otp), true);
+        mimeMessageHelper.setText("Here is your OTP code: <b>" + otp + "</b>", true);
         javaMailSender.send(mimeMessage);
     }
 }

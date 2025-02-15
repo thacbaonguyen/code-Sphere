@@ -33,7 +33,8 @@ public class JwtFilter extends OncePerRequestFilter {
             "/api/v1/auth/verify-account",
             "/api/v1/auth/regenerate-otp",
             "/api/v1/auth/test",
-            "/api/v1/auth/set-password.*"
+            "/api/v1/auth/set-password.*",
+            "/api/v1/auth/verify-forgot-password",
     };
     private Boolean isPublicPath(String path){
         return Arrays.stream(PUBLIC_PATHS).anyMatch(path::matches);

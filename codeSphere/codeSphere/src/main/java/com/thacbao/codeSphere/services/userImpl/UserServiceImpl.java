@@ -109,6 +109,10 @@ public class UserServiceImpl implements UserService {
             }
         }
         try{
+            if (!userReq.getPassword().equals(userReq.getRetypePassword())){
+                return CodeSphereResponses.generateResponse
+                        (null, "Password does not match", HttpStatus.BAD_REQUEST);
+            }
             String OTP = otpUtils.generateOtp();
             emailUtilService.sentOtpEmail(userReq.getEmail(), OTP);
             // pw encoder
@@ -370,27 +374,44 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Đặt lại mật khẩu khi verify thành công
-     * @param email
-     * @param otp
+     *sau khi xac thuc otp cho lay lai mat khau, chuyen den nhap mat khau moi
      * @param request
      * @return
      */
     @Override
-    public ResponseEntity<?> setPassword(String email, String otp, Map<String, String> request) {
-        User user = userRepository.findByEmail(email).orElseThrow(
-                ()-> new NotFoundException(USER_NOT_FOUND)
+    public String verifyForgotPassword(Map<String, String> request) {
+        User user = userRepository.findByEmail(request.get("email")).orElseThrow(
+                () -> new NotFoundException(USER_NOT_FOUND)
         );
 
-        if(user.getOTP().equals(otp) && Duration.between(user.getOtpGenerateTime(), LocalDateTime.now()).getSeconds() < (60 * 2)){
-            PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-            user.setPassword(passwordEncoder.encode(request.get("password")));
-            userRepository.save(user);
-            return CodeSphereResponses.generateResponse(null, "Password reset successfully", HttpStatus.OK);
+        if(request.get("otp").equals(user.getOTP()) && Duration.between(user.getOtpGenerateTime(),
+                LocalDateTime.now()).getSeconds() < (2* 60)){
+            clearCache("allUser:admin"); // khi user duoc active -> clear cache cua get all user
+            return "OTP verified successfully";
         }
-        else{
-            throw new InvalidException("Invalid OTP or OTP expired");
+        else if(!request.get("otp").equals(user.getOTP())){
+            return "OTP is invalid";
         }
+        return "OTP expired";
+    }
+
+    /**
+     * Đặt lại mật khẩu khi verify thành công
+     * @param request
+     * @return
+     */
+    @Override
+    public ResponseEntity<?> setPassword(Map<String, String> request) {
+        User user = userRepository.findByEmail(request.get("email")).orElseThrow(
+                ()-> new NotFoundException(USER_NOT_FOUND)
+        );
+        if (!request.get("password").equals(request.get("retypePassword"))) {
+            return CodeSphereResponses.generateResponse(null, "Password does not match", HttpStatus.BAD_REQUEST);
+        }
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        user.setPassword(passwordEncoder.encode(request.get("password")));
+        userRepository.save(user);
+        return CodeSphereResponses.generateResponse(null, "Password reset successfully", HttpStatus.OK);
 
     }
 

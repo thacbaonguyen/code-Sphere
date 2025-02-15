@@ -26,7 +26,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/api/v1/auth/verify-account",
             "/api/v1/auth/regenerate-otp",
             "/api/v1/auth/test",
-            "/api/v1/auth/set-password/**"
+            "/api/v1/auth/set-password/**",
+            "/api/v1/auth/verify-forgot-password",
     };
 
     @Override

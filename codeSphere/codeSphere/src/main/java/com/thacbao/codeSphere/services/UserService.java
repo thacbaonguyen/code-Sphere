@@ -31,7 +31,9 @@ public interface UserService {
 
     ResponseEntity<?> forgotPassword(Map<String, String> request);
 
-    ResponseEntity<?> setPassword(String email, String otp, Map<String, String> request);
+    String verifyForgotPassword(Map<String, String> request);
+
+    ResponseEntity<?> setPassword(Map<String, String> request);
 
     ResponseEntity<ApiResponse> changePassword(Map<String, String> request);
 
