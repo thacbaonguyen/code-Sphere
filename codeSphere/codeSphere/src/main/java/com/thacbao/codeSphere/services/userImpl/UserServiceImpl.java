@@ -426,6 +426,12 @@ public class UserServiceImpl implements UserService {
         try{
             PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
             if(passwordEncoder.matches(request.get("oldPassword"), user.getPassword())){
+                if (!request.get("newPassword").equals(request.get("retypeNewPassword"))) {
+                    return CodeSphereResponses.generateResponse(null, "Password does not match", HttpStatus.BAD_REQUEST);
+                }
+                if (request.get("oldPassword").equals(request.get("newPassword"))) {
+                    return CodeSphereResponses.generateResponse(null, "New password and old password must not be the same!", HttpStatus.BAD_REQUEST);
+                }
                 user.setPassword(passwordEncoder.encode(request.get("newPassword")));
                 userRepository.save(user);
                 return CodeSphereResponses.generateResponse(null, "Password change successfully", HttpStatus.OK);
