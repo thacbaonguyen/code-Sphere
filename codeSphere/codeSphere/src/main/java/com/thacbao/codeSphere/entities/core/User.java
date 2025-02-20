@@ -53,6 +53,9 @@ public class User {
     @Column(name = "updated_at")
     private LocalDate updatedAt;
 
+    @Column(name = "is_blocked")
+    private Boolean isBlocked;
+
     private String avatar;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

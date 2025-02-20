@@ -40,4 +40,6 @@ public interface UserService {
     ResponseEntity<ApiResponse> updateProfile(UserUdReq request);
 
     ResponseEntity<?> checkToken();
+
+    ResponseEntity<ApiResponse> blockUser(Map<String, String> request);
 }

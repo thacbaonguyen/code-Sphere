@@ -125,4 +125,9 @@ public class UserController {
         return userService.checkToken();
 
     }
+
+    @PutMapping("/block-user")
+    public ResponseEntity<?> blockUser(@RequestBody Map<String, String> request){
+        return userService.blockUser(request);
+    }
 }

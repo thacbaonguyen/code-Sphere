@@ -125,6 +125,7 @@ public class UserServiceImpl implements UserService {
             newUser.setCreatedAt(LocalDate.now());
             newUser.setUpdatedAt(LocalDate.now());
             newUser.setIsActive(false);
+            newUser.setIsBlocked(false);
             userRepository.save(newUser);
             // return
             return CodeSphereResponses.generateResponse(null, "OTP sent to " + userReq.getEmail()
@@ -210,6 +211,9 @@ public class UserServiceImpl implements UserService {
         if(!user.getIsActive()){
             throw new PermissionException("Account is not active, please create account one more time");
         }
+        if (user.getIsBlocked()){
+            throw new PermissionException("Account is blocked");
+        }
         try{
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
@@ -240,7 +244,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public ResponseEntity<ApiResponse> getProfile() {
-        String cacheKey = "updateProfile:user:" + jwtFilter.getCurrentUsername(); // khai bao cache key
+        String cacheKey = "viewProfile:user:" + jwtFilter.getCurrentUsername(); // khai bao cache key
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
         try{
             UserDTO cacheUser = (UserDTO) valueOperations.get(cacheKey);// kiem tra cache
@@ -456,7 +460,7 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<ApiResponse> updateProfile(UserUdReq request) {
         User user = getUser();
         try{
-            String cacheKey = "updateProfile:user:" + jwtFilter.getCurrentUsername();
+            String cacheKey = "viewProfile:user:" + jwtFilter.getCurrentUsername();
             userDao.updateUser(request, user.getId());
             clearCache(cacheKey);
             return CodeSphereResponses.generateResponse(null, "Profile updated successfully", HttpStatus.OK);
@@ -474,6 +478,35 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> checkToken() {
         return CodeSphereResponses.generateResponse(null, "Check success", HttpStatus.OK);
+    }
+
+    /**
+     * Block user
+     * @param request: username, isBlocked
+     * @return
+     */
+    @Override
+    public ResponseEntity<ApiResponse> blockUser(Map<String, String> request) {
+        try {
+            if (jwtFilter.isAdmin()){
+                userDao.blockUser(request.get("username"), Boolean.parseBoolean(request.get("isBlocked")));
+                String cacheKey = "viewProfile:user:" + jwtFilter.getCurrentUsername();
+                clearCache("allUser:admin"); // xoa cache all user
+                clearCache(cacheKey); // xoa cache profile
+                if (request.get("isBlocked").equalsIgnoreCase("true")) {
+                    return CodeSphereResponses.generateResponse(null, "User blocked", HttpStatus.OK);
+                }
+                else {
+                    return CodeSphereResponses.generateResponse(null, "User unblocked", HttpStatus.BAD_REQUEST);
+                }
+            }
+            return CodeSphereResponses.generateResponse(null, CodeSphereConstants.PERMISSION_DENIED, HttpStatus.FORBIDDEN);
+        }
+        catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
     }
 
     /**

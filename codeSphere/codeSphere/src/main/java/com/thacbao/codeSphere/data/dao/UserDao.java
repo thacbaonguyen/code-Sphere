@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,7 +58,11 @@ public class UserDao {
                     GROUP_CONCAT(r.name) as roles_name from users as u 
                     JOIN authorization as a on a.user_id = u.id 
                     JOIN roles as r on a.role_id = r.id 
-                    where u.is_active = true 
+                    LEFT JOIN
+                        (SELECT DISTINCT user_id FROM authorization a2
+                         JOIN roles r2 ON a2.role_id = r2.id
+                         WHERE r2.name in ('ADMIN', 'MANAGER', 'BLOGGER')) AS admin_users ON u.id = admin_users.user_id
+                    where u.is_active = true and u.is_blocked = false and admin_users.user_id is null
                     group by u.id
                     """;
             List<Object[]> results = entityManager.createNativeQuery(sql)
@@ -98,6 +103,21 @@ public class UserDao {
             String sql = "DELETE FROM users WHERE id = :userId";
             entityManager.createNativeQuery(sql)
                     .setParameter("userId", id)
+                    .executeUpdate();
+        }
+        catch (Exception ex){
+            throw new SQLDataException(ex.getMessage());
+        }
+    }
+
+    @Transactional
+    public void blockUser(String username, Boolean isBlocked) throws SQLDataException {
+        try {
+            String sql = """
+                    update users set is_blocked = :isBlocked where user_name = :userName
+                    """;
+            entityManager.createNativeQuery(sql).setParameter("isBlocked", isBlocked)
+                    .setParameter("userName", username)
                     .executeUpdate();
         }
         catch (Exception ex){
