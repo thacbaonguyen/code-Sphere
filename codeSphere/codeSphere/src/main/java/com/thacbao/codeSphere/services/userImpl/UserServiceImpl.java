@@ -325,33 +325,57 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Lấy tất cả các người dùng trong hệ thống để quản lý
+     * Lấy tất cả các người dùng trong hệ thống để quản lý trừ admin, blog, manager
      * cache all user
      * @return
      */
     @Override
     public ResponseEntity<ApiResponse> getAllUser() {
-        String cacheKey = "allUser:admin";
+        return getAllObject("User");
+    }
+    /**
+     * Lấy tất cả các manager trong hệ thống để quản lý truwf admin
+     * cache all manager
+     * @return
+     */
+    @Override
+    public ResponseEntity<ApiResponse> getAllManager() {
+        return getAllObject("Manager");
+    }
+    /**
+     * Lấy tất cả các người dùng trong hệ thống để quản lý tru admin
+     * cache all blogger
+     * @return
+     */
+    @Override
+    public ResponseEntity<ApiResponse> getAllBlogger() {
+        return getAllObject("Blogger");
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getAllUserBlocked() {
+        String cacheKey = "userBlocked:admin:";
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
         try{
-            if(jwtFilter.isAdmin()){
-                List<UserDTO> cacheUsers = (List<UserDTO>) valueOperations.get(cacheKey);
-                if(cacheUsers != null){
-                    log.info("caching all users: {}", cacheKey);
-                    return CodeSphereResponses.generateResponse(cacheUsers, "Get all user successfully", HttpStatus.OK);
+            if (jwtFilter.isAdmin()){
+                List<UserDTO> blockedUserCache = (List<UserDTO>) valueOperations.get(cacheKey);
+                if (blockedUserCache != null){
+                    log.info("caching blocked users: {}", cacheKey);
+                    return CodeSphereResponses.generateResponse(blockedUserCache, "Get all user blocked successfully", HttpStatus.OK);
                 }
-                List<UserDTO> users = userDao.getAllUser();
-                valueOperations.set(cacheKey, users, 24, TimeUnit.HOURS);
-                return CodeSphereResponses.generateResponse(users, "Get all user successfully", HttpStatus.OK);
+
+                List<UserDTO> userDTOS = userDao.getAllUserBlocked();
+                valueOperations.set(cacheKey, userDTOS, 24, TimeUnit.HOURS);
+                return CodeSphereResponses.generateResponse(userDTOS, "Get all user blocked successfully", HttpStatus.OK);
+
             }
-            else{
-                return CodeSphereResponses.generateResponse(null, CodeSphereConstants.PERMISSION_DENIED, HttpStatus.FORBIDDEN);
-            }
+            return CodeSphereResponses.generateResponse(null, CodeSphereConstants.PERMISSION_DENIED, HttpStatus.FORBIDDEN);
         }
         catch (Exception ex){
             log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
     }
 
     /**
@@ -491,13 +515,16 @@ public class UserServiceImpl implements UserService {
             if (jwtFilter.isAdmin()){
                 userDao.blockUser(request.get("username"), Boolean.parseBoolean(request.get("isBlocked")));
                 String cacheKey = "viewProfile:user:" + jwtFilter.getCurrentUsername();
-                clearCache("allUser:admin"); // xoa cache all user
+                clearCache("allUser:admin");
+                clearCache("allManager:admin");
+                clearCache("allBlogger:admin");// xoa cache all
+                clearCache("userBlocked:admin");
                 clearCache(cacheKey); // xoa cache profile
                 if (request.get("isBlocked").equalsIgnoreCase("true")) {
                     return CodeSphereResponses.generateResponse(null, "User blocked", HttpStatus.OK);
                 }
                 else {
-                    return CodeSphereResponses.generateResponse(null, "User unblocked", HttpStatus.BAD_REQUEST);
+                    return CodeSphereResponses.generateResponse(null, "User unblocked", HttpStatus.OK);
                 }
             }
             return CodeSphereResponses.generateResponse(null, CodeSphereConstants.PERMISSION_DENIED, HttpStatus.FORBIDDEN);
@@ -555,5 +582,52 @@ public class UserServiceImpl implements UserService {
     private User getUser(){
         return userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
                 () -> new NotFoundException(USER_NOT_FOUND));
+    }
+
+    /**
+     * Hàm để lấy all đối tượng (manager, user, blogger) tùy vào tham số truyền vào
+     * @param objectName
+     * @return
+     */
+    private ResponseEntity<ApiResponse> getAllObject(String objectName){
+        String cacheKey = "all" + objectName + ":admin";
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+        try{
+            if(jwtFilter.isAdmin()){
+                List<UserDTO> cacheObject = (List<UserDTO>) valueOperations.get(cacheKey);
+                if(cacheObject != null){
+                    log.info("caching all {}", cacheKey);
+                    return CodeSphereResponses.generateResponse(cacheObject, "Get all" + objectName + "successfully", HttpStatus.OK);
+                }
+                switch (objectName){
+                    case "User":
+                        List<UserDTO> users = userDao.getAllUser();
+                        valueOperations.set(cacheKey, users, 24, TimeUnit.HOURS);
+                        return CodeSphereResponses.generateResponse(users, "Get all" + objectName + "successfully", HttpStatus.OK);
+
+                    case "Manager":
+                        List<UserDTO> manager = userDao.getAllManager();
+                        valueOperations.set(cacheKey, manager, 24, TimeUnit.HOURS);
+                        return CodeSphereResponses.generateResponse(manager, "Get all" + objectName + "successfully", HttpStatus.OK);
+
+                    case "Blogger":
+                        List<UserDTO> blogger = userDao.getAllBlogger();
+                        valueOperations.set(cacheKey, blogger, 24, TimeUnit.HOURS);
+                        return CodeSphereResponses.generateResponse(blogger, "Get all" + objectName + "successfully", HttpStatus.OK);
+
+                    default:
+                        return CodeSphereResponses.generateResponse(null, "INTERNAL SERVER ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+
+                }
+
+            }
+            else{
+                return CodeSphereResponses.generateResponse(null, CodeSphereConstants.PERMISSION_DENIED, HttpStatus.FORBIDDEN);
+            }
+        }
+        catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

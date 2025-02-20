@@ -84,6 +84,21 @@ public class UserController {
 
     }
 
+    @GetMapping("/all-manager")
+    public ResponseEntity<?> getAllManager(){
+        return userService.getAllManager();
+    }
+
+    @GetMapping("/all-blogger")
+    public ResponseEntity<?> getAllBlogger(){
+        return userService.getAllBlogger();
+    }
+
+    @GetMapping("/all-blocked")
+    public ResponseEntity<?> getAllUserBlocked(){
+        return userService.getAllUserBlocked();
+    }
+
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request){
 

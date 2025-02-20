@@ -29,6 +29,12 @@ public interface UserService {
 
     ResponseEntity<ApiResponse> getAllUser();
 
+    ResponseEntity<ApiResponse> getAllManager();
+
+    ResponseEntity<ApiResponse> getAllBlogger();
+
+    ResponseEntity<ApiResponse> getAllUserBlocked();
+
     ResponseEntity<?> forgotPassword(Map<String, String> request);
 
     String verifyForgotPassword(Map<String, String> request);

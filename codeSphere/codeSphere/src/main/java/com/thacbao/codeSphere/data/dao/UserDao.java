@@ -78,6 +78,87 @@ public class UserDao {
     }
 
     @Transactional
+    public List<UserDTO> getAllManager() throws SQLDataException {
+        try{
+            String sql = """
+                    SELECT u.user_name, u.full_name, u.email, u.phone_number, u.dob, u.created_at, u.updated_at, 
+                    GROUP_CONCAT(r.name) as roles_name from users as u 
+                    JOIN authorization as a on a.user_id = u.id 
+                    JOIN roles as r on a.role_id = r.id 
+                    left join
+                    	(select distinct user_id from authorization as a2
+                        join roles as r2 on a2.role_id = r2.id
+                        where r2.name = 'ADMIN') as admin_acc on u.id = admin_acc.user_id
+                    where u.is_active = true and u.is_blocked = false and r.name = 'MANAGER' and admin_acc.user_id is null
+                    group by u.id
+                    """;
+            List<Object[]> results = entityManager.createNativeQuery(sql)
+                    .getResultList();
+            return results.stream()
+                    .map(result -> new UserDTO(result[0].toString(), result[1].toString(), result[2].toString(),
+                            result[3].toString(), result[4].toString(), result[5].toString(), result[6].toString(),
+                            Arrays.asList(result[7].toString().split(",")))).collect(Collectors.toList());
+        }
+        catch (Exception exception){
+            throw new SQLDataException(exception.getMessage());
+        }
+    }
+
+    @Transactional
+    public List<UserDTO> getAllBlogger() throws SQLDataException {
+        try{
+            String sql = """
+                    SELECT u.user_name, u.full_name, u.email, u.phone_number, u.dob, u.created_at, u.updated_at, 
+                    GROUP_CONCAT(r.name) as roles_name from users as u 
+                    JOIN authorization as a on a.user_id = u.id 
+                    JOIN roles as r on a.role_id = r.id 
+                    left join
+                    	(select distinct user_id from authorization as a2
+                        join roles as r2 on a2.role_id = r2.id
+                        where r2.name = 'ADMIN') as admin_acc on u.id = admin_acc.user_id
+                    where u.is_active = true and u.is_blocked = false and r.name = 'BLOGGER' and admin_acc.user_id is null
+                    group by u.id
+                    """;
+            List<Object[]> results = entityManager.createNativeQuery(sql)
+                    .getResultList();
+            return results.stream()
+                    .map(result -> new UserDTO(result[0].toString(), result[1].toString(), result[2].toString(),
+                            result[3].toString(), result[4].toString(), result[5].toString(), result[6].toString(),
+                            Arrays.asList(result[7].toString().split(",")))).collect(Collectors.toList());
+        }
+        catch (Exception exception){
+            throw new SQLDataException(exception.getMessage());
+        }
+    }
+
+    @Transactional
+    public List<UserDTO> getAllUserBlocked() throws SQLDataException {
+        try{
+            String sql = """
+                    SELECT u.user_name, u.full_name, u.email, u.phone_number, u.dob, u.created_at, u.updated_at, 
+                    GROUP_CONCAT(r.name) as roles_name from users as u 
+                    JOIN authorization as a on a.user_id = u.id 
+                    JOIN roles as r on a.role_id = r.id 
+                    left join
+                    	(select distinct user_id from authorization as a2
+                        join roles as r2 on a2.role_id = r2.id
+                        where r2.name = 'ADMIN') as admin_acc on u.id = admin_acc.user_id
+                    where u.is_active = true and u.is_blocked = true and admin_acc.user_id is null
+                    group by u.id
+                    """;
+            List<Object[]> results = entityManager.createNativeQuery(sql)
+                    .getResultList();
+            return results.stream()
+                    .map(result -> new UserDTO(result[0].toString(), result[1].toString(), result[2].toString(),
+                            result[3].toString(), result[4].toString(), result[5].toString(), result[6].toString(),
+                            Arrays.asList(result[7].toString().split(",")))).collect(Collectors.toList());
+        }
+        catch (Exception exception){
+            throw new SQLDataException(exception.getMessage());
+        }
+    }
+
+    @Transactional
     public void updateUser(UserUdReq request, Integer userId) throws SQLDataException {
         try{
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
