@@ -8,6 +8,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
+import java.math.BigInteger;
 import java.sql.SQLDataException;
 import java.time.LocalDate;
 import java.util.List;
@@ -139,6 +140,19 @@ public class ContributeDao {
             entityManager.createNativeQuery(sql)
                     .setParameter("id", id)
                     .executeUpdate();
+        }
+        catch (Exception ex) {
+            throw new SQLDataException("Error saving Contribute: " + ex.getMessage(), ex);
+        }
+    }
+
+    @Transactional
+    public long countContribute() throws SQLDataException {
+        try {
+            String sql = "Select count(*) from contributes";
+            Query query = entityManager.createNativeQuery(sql);
+            BigInteger count = (BigInteger) query.getSingleResult();
+            return count.longValue();
         }
         catch (Exception ex) {
             throw new SQLDataException("Error saving Contribute: " + ex.getMessage(), ex);

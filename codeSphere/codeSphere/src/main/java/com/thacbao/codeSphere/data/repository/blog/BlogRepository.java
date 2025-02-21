@@ -11,5 +11,8 @@ import java.util.Optional;
 public interface BlogRepository extends JpaRepository<Blog, Integer>, JpaSpecificationExecutor<Blog> {
     @Query(value = "SELECT * FROM blogs WHERE slug = :slug AND status = 'published'", nativeQuery = true)
     Optional<Blog> findBySlug(String slug);
+
+    @Query(value = "SELECT COUNT(*) FROM blogs WHERE status = 'published'", nativeQuery = true)
+    long count();
 }
 
