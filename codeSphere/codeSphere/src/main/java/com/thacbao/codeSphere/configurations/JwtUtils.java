@@ -2,6 +2,8 @@ package com.thacbao.codeSphere.configurations;
 
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,11 +41,22 @@ public class JwtUtils {
     }
 
     public Claims getClaimsFromToken(String token){
-        Claims claims = Jwts.parser()
+        return Jwts.parser()
                 .setSigningKey(secretKey)
                 .parseClaimsJws(token)
                 .getBody();
-        return claims;
+    }
+
+    public Claims getClaimsFromToKenExpired(String token){
+        try{
+            return Jwts.parser()
+                    .setSigningKey(secretKey)
+                    .parseClaimsJws(token)
+                    .getBody();
+        }
+        catch (ExpiredJwtException ex){
+            return ex.getClaims();
+        }
     }
 
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver){
@@ -53,6 +66,11 @@ public class JwtUtils {
 
     public String getUsernameFromToken(String token){
         return getClaimFromToken(token, Claims::getSubject);
+    }
+
+    public String getUserNameFromTokenExpired(String token){
+        Claims claims = getClaimsFromToKenExpired(token);
+        return claims.getSubject();
     }
 
     public Date getExpirationDateFromToken(String token){

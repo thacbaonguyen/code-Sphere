@@ -21,6 +21,8 @@ public interface UserService {
 
     ResponseEntity<?> login(UserLoginReq request);
 
+    ResponseEntity<?> refreshToken(String token);
+
     ResponseEntity<ApiResponse> getProfile();
 
     ResponseEntity<ApiResponse> uploadAvatarProfile(MultipartFile file);

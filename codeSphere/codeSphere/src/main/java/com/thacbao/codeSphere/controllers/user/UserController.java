@@ -60,6 +60,12 @@ public class UserController {
 
     }
 
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestHeader("Authorization") String token){
+        token = token.substring(7);
+        return userService.refreshToken(token);
+    }
+
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile(){
 

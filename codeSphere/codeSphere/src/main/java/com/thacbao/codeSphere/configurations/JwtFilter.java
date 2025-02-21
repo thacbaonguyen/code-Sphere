@@ -1,8 +1,10 @@
 package com.thacbao.codeSphere.configurations;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -14,11 +16,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService customUserDetailsService;
@@ -41,7 +45,24 @@ public class JwtFilter extends OncePerRequestFilter {
     }
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String path = request.getRequestURI();
+        log.info(path);
         if (isPublicPath(request.getServletPath())){
+            filterChain.doFilter(request, response);
+        }
+         else if (path.equals("/api/v1/auth/refresh-token")){
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                String username = jwtUtils.getUserNameFromTokenExpired(token);
+                if (username != null) {
+                    log.info("refresh token : {}", username);
+                    UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+                    UsernamePasswordAuthenticationToken authentication = new
+                            UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            }
             filterChain.doFilter(request, response);
         }
         else{
@@ -54,6 +75,13 @@ public class JwtFilter extends OncePerRequestFilter {
             }
             if(claims != null && username != null && SecurityContextHolder.getContext().getAuthentication() == null){
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+                if (customUserDetailsService.getUserDetails().getIsBlocked()){
+                    // khi người dùng bị khóa -> không thể truy cập tài nguyên -> real time
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"message\":\"Your account has been blocked\",\"status\":\"BLOCKED\"}");
+                    return;
+                }
                 if(jwtUtils.validateToken(token, userDetails)){
                     UsernamePasswordAuthenticationToken authentication = new
                             UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

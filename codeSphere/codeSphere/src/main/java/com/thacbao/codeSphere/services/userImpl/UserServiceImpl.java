@@ -237,6 +237,24 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public ResponseEntity<?> refreshToken(String oldToken) {
+        try{
+            String username = jwtUtils.getUserNameFromTokenExpired(oldToken);
+            if(username == null){
+                return CodeSphereResponses.generateResponse(null, "Invalid token", HttpStatus.UNAUTHORIZED);
+            }
+            String newToken = jwtUtils.generateToken(username, createClaim());
+            Map<String, String> tokenResponse = new HashMap<>();
+            tokenResponse.put("token", newToken);
+            return CodeSphereResponses.generateResponse(tokenResponse, "Refresh token successfully", HttpStatus.OK);
+        }
+        catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
+            return CodeSphereResponses.generateResponse(null, "Token refresh failed", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     /**
      * Lấy thông tin cá nhân của người đang đăng nhập
      * cache profile
@@ -537,7 +555,7 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Tạo claim để generate token, được gọi ở hàm signup
+     * Tạo claim để generate token, được gọi ở hàm login
      * @return
      * @throws SQLDataException
      */
