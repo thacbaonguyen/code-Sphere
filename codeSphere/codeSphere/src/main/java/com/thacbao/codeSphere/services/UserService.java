@@ -37,6 +37,8 @@ public interface UserService {
 
     ResponseEntity<ApiResponse> getAllUserBlocked();
 
+    ResponseEntity<ApiResponse> searchUser(String search, String order, String by);
+
     ResponseEntity<?> forgotPassword(Map<String, String> request);
 
     String verifyForgotPassword(Map<String, String> request);

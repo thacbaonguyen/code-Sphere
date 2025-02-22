@@ -8,6 +8,7 @@ import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.configurations.JwtUtils;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
+import com.thacbao.codeSphere.data.specification.UserSpecification;
 import com.thacbao.codeSphere.enums.RoleEnum;
 import com.thacbao.codeSphere.data.dao.AuthorizationDao;
 import com.thacbao.codeSphere.data.dao.UserDao;
@@ -31,6 +32,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
@@ -396,6 +399,30 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Override
+    public ResponseEntity<ApiResponse> searchUser(String search, String order, String by) {
+        try {
+            Sort.Direction direction = order != null && order.equalsIgnoreCase("asc") ?
+                    Sort.Direction.ASC : Sort.Direction.DESC;
+            String sortBy = by != null ? by : "createdAt";
+            Sort sort = Sort.by(direction, sortBy);
+            log.info("search {}, order {}, by {}", search, order, by);
+
+            Specification<User> spec = Specification.where(UserSpecification.hasSearchText(search))
+                    .and(UserSpecification.hasNotAdmin());
+
+            List<User> users = userRepository.findAll(spec, sort);
+
+            List<UserDTO> usersResult = users.stream().map(u -> new UserDTO(u)).toList();
+            return CodeSphereResponses.generateResponse(usersResult, "Search result", HttpStatus.OK);
+
+        }
+        catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     /**
      * Quên mật khẩu, thực hiện xác thực qua email
      * @param request
@@ -531,6 +558,9 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<ApiResponse> blockUser(Map<String, String> request) {
         try {
             if (jwtFilter.isAdmin()){
+                if (request.get("username").equals(jwtFilter.getCurrentUsername())) {
+                    return CodeSphereResponses.generateResponse(null, "Cannot block admin", HttpStatus.BAD_REQUEST);
+                }
                 userDao.blockUser(request.get("username"), Boolean.parseBoolean(request.get("isBlocked")));
                 String cacheKey = "viewProfile:user:" + jwtFilter.getCurrentUsername();
                 clearCache("allUser:admin");

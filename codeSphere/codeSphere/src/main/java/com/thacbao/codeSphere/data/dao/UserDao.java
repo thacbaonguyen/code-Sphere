@@ -61,7 +61,7 @@ public class UserDao {
                     LEFT JOIN
                         (SELECT DISTINCT user_id FROM authorization a2
                          JOIN roles r2 ON a2.role_id = r2.id
-                         WHERE r2.name in ('ADMIN', 'MANAGER', 'BLOGGER')) AS admin_users ON u.id = admin_users.user_id
+                         WHERE r2.name in ('ADMIN')) AS admin_users ON u.id = admin_users.user_id
                     where u.is_active = true and u.is_blocked = false and admin_users.user_id is null
                     group by u.id
                     """;
