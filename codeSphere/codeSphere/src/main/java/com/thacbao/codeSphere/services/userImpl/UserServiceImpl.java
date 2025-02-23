@@ -400,7 +400,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> searchUser(String search, String order, String by) {
+    public ResponseEntity<ApiResponse> searchUser(String search, String order, String by, String isBlocked) {
         try {
             Sort.Direction direction = order != null && order.equalsIgnoreCase("asc") ?
                     Sort.Direction.ASC : Sort.Direction.DESC;
@@ -408,8 +408,10 @@ public class UserServiceImpl implements UserService {
             Sort sort = Sort.by(direction, sortBy);
             log.info("search {}, order {}, by {}", search, order, by);
 
+            Boolean isBlockedParsed = Boolean.parseBoolean(isBlocked);
             Specification<User> spec = Specification.where(UserSpecification.hasSearchText(search))
-                    .and(UserSpecification.hasNotAdmin());
+                    .and(UserSpecification.hasNotAdmin())
+                    .and(UserSpecification.hasBlocked(isBlockedParsed));
 
             List<User> users = userRepository.findAll(spec, sort);
 

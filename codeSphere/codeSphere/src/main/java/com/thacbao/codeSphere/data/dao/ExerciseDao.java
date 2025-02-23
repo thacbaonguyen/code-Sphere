@@ -9,6 +9,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
+import java.math.BigInteger;
 import java.sql.SQLDataException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,10 +63,10 @@ public class ExerciseDao {
                 if (!order.equalsIgnoreCase("asc") && !order.equalsIgnoreCase("desc")){
                     throw new NotFoundException("Cannot found this url");
                 }
-                if(!by.equalsIgnoreCase("code") && !by.equalsIgnoreCase("title")
-                        && !by.equalsIgnoreCase("level")){
-                    throw new NotFoundException("Cannot found this url");
-                }
+//                if(!by.equalsIgnoreCase("code") && !by.equalsIgnoreCase("title")
+//                        && !by.equalsIgnoreCase("level")){
+//                    throw new NotFoundException("Cannot found this url");
+//                }
             }
             query.setParameter("subject", subject);
             query.setParameter("start", (page - 1) * 50);
@@ -75,6 +76,33 @@ public class ExerciseDao {
                             rs[4].toString(), rs[5].toString(),
                             Integer.parseInt(rs[6].toString()), Integer.parseInt(rs[7].toString())))
                     .collect(Collectors.toList());
+        }
+        catch (Exception ex){
+            throw new SQLDataException(ex.getMessage());
+        }
+    }
+
+    @Transactional
+    public BigInteger getTotalRecord(String subject, String order, String by, String search)
+            throws SQLDataException {
+        try {
+            String sql = "Select count(*) from exercises as e " + "join subjects as s on e.subject_id = s.id " +
+                    "where s.name = :subject and e.is_active = true " +
+                    (search != null ? "and (lower(e.title) like concat('%', :search, '%') " +
+                            "or lower(e.code) like concat('%', :search, '%')) " : "") +
+                    (order != null && by != null ? " order by " + by + " " + order + " " : "");
+            Query query = entityManager.createNativeQuery(sql);
+            if(search != null){
+                query.setParameter("search", search);
+            }
+            if (order != null && by != null) {
+                //duong dan bi thay doi khong hop le
+                if (!order.equalsIgnoreCase("asc") && !order.equalsIgnoreCase("desc")){
+                    throw new NotFoundException("Cannot found this url");
+                }
+            }
+            query.setParameter("subject", subject);
+            return (BigInteger) query.getSingleResult();
         }
         catch (Exception ex){
             throw new SQLDataException(ex.getMessage());

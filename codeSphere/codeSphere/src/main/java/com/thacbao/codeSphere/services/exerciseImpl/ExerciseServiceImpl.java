@@ -103,7 +103,7 @@ public class ExerciseServiceImpl implements ExerciseService {
     /**
      * Tim kiếm danh sách bài tập theo môn học
      * cache
-     * @param request
+     * @param subject
      * @param order
      * @param by
      * @param search
@@ -111,8 +111,8 @@ public class ExerciseServiceImpl implements ExerciseService {
      * @return
      */
     @Override
-    public ResponseEntity<ApiResponse> filterExerciseBySubjectAndParam(Map<String, String> request, String order, String by, String search, Integer page) {
-        String cacheKey = "exerciseFilter:" + request.get("subject") +
+    public ResponseEntity<ApiResponse> filterExerciseBySubjectAndParam(String subject, String order, String by, String search, Integer page) {
+        String cacheKey = "exerciseFilter:" + subject +
                 (order != null && by != null ? order + ":" + by +":" : "") +
                 (search != null ? search + ":" : "") + page;
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
@@ -122,9 +122,21 @@ public class ExerciseServiceImpl implements ExerciseService {
                 System.out.println("cache ex: " + cacheKey);
                 return CodeSphereResponses.generateResponse(cacheExercises, "Filter exercises successfully", HttpStatus.OK);
             }
-            List<ExerciseDTO> exerciseDTOS = exerciseDao.filterExerciseBySubjectAndParam(request.get("subject"), order, by, search, page);
+            List<ExerciseDTO> exerciseDTOS = exerciseDao.filterExerciseBySubjectAndParam(subject, order, by, search, page);
             valueOperations.set(cacheKey, exerciseDTOS, 5, TimeUnit.HOURS);
             return CodeSphereResponses.generateResponse(exerciseDTOS, "Exercise search successfully", HttpStatus.OK);
+        }
+        catch (Exception ex){
+            log.error("logging error with message {}", ex.getMessage(), ex.getCause());
+            return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> getTotalPage(String subject, String order, String by, String search) {
+        try{
+            return CodeSphereResponses.generateResponse(exerciseDao.getTotalRecord(subject, order, by, search),
+                    "Total exercises successfully", HttpStatus.OK);
         }
         catch (Exception ex){
             log.error("logging error with message {}", ex.getMessage(), ex.getCause());

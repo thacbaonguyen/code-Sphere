@@ -25,37 +25,37 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiResponse> handleUserNotFoundException(NotFoundException ex) {
-        log.error("exception details: ", ex);
+        log.error("exception details: {}", ex.getMessage(), ex.getCause());
         return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(AlreadyException.class)
     public ResponseEntity<ApiResponse> handleUserAlreadyException(AlreadyException ex) {
-        log.error("exception details: ", ex);
+        log.error("exception details: {}", ex.getMessage(), ex.getCause());
         return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidException.class)
     public ResponseEntity<ApiResponse> handleInvalidException(InvalidException ex) {
-        log.error("exception details: ", ex);
+        log.error("exception details: {}", ex.getMessage(), ex.getCause());
         return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(PermissionException.class)
     public ResponseEntity<ApiResponse> handlePermissionException(PermissionException ex) {
-        log.error("exception details: ", ex);
+        log.error("exception details: {}", ex.getMessage(), ex.getCause());
         return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(EmailSenderException.class)
     public ResponseEntity<ApiResponse> handleEmailSenderException(EmailSenderException ex) {
-        log.error("exception details: ", ex);
+        log.error("exception details: {}", ex.getMessage(), ex.getCause());
         return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ApiResponse> handleAppException(AppException ex) {
-        log.error("exception details: ", ex);
+        log.error("exception details: {}", ex.getMessage(), ex.getCause());
         return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
@@ -71,13 +71,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SQLDataException.class)
     public ResponseEntity<ApiResponse> handleSQLDataException(SQLDataException ex) {
-        log.error("exception details: ", ex);
+        log.error("exception details: {}", ex.getMessage(), ex.getCause());
         return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse> handleGlobalException(Exception ex) {
-        log.error("exception details: ", ex);
+        log.error("exception details: {}", ex.getMessage(), ex.getCause());
         return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

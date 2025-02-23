@@ -29,7 +29,7 @@ public class UserSpecification {
 
     public static Specification<User> hasNotAdmin(){
         return (root, query, criteriaBuilder) -> {
-            Subquery<Long> adminRoleSubquery = query.subquery(Long.class);
+            Subquery<Long> adminRoleSubquery = query.subquery(Long.class); // dem so luong role admin trong tai khoan
             Root<User> subqueryRoot = adminRoleSubquery.from(User.class);
             Join<User, Authorization> subqueryAuthorization = subqueryRoot.join("authorizations");
             Join<Authorization, Role> subqueryRole = subqueryAuthorization.join("role");
@@ -43,6 +43,12 @@ public class UserSpecification {
                     );
             query.distinct(true);
             return criteriaBuilder.equal(adminRoleSubquery, 0L);
+        };
+    }
+
+    public static Specification<User> hasBlocked(Boolean isBlocked){
+        return (root, query, criteriaBuilder) -> {
+            return criteriaBuilder.equal(root.get("isBlocked"), isBlocked);
         };
     }
 

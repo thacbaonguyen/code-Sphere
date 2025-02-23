@@ -108,8 +108,9 @@ public class UserController {
     @GetMapping("/search")
     public ResponseEntity<?> searchUser(@RequestParam(required = false) String search,
                                         @RequestParam(required = false) String order,
-                                        @RequestParam(required = false) String by){
-        return userService.searchUser(search, order, by);
+                                        @RequestParam(required = false) String by,
+                                        @RequestParam String isBlocked){
+        return userService.searchUser(search, order, by, isBlocked);
     }
 
     @PostMapping("/forgot-password")

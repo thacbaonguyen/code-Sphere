@@ -9,6 +9,7 @@ import com.thacbao.codeSphere.exceptions.user.PermissionException;
 import com.thacbao.codeSphere.data.repository.exercise.SubjectRepository;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import static com.thacbao.codeSphere.constants.CodeSphereConstants.PERMISSION_DE
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SubjectServiceImpl {
     private final SubjectRepository subjectRepository;
 
@@ -58,6 +60,7 @@ public class SubjectServiceImpl {
                 subjectDTO.setName(item.getName());
                 return subjectDTO;
             }).collect(Collectors.toList());
+            log.info("subject all ");
             return CodeSphereResponses.generateResponse(subjectDTOS, "All subjects success", HttpStatus.OK);
         }
         catch (Exception ex){

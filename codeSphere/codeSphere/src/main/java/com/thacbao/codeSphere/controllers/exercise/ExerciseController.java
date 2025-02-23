@@ -36,14 +36,29 @@ public class ExerciseController {
     }
     //tim kiem bai tai theo mon va cac param
     @GetMapping("/subject/question")
-    public ResponseEntity<ApiResponse> filterExerciseBySubject(@RequestBody Map<String, String> request,
+    public ResponseEntity<ApiResponse> filterExerciseBySubject(@RequestParam(defaultValue = "Java") String subject,
                                                                @RequestParam(required = false) String order,
                                                                @RequestParam(required = false) String by,
                                                                @RequestParam(required = false) String search,
                                                                @RequestParam(defaultValue = "1") Integer page) {
+        if (subject.length() == 3 && subject.trim().equalsIgnoreCase("C")){
+            subject = "C++";
+        }
+        System.out.println(subject);
+        return exerciseService.filterExerciseBySubjectAndParam(subject, order, by, search, page);
 
-        return exerciseService.filterExerciseBySubjectAndParam(request, order, by, search, page);
+    }
 
+    @GetMapping("/total-page")
+    public ResponseEntity<ApiResponse> totalPage(@RequestParam(defaultValue = "Java") String subject,
+                                                 @RequestParam(required = false) String order,
+                                                 @RequestParam(required = false) String by,
+                                                 @RequestParam(required = false) String search
+                                                 ) {
+        if (subject.length() == 3 && subject.trim().equalsIgnoreCase("C")){
+            subject = "C++";
+        }
+        return exerciseService.getTotalPage(subject, order, by, search);
     }
     // xem chi tiet bai  tap cu the
     @GetMapping("/question/{code}")

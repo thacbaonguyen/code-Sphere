@@ -13,7 +13,9 @@ public interface ExerciseService {
 
     ResponseEntity<ApiResponse> viewExerciseDetails(String code);
 
-    ResponseEntity<ApiResponse> filterExerciseBySubjectAndParam(Map<String, String> request, String order, String by, String search, Integer page);
+    ResponseEntity<ApiResponse> filterExerciseBySubjectAndParam(String subject, String order, String by, String search, Integer page);
+
+    ResponseEntity<ApiResponse> getTotalPage(String subject, String order, String by, String search);
 
     ResponseEntity<ApiResponse> activateExercise(Map<String, String> request);
 
