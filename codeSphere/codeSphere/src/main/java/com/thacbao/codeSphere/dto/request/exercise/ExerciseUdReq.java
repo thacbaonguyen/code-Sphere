@@ -8,6 +8,7 @@ import javax.validation.constraints.Size;
 
 @Data
 public class ExerciseUdReq {
+    private int id;
     @NotBlank(message = "Code can not be empty")
     @Size(min = 2, max = 10, message = "Code must be between 2 and 10 character")
     private String code;
@@ -37,4 +38,6 @@ public class ExerciseUdReq {
 
     @NotNull(message = "Memory limit cannot be empty")
     private Integer memoryLimit;
+
+    private String topic;
 }

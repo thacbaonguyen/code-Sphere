@@ -87,7 +87,7 @@ public class ExerciseServiceImpl implements ExerciseService {
         try{
             ExerciseDTO cacheExercise = (ExerciseDTO) valueOperations.get(cacheKey);
             if(cacheExercise != null){
-                System.out.println("cache ex details" + cacheKey);
+                log.info("cache ex details {}",  cacheKey);
                 return CodeSphereResponses.generateResponse(cacheExercise, "Exercise details successfully", HttpStatus.OK);
             }
             ExerciseDTO exerciseDTO = exerciseDao.viewExerciseDetails(code);
@@ -119,7 +119,7 @@ public class ExerciseServiceImpl implements ExerciseService {
         try {
             List<ExerciseDTO> cacheExercises = (List<ExerciseDTO>) valueOperations.get(cacheKey);
             if(cacheExercises != null){
-                System.out.println("cache ex: " + cacheKey);
+                log.info("cache ex: {}", cacheKey);
                 return CodeSphereResponses.generateResponse(cacheExercises, "Filter exercises successfully", HttpStatus.OK);
             }
             List<ExerciseDTO> exerciseDTOS = exerciseDao.filterExerciseBySubjectAndParam(subject, order, by, search, page);
@@ -175,10 +175,9 @@ public class ExerciseServiceImpl implements ExerciseService {
      */
     @Override
     public ResponseEntity<ApiResponse> updateExercise(ExerciseUdReq request) {
-        Exercise exercise = exerciseRepository.findByCode(request.getCode());
-        if(exercise == null){
-            throw new NotFoundException(EXERCISE_NOT_FOUND);
-        }
+        Exercise exercise = exerciseRepository.findById(request.getId()).orElseThrow(
+                () -> new NotFoundException(EXERCISE_NOT_FOUND)
+        );
         try {
             exerciseDao.updateExercise(request);
             clearCache("exerciseFilter:" + exercise.getSubject().getName());
@@ -215,7 +214,7 @@ public class ExerciseServiceImpl implements ExerciseService {
     }
 
     private void clearCache(String cacheKey) {
-        System.out.println("Clearing cache " + cacheKey);
+        log.info("clear cache {}", cacheKey);
         redisTemplate.delete(redisTemplate.keys(cacheKey + "*"));
     }
 }

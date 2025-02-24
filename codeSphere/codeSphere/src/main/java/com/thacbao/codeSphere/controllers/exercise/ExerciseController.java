@@ -94,34 +94,4 @@ public class ExerciseController {
 
     }
 
-//    @PostMapping("/fake-data")
-//    public ResponseEntity<ApiResponse> fakeData() throws AlreadyBoundException {
-//        Faker faker = new Faker();
-//        for (int i  = 0; i < 800000; i ++){
-//            String code = generateCode("J");
-//            if (exerciseRepository.findByCode(code) != null){
-//                continue;
-//            }
-//            ExerciseReq req = new ExerciseReq();
-//            req.setCode(code);
-//            req.setTitle(faker.book().title());
-//            req.setPaper(faker.lorem().sentence());
-//            req.setInput(faker.lorem().word());
-//            req.setOutput(faker.lorem().word());
-//            req.setNote(faker.lorem().word());
-//            req.setSubjectId(2);
-//            req.setLevel(faker.number().numberBetween(1, 3));
-//            req.setDescription(faker.leagueOfLegends().champion());
-//            req.setTimeLimit(faker.number().numberBetween(1, 5));
-//            req.setMemoryLimit(faker.number().numberBetween(65536, 200000));
-//            req.setTopic(faker.book().genre());
-//            exerciseService.insertExercise(req);
-//        }
-//        return CodeSphereResponses.generateResponse(null, "ok", HttpStatus.OK);
-//    }
-//
-//    private String generateCode(String x) {
-//        Random random = new Random();
-//        return String.format(x + "%05d", random.nextInt(99999));
-//    }
 }

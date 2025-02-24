@@ -58,6 +58,7 @@ public class SubjectServiceImpl {
             List<SubjectDTO> subjectDTOS = subjects.stream().map(item -> {
                 SubjectDTO subjectDTO = new SubjectDTO();
                 subjectDTO.setName(item.getName());
+                subjectDTO.setId(item.getId());
                 return subjectDTO;
             }).collect(Collectors.toList());
             log.info("subject all ");

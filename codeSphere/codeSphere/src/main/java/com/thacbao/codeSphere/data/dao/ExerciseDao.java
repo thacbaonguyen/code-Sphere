@@ -28,16 +28,16 @@ public class ExerciseDao {
     public ExerciseDTO viewExerciseDetails(String code) throws SQLDataException {
         try {
             String sql = """
-                    SELECT e.code, e.title, e.paper, e.input, e.output, e.note, e.created_by, e.created_at, s.name, 
+                    SELECT e.id, e.code, e.title, e.paper, e.input, e.output, e.note, e.created_by, e.created_at, s.name, 
                     e.description, e.level, e.time_limit, e.memory_limit, e.topic FROM exercises as e 
                     join subjects as s on e.subject_id = s.id 
                     where e.code = :code
                     """;
             Object[] result = (Object[]) entityManager.createNativeQuery(sql).setParameter("code", code).getSingleResult();
-            return new ExerciseDTO(result[0].toString(), result[1].toString(), result[2].toString(), result[3].toString(),
-                    result[4].toString(), result[5].toString(), result[6].toString(), result[7].toString(), result[8].toString(),
-                    result[9].toString(), Integer.parseInt(result[10].toString()),
-                    Integer.parseInt(result[11].toString()), Integer.parseInt(result[12].toString()), result[13].toString());
+            return new ExerciseDTO(Integer.parseInt(result[0].toString()) ,result[1].toString(), result[2].toString(), result[3].toString(), result[4].toString(),
+                    result[5].toString(), (String) result[6], result[7].toString(), result[8].toString(), result[9].toString(),
+                    result[10].toString(), Integer.parseInt(result[11].toString()),
+                    Integer.parseInt(result[12].toString()), Integer.parseInt(result[13].toString()), result[14].toString());
         }
         catch (Exception ex){
             throw new SQLDataException(ex.getMessage());
@@ -128,8 +128,8 @@ public class ExerciseDao {
         try {
             String sql = """
                     UPDATE exercises SET code = :code, title = :title, paper = :paper, input = :input, output = :output, 
-                    note = :note, description = :description, level = :level, time_limit = :timeLimit, memory_limit = :memoryLimit 
-                    where code = :code
+                    note = :note, description = :description, level = :level, time_limit = :timeLimit, memory_limit = :memoryLimit, topic =:topic 
+                    where id = :id
                     """;
             entityManager.createNativeQuery(sql)
                     .setParameter("code", request.getCode())
@@ -142,6 +142,8 @@ public class ExerciseDao {
                     .setParameter("level", request.getLevel())
                     .setParameter("timeLimit", request.getTimeLimit())
                     .setParameter("memoryLimit", request.getMemoryLimit())
+                    .setParameter("topic", request.getTopic())
+                    .setParameter("id", request.getId())
                     .executeUpdate();
         }
         catch (Exception ex){

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExerciseDTO {
+    private int id;
     private String code;
 
     private String title;
