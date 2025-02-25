@@ -9,6 +9,7 @@ import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.exercise.ExerciseDTO;
 import com.thacbao.codeSphere.entities.reference.Subject;
 import com.thacbao.codeSphere.entities.core.Exercise;
+import com.thacbao.codeSphere.exceptions.common.AlreadyException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import com.thacbao.codeSphere.data.repository.exercise.SubjectRepository;
 import com.thacbao.codeSphere.data.repository.exercise.ExerciseRepository;
@@ -49,19 +50,20 @@ public class ExerciseServiceImpl implements ExerciseService {
      * Tạo bài tập mới với role admin và manager
      * @param request
      * @return
-     * @throws AlreadyBoundException
+     * @throws AlreadyException
      */
     @Override
-    public ResponseEntity<ApiResponse> insertExercise(ExerciseReq request) throws AlreadyBoundException {
+    public ResponseEntity<ApiResponse> insertExercise(ExerciseReq request) {
         if(jwtFilter.isAdmin() || jwtFilter.isManager()){
             Subject subject = subjectRepository.findById(request.getSubjectId()).orElseThrow(
                     () -> new NotFoundException("Category not found")
             );
             Exercise exercise = exerciseRepository.findByCode(request.getCode());
             if(exercise != null){
-                throw new AlreadyBoundException("Exercise already exists");
+                throw new AlreadyException("Exercise already exists");
             }
             Exercise newExercise = modelMapper.map(request, Exercise.class);
+            newExercise.setId(null);
             newExercise.setIsActive(true);
             newExercise.setCreatedBy(jwtFilter.getCurrentUsername());
             newExercise.setCreatedAt(LocalDate.now());

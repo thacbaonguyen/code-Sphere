@@ -52,7 +52,7 @@ public class ExerciseDao {
                     "where s.name = :subject and e.is_active = true " +
                     (search != null ? "and (lower(e.title) like concat('%', :search, '%') " +
                             "or lower(e.code) like concat('%', :search, '%')) " : "") +
-                    (order != null && by != null ? " order by " + by + " " + order + " " : "") +
+                    (order != null && by != null ? " order by " + by + " " + order + " " : " order by created_at desc ") +
                     "limit 50 offset :start"; //tham so co dinh se la 50 ban ghi tren 1 trang
             Query query = entityManager.createNativeQuery(sql);
             if(search != null){
