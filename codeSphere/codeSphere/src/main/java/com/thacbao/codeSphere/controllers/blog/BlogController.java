@@ -50,8 +50,8 @@ public class BlogController {
     @GetMapping("/all-blogs")
     public ResponseEntity<ApiResponse> findAllBlogs(@RequestParam(required = false) String search,
                                                 @RequestParam(required = false) String isFeatured,
-                                                @RequestParam(defaultValue = "0") Integer page,
-                                                @RequestParam(defaultValue = "20") Integer pageSize,
+                                                @RequestParam(defaultValue = "1") Integer page,
+                                                @RequestParam(defaultValue = "15") Integer pageSize,
                                                 @RequestParam(required = false) String order,
                                                 @RequestParam(required = false) String by){
 

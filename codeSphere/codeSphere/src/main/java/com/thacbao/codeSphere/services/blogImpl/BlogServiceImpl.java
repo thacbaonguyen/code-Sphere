@@ -162,11 +162,12 @@ public class BlogServiceImpl implements BlogService {
                     Sort.Direction.ASC : Sort.Direction.DESC;
             String sortBy = by != null && !by.isEmpty() ? by : "publishedAt";
             Pageable pageable = PageRequest.of(
-                    page,
+                    page - 1,
                     pageSize,
                     Sort.by(direction, sortBy)
             );
-
+            log.info("current page {}", page);
+            log.info("current pageS {}", pageSize);
             // Create specification
             Specification<Blog> spec = Specification.where(BlogSpecification.hasStatus())
                     .and(BlogSpecification.hasSearchText(search))
