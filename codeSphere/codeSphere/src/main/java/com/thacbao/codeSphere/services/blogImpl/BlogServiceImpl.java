@@ -37,9 +37,7 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.thacbao.codeSphere.constants.CodeSphereConstants.User.USER_NOT_FOUND;
@@ -76,7 +74,9 @@ public class BlogServiceImpl implements BlogService {
             Set<Tag> tags = tagService.getOrCreateTags(request.getTags());
             Blog blog = request.toEntity(user, tags);
             blogRepository.save(blog);
-            return CodeSphereResponses.generateResponse(null, "Blog create successfully", HttpStatus.CREATED);
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", blog.getId());
+            return CodeSphereResponses.generateResponse(response, "Blog create successfully", HttpStatus.CREATED);
         }
         else
             throw new PermissionException(PERMISSION_DENIED);
@@ -154,7 +154,8 @@ public class BlogServiceImpl implements BlogService {
             Integer page,
             Integer pageSize,
             String order,
-            String by) {
+            String by,
+            String status) {
         // Create pageable
         try{
 
@@ -169,7 +170,7 @@ public class BlogServiceImpl implements BlogService {
             log.info("current page {}", page);
             log.info("current pageS {}", pageSize);
             // Create specification
-            Specification<Blog> spec = Specification.where(BlogSpecification.hasStatus())
+            Specification<Blog> spec = Specification.where(BlogSpecification.hasStatus(status))
                     .and(BlogSpecification.hasSearchText(search))
                     .and(BlogSpecification.hasIsFeatured(isFeature));
 
@@ -197,18 +198,18 @@ public class BlogServiceImpl implements BlogService {
      */
     @Override
     public ResponseEntity<ApiResponse> findAllByTags(String tagName, String isFeatured,
-                                                     Integer page, Integer pageSize, String order, String by) {
+                                                     Integer page, Integer pageSize, String order, String by, String status) {
         try{
             Sort.Direction direction = order != null && order.equalsIgnoreCase("asc")
                     ? Sort.Direction.ASC : Sort.Direction.DESC;
             String sortBy = by != null && !by.isEmpty() ? by : "publishedAt";
             Pageable pageable = PageRequest.of(
-                    page != null ? page : 0,
-                    pageSize != null ? pageSize : 10,
+                    page - 1,
+                    pageSize != null ? pageSize : 15,
                     Sort.by(direction, sortBy)
 
             );
-            Specification<Blog> spec = Specification.where(BlogSpecification.hasStatus())
+            Specification<Blog> spec = Specification.where(BlogSpecification.hasStatus(status))
                     .and(BlogSpecification.hasIsFeatured(isFeatured))
                     .and(BlogSpecification.hasTag(tagName));
             Page<BlogBriefDTO> result = blogRepository.findAll(spec, pageable)
@@ -275,18 +276,21 @@ public class BlogServiceImpl implements BlogService {
                 () -> new NotFoundException("Cannot find blog with id " + id)
         );
         try {
-          Set<Tag> tags = tagService.getOrCreateTags(request.getTags());
-          blog.setTitle(request.getTitle());
-          blog.setContent(request.getContent());
-          blog.setExcerpt(request.getExcerpt());
-          blog.setFeatured(Boolean.parseBoolean(request.getIsFeatured()));
-          blog.setStatus(request.getStatus());
-          blog.setTags(tags);
-          blog.setUpdatedAt(LocalDate.now());
-          blogRepository.save(blog);
-          redisTemplate.delete(redisTemplate.keys("blog:" + blog.getSlug()));
-          log.info("clear cache blog:{}", blog.getSlug());
-          return CodeSphereResponses.generateResponse(null, "Blog update successfully", HttpStatus.OK);
+            if (blog.getAuthor().getUsername().equals(jwtFilter.getCurrentUsername())){
+                Set<Tag> tags = tagService.getOrCreateTags(request.getTags());
+                blog.setTitle(request.getTitle());
+                blog.setContent(request.getContent());
+                blog.setExcerpt(request.getExcerpt());
+                blog.setFeatured(Boolean.parseBoolean(request.getIsFeatured()));
+                blog.setStatus(request.getStatus());
+                blog.setTags(tags);
+                blog.setUpdatedAt(LocalDate.now());
+                blogRepository.save(blog);
+                redisTemplate.delete(redisTemplate.keys("blog:" + blog.getSlug()));
+                log.info("clear cache blog:{}", blog.getSlug());
+                return CodeSphereResponses.generateResponse(null, "Blog update successfully", HttpStatus.OK);
+            }
+            return CodeSphereResponses.generateResponse(null, "You do not have permission", HttpStatus.FORBIDDEN);
         }
         catch (Exception ex){
             log.error("logging error with message {}", ex.getMessage(), ex.getCause());
@@ -305,7 +309,7 @@ public class BlogServiceImpl implements BlogService {
         Blog blog = blogRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Cannot find blog with id " + id)
         );
-        if (jwtFilter.isAdmin()){
+        if (jwtFilter.isAdmin() || jwtFilter.isManager()){
             blogRepository.delete(blog);
             return CodeSphereResponses.generateResponse(null, "Blog delete successfully", HttpStatus.OK);
         }

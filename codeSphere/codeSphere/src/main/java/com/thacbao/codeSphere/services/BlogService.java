@@ -13,9 +13,9 @@ public interface BlogService {
 
     ResponseEntity<ApiResponse> viewBlog(String slug);
 
-    ResponseEntity<ApiResponse> getAllBlogs(String search,String isFeatured, Integer page, Integer pageSize, String order, String by);
+    ResponseEntity<ApiResponse> getAllBlogs(String search,String isFeatured, Integer page, Integer pageSize, String order, String by, String status);
 
-    ResponseEntity<ApiResponse> findAllByTags(String tagName, String isFeatured, Integer page, Integer pageSize, String order, String by);
+    ResponseEntity<ApiResponse> findAllByTags(String tagName, String isFeatured, Integer page, Integer pageSize, String order, String by, String status);
 
     ResponseEntity<ApiResponse> findMyBlogs(String search, String status, String order, String by);
 

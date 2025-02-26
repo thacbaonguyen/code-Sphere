@@ -53,19 +53,21 @@ public class BlogController {
                                                 @RequestParam(defaultValue = "1") Integer page,
                                                 @RequestParam(defaultValue = "15") Integer pageSize,
                                                 @RequestParam(required = false) String order,
-                                                @RequestParam(required = false) String by){
+                                                @RequestParam(required = false) String by,
+                                                    @RequestParam(defaultValue = "published") String status){
 
-        return blogService.getAllBlogs(search, isFeatured, page, pageSize, order, by);
+        return blogService.getAllBlogs(search, isFeatured, page, pageSize, order, by, status);
     }
 
-    @GetMapping("/list/tags")
+    @GetMapping("/all-blogs/tags")
     public ResponseEntity<ApiResponse> findAllByTags(@RequestParam(defaultValue = "") String tagName,
                                                      @RequestParam(required = false) String isFeatured,
-                                                     @RequestParam(defaultValue = "0") Integer page,
-                                                     @RequestParam(defaultValue = "20") Integer pageSize,
+                                                     @RequestParam(defaultValue = "1") Integer page,
+                                                     @RequestParam(defaultValue = "15") Integer pageSize,
                                                      @RequestParam(required = false) String order,
-                                                     @RequestParam(required = false) String by){
-        return blogService.findAllByTags(tagName, isFeatured, page, pageSize, order, by);
+                                                     @RequestParam(required = false) String by,
+                                                     @RequestParam(defaultValue = "published") String status){
+        return blogService.findAllByTags(tagName, isFeatured, page, pageSize, order, by, status);
     }
 
     @GetMapping("/my-blog")

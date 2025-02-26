@@ -29,10 +29,23 @@ public class BlogSpecification {
         };
     }
 
-    public static Specification<Blog> hasStatus() {
-        return (root, query, criteriaBuilder) -> {
-            return criteriaBuilder.equal(root.get("status"), BlogStatus.published);
-        };
+    public static Specification<Blog> hasStatus(String status) {
+        if (status == null || status.isEmpty()) return null;
+        if (status.equalsIgnoreCase("published")){
+            return (root, query, criteriaBuilder) -> {
+                return criteriaBuilder.equal(root.get("status"), BlogStatus.published);
+            };
+        }
+        else if (status.equalsIgnoreCase("draft")){
+            return (root, query, criteriaBuilder) -> {
+                return criteriaBuilder.equal(root.get("status"), BlogStatus.draft);
+            };
+        }
+        else{
+            return (root, query, criteriaBuilder) -> {
+                return criteriaBuilder.equal(root.get("status"), BlogStatus.archived);
+            };
+        }
     }
 
     public static Specification<Blog> hasTag(String tag) {
