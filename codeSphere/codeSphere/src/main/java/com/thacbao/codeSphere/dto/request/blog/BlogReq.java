@@ -21,13 +21,13 @@ import java.util.Set;
 @AllArgsConstructor
 public class BlogReq {
     @NotBlank(message = "Title is required")
-    @Size(min = 5, max = 255, message = "Title must be between 5 and 255 characters")
+    @Size(min = 5, max = 500, message = "Title must be between 5 and 500 characters")
     private String title;
 
     @NotBlank(message = "Content is required")
     private String content;
 
-    @Size(max = 500, message = "Excerpt cannot exceed 500 characters")
+    @Size(max = 5000, message = "Excerpt cannot exceed 5000 characters")
     private String excerpt;
 
     private Set<String> tags = new HashSet<>();

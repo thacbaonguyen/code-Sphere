@@ -161,7 +161,7 @@ public class BlogServiceImpl implements BlogService {
 
             Sort.Direction direction = order != null && order.equalsIgnoreCase("asc") ?
                     Sort.Direction.ASC : Sort.Direction.DESC;
-            String sortBy = by != null && !by.isEmpty() ? by : "publishedAt";
+            String sortBy = by != null && !by.isEmpty() ? by : "updatedAt";
             Pageable pageable = PageRequest.of(
                     page - 1,
                     pageSize,
