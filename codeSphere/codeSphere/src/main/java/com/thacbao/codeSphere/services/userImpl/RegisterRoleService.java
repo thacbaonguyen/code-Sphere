@@ -6,11 +6,13 @@ import com.thacbao.codeSphere.data.dao.AuthorizationDao;
 import com.thacbao.codeSphere.data.repository.user.RegisterRoleRepository;
 import com.thacbao.codeSphere.data.repository.user.RoleRepository;
 import com.thacbao.codeSphere.data.repository.user.UserRepository;
+import com.thacbao.codeSphere.data.specification.RegisterRoleSpecification;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.user.RegisterRoleDTO;
 import com.thacbao.codeSphere.entities.core.User;
 import com.thacbao.codeSphere.entities.reference.RegisterRole;
 import com.thacbao.codeSphere.entities.reference.Role;
+import com.thacbao.codeSphere.exceptions.common.AppException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import com.thacbao.codeSphere.exceptions.user.PermissionException;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
@@ -19,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,6 +60,12 @@ public class RegisterRoleService {
             if (role.getName().equalsIgnoreCase("admin")){
                 throw new PermissionException("You are not allowed to register admin role");
             }
+            user.getAuthorizations().stream().forEach(auth -> {
+                if (auth.getRole().getName().equalsIgnoreCase(role.getName())){
+                    throw new PermissionException("You already have this role");
+                }
+            });
+
             RegisterRole existsByUser = registerRoleRepository.findByUserAndRole(user, role);
             if (existsByUser != null) {
                 return CodeSphereResponses.generateResponse(null, "This request already send!", HttpStatus.CONFLICT);
@@ -78,10 +88,13 @@ public class RegisterRoleService {
      * Lấy ra tất cả các request, bao gồm id, role_id, user_id, status -> update api
      * @return
      */
-    public ResponseEntity<ApiResponse> getAllRequestRegisterRole(){
+    public ResponseEntity<ApiResponse> getAllRequestRegisterRole(String search, Integer page, String role, String status){
         if (jwtFilter.isAdmin()){
-            Pageable pageable = PageRequest.of(0, 20);
-            Page<RegisterRole> registerRoles = registerRoleRepository.findAll(pageable);
+            Pageable pageable = PageRequest.of(page - 1, 20);
+            Specification<RegisterRole> spec = Specification.where(RegisterRoleSpecification.hasUserName(search))
+                    .and(RegisterRoleSpecification.hasRole(role))
+                    .and(RegisterRoleSpecification.hasStatus(status));
+            Page<RegisterRole> registerRoles = registerRoleRepository.findAll(spec, pageable);
             Page<RegisterRoleDTO> result = registerRoles.map(RegisterRoleDTO::new);
             return CodeSphereResponses.generateResponse(result, "All request register roles successfully", HttpStatus.OK);
         }
@@ -100,7 +113,7 @@ public class RegisterRoleService {
     public ResponseEntity<ApiResponse> activateRoleForUser(Integer id, Map<String, String> request) throws SQLDataException {
 
         RegisterRole registerRole = registerRoleRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("Role not found")
+                () -> new NotFoundException("register not found")
         );
         if (jwtFilter.isAdmin()){
             if (request.get("isAccepted").equalsIgnoreCase("true")){

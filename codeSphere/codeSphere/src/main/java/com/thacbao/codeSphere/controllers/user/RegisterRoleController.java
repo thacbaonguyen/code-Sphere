@@ -25,8 +25,11 @@ public class RegisterRoleController {
     }
 
     @GetMapping("/all-request")
-    public ResponseEntity<ApiResponse> getAllRequestRegisterRole(){
-        return registerService.getAllRequestRegisterRole();
+    public ResponseEntity<ApiResponse> getAllRequestRegisterRole(@RequestParam(required = false) String search,
+                                                                 @RequestParam(defaultValue = "1") Integer page,
+                                                                 @RequestParam(required = false) String role,
+                                                                 @RequestParam(required = false) String status){
+        return registerService.getAllRequestRegisterRole(search, page, role, status);
     }
 
     @PutMapping("/activate-role-for-user/{id}")
