@@ -1,5 +1,7 @@
 package com.thacbao.codeSphere.services.exerciseImpl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.Api;
 import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.data.dao.ContributeDao;
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLDataException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -56,36 +59,85 @@ public class ContributeServiceImpl implements ContributeService {
     }
 
     /**
-     * Lấy tất cả các yêu cầu đóng góp với role admin và manager
+     * Lấy tất cả các yêu cầu đóng góp với role admin và manager, Object mapper để cache
      * @param status
-     * @param dateOrder
+     * @param order, by, page
      * @return
      */
     @Override
-    public ResponseEntity<ApiResponse> getAllContributeActive(Boolean status, String dateOrder) {
-        String cacheKey = "allContribute:status:" + jwtFilter.getCurrentUsername() + status + (dateOrder != null ? dateOrder : "");
+    public ResponseEntity<ApiResponse> getAllContributeActive(Boolean status, String order, String by, Integer page) {
+        String cacheKey = "allContribute:" + jwtFilter.getCurrentUsername() + status + (by != null ? by : "")
+                          + (order != null ? order : "") + page;
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            if (jwtFilter.isAdmin() || jwtFilter.isManager()){
-                List<ContributeDTO> cacheContribute  = (List<ContributeDTO>) ops.get(cacheKey);
-                if (cacheContribute != null) {
+            if (jwtFilter.isAdmin() || jwtFilter.isManager()) {
+                // Kiểm tra cache
+                String cachedData = (String) ops.get(cacheKey);
+                if (cachedData != null) {
                     log.info("cache all {}", cacheKey);
-                    return CodeSphereResponses.generateResponse(cacheContribute, "All contribute successfully", HttpStatus.OK);
+                    // Chuyển đổi dữ liệu từ cache về đối tượng mới
+                    Map<String, Object> responseMap = objectMapper.readValue(cachedData, Map.class);
+                    return CodeSphereResponses.generateResponse(responseMap, "All contribute successfully", HttpStatus.OK);
                 }
-                List<ContributeDTO> contributeList = contributeDao.getAllContributeActive(status, dateOrder);
-                ops.set(cacheKey, contributeList, 24, TimeUnit.HOURS);
-                return CodeSphereResponses.generateResponse(contributeList, "All contribute active successfully", HttpStatus.OK);
+
+                // data from dao
+                List<ContributeDTO> contributeList = contributeDao.getAllContributeActive(status, order, by, page);
+
+                // build new response
+                Map<String, Object> responseData = new HashMap<>();
+
+                int currentPage = page;
+                int pageSize = contributeList.size();
+                Long totalElements = contributeDao.getAllRecord(status).longValue();
+                int totalPages = (int) Math.ceil((double) totalElements / 20);
+
+                // new response
+                responseData.put("content", contributeList);
+                responseData.put("page", currentPage);
+                responseData.put("totalElement", totalElements);
+                responseData.put("pageSize", pageSize);
+                responseData.put("totalPages", totalPages);
+
+                // parse json sang string
+                String jsonData = objectMapper.writeValueAsString(responseData);
+                ops.set(cacheKey, jsonData, 24, TimeUnit.HOURS);
+                return CodeSphereResponses.generateResponse(responseData, "All contribute active successfully", HttpStatus.OK);
+            } else {
+                String cachedData = (String) ops.get(cacheKey);
+                if (cachedData != null) {
+                    log.info("cache all {}", cacheKey);
+                    // Chuyển đổi dữ liệu từ cache về đối tượng mới
+                    Map<String, Object> responseMap = objectMapper.readValue(cachedData, Map.class);
+                    return CodeSphereResponses.generateResponse(responseMap, "All contribute successfully", HttpStatus.OK);
+                }
+                // Lấy dữ liệu từ DAO
+                List<ContributeDTO> myContribute = contributeDao.getMyContribute(status, order, jwtFilter.getCurrentUsername());
+
+                // Xây dựng response theo cấu trúc mới
+                Map<String, Object> responseData = new HashMap<>();
+
+                // Thiết lập thông tin phân trang
+                int currentPage = 0; // Giả sử trang hiện tại
+                int pageSize = myContribute.size(); // Hoặc kích thước trang thực tế
+                long totalElements = myContribute.size(); // Tổng số bản ghi
+                int totalPages = (int) Math.ceil((double) totalElements / pageSize); // Tổng số trang
+
+                // Tạo cấu trúc response mới
+                responseData.put("content", myContribute);
+                responseData.put("page", currentPage);
+                responseData.put("totalElement", totalElements);
+                responseData.put("pageSize", pageSize);
+                responseData.put("totalPages", totalPages);
+
+                return CodeSphereResponses.generateResponse(responseData, "All contribute successfully", HttpStatus.OK);
             }
-            else{
-                List<ContributeDTO> myContribute = contributeDao.getMyContribute(status, dateOrder, jwtFilter.getCurrentUsername());
-                return CodeSphereResponses.generateResponse(myContribute, "All contribute successfully", HttpStatus.OK);
-            }
-        }
-        catch (Exception ex){
+        } catch (Exception ex) {
             log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     /**
      * Xem chi tiết yêu cầu đóng góp
@@ -128,7 +180,6 @@ public class ContributeServiceImpl implements ContributeService {
 
     /**
      * Sửa yêu cầu
-     * clear cache all
      * @param request
      * @param id
      * @return
@@ -138,7 +189,6 @@ public class ContributeServiceImpl implements ContributeService {
         try{
             contributeDao.updateContribute(request.getTitle(), request.getPaper(),
                     request.getInput(), request.getOutput(), request.getNote(), id);
-            clearCache("allContribute:");
             return CodeSphereResponses.generateResponse(null, "Update contribute successfully", HttpStatus.OK);
         }
         catch (Exception ex){

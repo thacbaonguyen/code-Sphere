@@ -43,18 +43,34 @@ public class ContributeDao {
     }
 
     @Transactional
-    public List<ContributeDTO> getAllContributeActive(Boolean status, String dateOrder) throws SQLDataException {
+    public List<ContributeDTO> getAllContributeActive(Boolean status, String order, String by, Integer page) throws SQLDataException {
         try {
-            String sql = "Select id, title, paper, input, output, note, created_by, created_at from contributes " +
-                    "where is_active = :status " +
-                    (dateOrder != null ? "order by created_at " + dateOrder : "");
+            String orderBy = order != null && by != null ? " order by " + by + " " + order : " ";
+            String sql = """
+                    Select id, title, paper, input, output, note, created_by, created_at from contributes
+                    where is_active = :status 
+                    """ + orderBy + " limit 20 offset :page";
             Query query = entityManager.createNativeQuery(sql);
             query.setParameter("status", status);
+            query.setParameter("page", (page - 1) * 20);
             List<Object[]> result = query.getResultList();
             return result.stream().map(rs -> new ContributeDTO(Integer.parseInt(rs[0].toString()),
                     rs[1].toString(), rs[2].toString(), rs[3].toString(),
                     rs[4].toString(), rs[5].toString(), rs[6].toString(),
                     rs[7].toString())).collect(Collectors.toList());
+        }
+        catch (Exception ex) {
+            throw new SQLDataException("Error saving Contribute: " + ex.getMessage(), ex);
+        }
+    }
+
+    @Transactional
+    public BigInteger getAllRecord(Boolean status) throws SQLDataException {
+        try {
+            String sql = "Select count(*) from contributes where is_active = :status";
+            Query query = entityManager.createNativeQuery(sql);
+            query.setParameter("status", status);
+            return (BigInteger) query.getSingleResult();
         }
         catch (Exception ex) {
             throw new SQLDataException("Error saving Contribute: " + ex.getMessage(), ex);

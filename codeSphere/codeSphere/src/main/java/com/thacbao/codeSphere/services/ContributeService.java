@@ -10,7 +10,7 @@ import java.util.Map;
 public interface ContributeService {
     ResponseEntity<ApiResponse> sendContribute(ContributeReq request);
 
-    ResponseEntity<ApiResponse> getAllContributeActive(Boolean status, String dateOrder);
+    ResponseEntity<ApiResponse> getAllContributeActive(Boolean status, String order, String by, Integer page);
 
     ResponseEntity<ApiResponse> getContributeDetails(Integer id) throws SQLDataException;
 
@@ -19,6 +19,5 @@ public interface ContributeService {
     ResponseEntity<ApiResponse> updateContribute(ContributeReq request, Integer id);
 
     ResponseEntity<ApiResponse> deleteContribute(Integer id) throws SQLDataException;
-
 
 }
