@@ -27,15 +27,18 @@ public class CmtExDao {
     @Transactional
     public List<CommentExDTO> getCommentEx(String code) throws SQLDataException {
         try{
-            String sql = "Select c.id, c.content, c.author_name, c.created_at, c.updated_at from commentexercise as c " +
-                    "join exercises as e on e.id = c.exercise_id " +
-                    "where e.code = :code";
+            String sql = """
+                        Select c.id, c.content, c.author_name, u.full_name, c.created_at, c.updated_at from commentexercise as c
+                    join exercises as e on e.id = c.exercise_id
+                     join users as u on u.id = c.user_id
+                    where e.code = :code
+                    """;
             List<Object[]> result = entityManager.createNativeQuery(sql)
                     .setParameter("code", code)
                     .getResultList();
             return result.stream().map(rs ->
                     new CommentExDTO(Integer.parseInt( rs[0].toString()), rs[1].toString(),
-                            rs[2].toString(), rs[3].toString(), rs[4].toString())
+                            rs[2].toString(), rs[3].toString(), rs[4].toString(), rs[5].toString())
                     ).collect(Collectors.toList());
         }
         catch (Exception e){

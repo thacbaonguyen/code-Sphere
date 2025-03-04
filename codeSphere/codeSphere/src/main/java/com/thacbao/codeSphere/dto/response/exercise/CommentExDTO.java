@@ -14,6 +14,8 @@ public class CommentExDTO {
 
     private String author;
 
+    private String fullName;
+
     private String createdAt;
 
     private String updatedAt;

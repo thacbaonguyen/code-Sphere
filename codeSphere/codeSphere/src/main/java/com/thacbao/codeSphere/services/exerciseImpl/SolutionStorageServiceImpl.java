@@ -20,6 +20,8 @@ import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,6 +36,8 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import static com.thacbao.codeSphere.constants.CodeSphereConstants.User.USER_NOT_FOUND;
 
 @Service
@@ -51,6 +55,8 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
     private final JwtFilter jwtFilter;
 
     private static final List<String> FILE_EXTENSIONS = Arrays.asList("java", "py", "cpp", "txt");
+
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Value("${cloud.aws.s3.bucketSolution}")
     private String bucket;
@@ -94,7 +100,7 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
                     .fileSize((int) file.getSize())
                     .build();
             solutionRepository.save(solutionStorage);
-            return CodeSphereResponses.generateResponse(fileName, String.format("Successfully uploaded %s", fileName), HttpStatus.OK);
+            return CodeSphereResponses.generateResponse(fileName, "Upload file storage successfully!", HttpStatus.OK);
         }
         catch (Exception ex) {
             log.error("logging error with message {}", ex.getMessage(), ex.getCause());
@@ -109,14 +115,23 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
      */
     @Override
     public ResponseEntity<ApiResponse> viewFile(String filename) {
+        String cacheKey = "viewCodeFile:" + filename;
+        ValueOperations<String, String> ops = redisTemplate.opsForValue();
         SolutionStorage storage = solutionRepository.findByFilename(filename).orElseThrow(
         );
         if (!storage.getUser().getUsername().equals(jwtFilter.getCurrentUsername())){
+            return CodeSphereResponses.generateResponse(null, "You do not have permission to view it", HttpStatus.UNAUTHORIZED);
         }
         try {
+            String fileContent = ops.get(cacheKey);
+            if (fileContent != null && !fileContent.isEmpty()){
+                log.info("cache file code {}", cacheKey);
+                return CodeSphereResponses.generateResponse(fileContent, "View successfully", HttpStatus.OK);
+            }
             S3Object s3Object = amazonS3.getObject(bucket, filename);
 
             String content = new String(s3Object.getObjectContent().readAllBytes(), StandardCharsets.UTF_8);
+            ops.set(cacheKey, content, 10, TimeUnit.DAYS);
             return CodeSphereResponses.generateResponse(content, String.format("Successfully viewed %s", filename), HttpStatus.OK);
         }
         catch (Exception ex) {
@@ -170,11 +185,13 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
 
     @Override
     public ResponseEntity<ApiResponse> deleteFile(Integer id) {
+        String cacheKey = "viewCodeFile:*";
         SolutionStorage storage = solutionRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Solution not found")
         );
         amazonS3.deleteObject(bucket, storage.getFilename());
         solutionRepository.delete(storage);
+        redisTemplate.delete(redisTemplate.keys(cacheKey));
         return CodeSphereResponses.generateResponse(null, String.format("Successfully deleted %s", storage.getFilename()), HttpStatus.OK);
     }
 
