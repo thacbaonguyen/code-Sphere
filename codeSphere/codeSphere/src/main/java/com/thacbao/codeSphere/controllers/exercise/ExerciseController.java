@@ -67,6 +67,11 @@ public class ExerciseController {
         return exerciseService.viewExerciseDetails(code);
 
     }
+
+    @GetMapping("/question/testcases/{code}")
+    public ResponseEntity<ApiResponse> viewTestCases(@PathVariable String code) {
+        return exerciseService.viewTestCaseByCode(code);
+    }
     // sua doi trang thai cua bai tap
     @PutMapping("/active")
     public ResponseEntity<ApiResponse> activateExercise(@RequestBody Map<String, String> request) {

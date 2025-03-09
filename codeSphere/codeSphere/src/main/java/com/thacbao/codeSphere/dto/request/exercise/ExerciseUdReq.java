@@ -2,9 +2,12 @@ package com.thacbao.codeSphere.dto.request.exercise;
 
 import lombok.Data;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 @Data
 public class ExerciseUdReq {
@@ -18,6 +21,10 @@ public class ExerciseUdReq {
 
     @NotBlank(message = "Paper cannot be empty")
     private String paper;
+
+    @NotEmpty(message = "At least one test case is required")
+    @Valid
+    private List<TestCaseReq> testCases;
 
     @NotBlank(message = "Input test case can not be empty")
     private String input;

@@ -3,12 +3,16 @@ package com.thacbao.codeSphere.services.exerciseImpl;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.data.dao.ExerciseDao;
+import com.thacbao.codeSphere.data.repository.exercise.TestCaseRepository;
 import com.thacbao.codeSphere.dto.request.exercise.ExerciseReq;
 import com.thacbao.codeSphere.dto.request.exercise.ExerciseUdReq;
+import com.thacbao.codeSphere.dto.request.exercise.TestCaseReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.exercise.ExerciseDTO;
+import com.thacbao.codeSphere.dto.response.exercise.TestCaseResponse;
 import com.thacbao.codeSphere.entities.reference.Subject;
 import com.thacbao.codeSphere.entities.core.Exercise;
+import com.thacbao.codeSphere.entities.reference.TestCase;
 import com.thacbao.codeSphere.exceptions.common.AlreadyException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import com.thacbao.codeSphere.data.repository.exercise.SubjectRepository;
@@ -24,11 +28,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.rmi.AlreadyBoundException;
+import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import static com.thacbao.codeSphere.constants.CodeSphereConstants.Exercise.EXERCISE_NOT_FOUND;
 @Service
 @RequiredArgsConstructor
@@ -43,6 +50,8 @@ public class ExerciseServiceImpl implements ExerciseService {
     private final ExerciseDao exerciseDao;
 
     private final SubjectRepository subjectRepository;
+
+    private final TestCaseRepository testCaseRepository;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -62,13 +71,38 @@ public class ExerciseServiceImpl implements ExerciseService {
             if(exercise != null){
                 throw new AlreadyException("Exercise already exists");
             }
-            Exercise newExercise = modelMapper.map(request, Exercise.class);
-            newExercise.setId(null);
-            newExercise.setIsActive(true);
-            newExercise.setCreatedBy(jwtFilter.getCurrentUsername());
-            newExercise.setCreatedAt(LocalDate.now());
-            exerciseRepository.save(newExercise);
+            Exercise newExercise = Exercise.builder()
+                    .code(request.getCode())
+                    .title(request.getTitle())
+                    .paper(request.getPaper())
+                    .input(request.getInput())
+                    .output(request.getOutput())
+                    .note(request.getNote())
+                    .description(request.getDescription())
+                    .level(request.getLevel())
+                    .timeLimit(request.getTimeLimit())
+                    .memoryLimit(request.getMemoryLimit())
+                    .topic(request.getTopic())
+                    .id(null)
+                    .isActive(true)
+                    .createdBy(jwtFilter.getCurrentUsername())
+                    .createdAt(LocalDate.now())
+                    .subject(subject)
+                    .build();
+            Exercise exerciseSaved = exerciseRepository.save(newExercise);
             clearCache("exerciseFilter:"); // clear cache lay tat ca ex
+            //
+
+            List<TestCase> testCases = new ArrayList<>();
+            for (TestCaseReq testCaseReq : request.getTestCases()) {
+                TestCase testCase = new TestCase();
+                testCase.setInput(testCaseReq.getInput());
+                testCase.setOutput(testCaseReq.getExpectedOutput());
+                testCase.setExercise(exerciseSaved);
+                testCases.add(testCase);
+            }
+
+            testCaseRepository.saveAll(testCases);
             return CodeSphereResponses.generateResponse(null, "Insert exercise successfully", HttpStatus.OK);
         }
         else{
@@ -100,6 +134,15 @@ public class ExerciseServiceImpl implements ExerciseService {
             log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ApiResponse> viewTestCaseByCode(String code) {
+        List<TestCase> testCases = testCaseRepository.findByExerciseCode(code);
+        ArrayList<TestCaseResponse> responses = testCases.stream().map( item ->
+            new TestCaseResponse(item)).collect(Collectors.toCollection(ArrayList::new));
+        return CodeSphereResponses.generateResponse(responses, "testcase details sc", HttpStatus.OK);
     }
 
     /**

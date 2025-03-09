@@ -1,8 +1,7 @@
 package com.thacbao.codeSphere.entities.core;
 
 import com.thacbao.codeSphere.entities.reference.Subject;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -11,6 +10,9 @@ import java.time.LocalDate;
 @Table(name = "exercises")
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Exercise {
 
     @Id

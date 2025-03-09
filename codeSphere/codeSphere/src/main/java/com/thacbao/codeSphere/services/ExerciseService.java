@@ -13,6 +13,8 @@ public interface ExerciseService {
 
     ResponseEntity<ApiResponse> viewExerciseDetails(String code);
 
+    ResponseEntity<ApiResponse> viewTestCaseByCode(String code);
+
     ResponseEntity<ApiResponse> filterExerciseBySubjectAndParam(String subject, String order, String by, String search, Integer page);
 
     ResponseEntity<ApiResponse> getTotalPage(String subject, String order, String by, String search);
