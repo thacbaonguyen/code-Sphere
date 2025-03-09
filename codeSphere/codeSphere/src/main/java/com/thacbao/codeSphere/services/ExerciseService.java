@@ -25,5 +25,7 @@ public interface ExerciseService {
 
     ResponseEntity<ApiResponse> deleteExercise(String code);
 
+    ResponseEntity<ApiResponse> getAllSubmissionHistories(String code);
+
 
 }

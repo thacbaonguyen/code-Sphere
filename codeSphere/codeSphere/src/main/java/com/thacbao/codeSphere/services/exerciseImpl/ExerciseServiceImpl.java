@@ -3,20 +3,20 @@ package com.thacbao.codeSphere.services.exerciseImpl;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.data.dao.ExerciseDao;
-import com.thacbao.codeSphere.data.repository.exercise.TestCaseRepository;
+import com.thacbao.codeSphere.data.repository.exercise.*;
 import com.thacbao.codeSphere.dto.request.exercise.ExerciseReq;
 import com.thacbao.codeSphere.dto.request.exercise.ExerciseUdReq;
 import com.thacbao.codeSphere.dto.request.exercise.TestCaseReq;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.exercise.ExerciseDTO;
+import com.thacbao.codeSphere.dto.response.exercise.SubmissionHistoryResponse;
 import com.thacbao.codeSphere.dto.response.exercise.TestCaseResponse;
 import com.thacbao.codeSphere.entities.reference.Subject;
 import com.thacbao.codeSphere.entities.core.Exercise;
+import com.thacbao.codeSphere.entities.reference.SubmissionHistory;
 import com.thacbao.codeSphere.entities.reference.TestCase;
 import com.thacbao.codeSphere.exceptions.common.AlreadyException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
-import com.thacbao.codeSphere.data.repository.exercise.SubjectRepository;
-import com.thacbao.codeSphere.data.repository.exercise.ExerciseRepository;
 import com.thacbao.codeSphere.services.ExerciseService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +52,9 @@ public class ExerciseServiceImpl implements ExerciseService {
     private final SubjectRepository subjectRepository;
 
     private final TestCaseRepository testCaseRepository;
+
+    private final SubmissionRepository submissionRepository;
+    private final TestCaseHistoryRepo testCaseHistoryRepo;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -256,6 +259,16 @@ public class ExerciseServiceImpl implements ExerciseService {
             log.error("logging error with message {}", ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ApiResponse> getAllSubmissionHistories(String code) {
+        List<SubmissionHistory> submissionHistories = submissionRepository.findByExerciseCodeAndUsername(code, jwtFilter.getCurrentUsername());
+        ArrayList<SubmissionHistoryResponse> responses = submissionHistories.stream().map(
+                item ->  new SubmissionHistoryResponse(item)
+        ).collect(Collectors.toCollection(ArrayList::new));
+        return CodeSphereResponses.generateResponse(responses, "All submission histories successfully", HttpStatus.OK);
     }
 
     private void clearCache(String cacheKey) {

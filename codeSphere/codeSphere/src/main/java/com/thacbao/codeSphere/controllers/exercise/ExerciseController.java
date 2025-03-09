@@ -99,4 +99,9 @@ public class ExerciseController {
 
     }
 
+    @GetMapping("/submission/histories/{code}")
+    public ResponseEntity<ApiResponse> histories(@PathVariable String code) {
+        return exerciseService.getAllSubmissionHistories(code);
+    }
+
 }

@@ -1,17 +1,21 @@
 package com.thacbao.codeSphere.services.judge0;
 
+import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.data.repository.exercise.SubmissionRepository;
 import com.thacbao.codeSphere.data.repository.exercise.TestCaseHistoryRepo;
 import com.thacbao.codeSphere.data.repository.exercise.TestCaseRepository;
+import com.thacbao.codeSphere.data.repository.user.UserRepository;
 import com.thacbao.codeSphere.dto.request.judge0.Judge0Request;
 import com.thacbao.codeSphere.dto.request.judge0.SubmissionRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.judge0.FinalResponse;
 import com.thacbao.codeSphere.dto.response.judge0.SubmissionResponse;
 import com.thacbao.codeSphere.dto.response.judge0.TestCaseResponse;
+import com.thacbao.codeSphere.entities.core.User;
 import com.thacbao.codeSphere.entities.reference.SubmissionHistory;
 import com.thacbao.codeSphere.entities.reference.TestCase;
 import com.thacbao.codeSphere.entities.reference.TestCaseHistory;
+import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import com.thacbao.codeSphere.services.Judge0Service;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
@@ -42,8 +46,9 @@ public class JudgeServiceImpl implements Judge0Service {
     private final TestCaseRepository testCaseRepository;
     private final SubmissionRepository submissionRepository;
     private final TestCaseHistoryRepo testCaseHistoryRepo;
-
+    private final UserRepository userRepository;
     private final RestTemplate restTemplate;
+    private final JwtFilter jwtFilter;
 
     @Override
     public ResponseEntity<ApiResponse> createSubmission(SubmissionRequest submissionRequest) {
@@ -52,9 +57,14 @@ public class JudgeServiceImpl implements Judge0Service {
             List<TestCase> testCases = testCaseRepository.findByExerciseId(submissionRequest.getExerciseId());
             ArrayList<TestCaseResponse> testCaseResponses = new ArrayList<>();
 
-            int passed = 0;
+            User user = getUser();
             SubmissionHistory submissionHistory = new SubmissionHistory();
-//            submissionHistory.setExercise();
+            submissionHistory.setExercise(testCases.get(0).getExercise());
+            submissionHistory.setUser(user);
+            submissionHistory.setSourceCode(submissionRequest.getSourceCode());
+            SubmissionHistory submissionHistorySaved = submissionRepository.save(submissionHistory);
+
+            int passed = 0;
             ArrayList<TestCaseHistory> testCaseHistories = new ArrayList<>();
             for (TestCase testCase : testCases) {
                 HttpEntity<Judge0Request> requestHttpEntity = getJudge0Request(submissionRequest.getSourceCode(),
@@ -69,9 +79,9 @@ public class JudgeServiceImpl implements Judge0Service {
                 SubmissionResponse submissionResponse = getSubmission(token);
 
                 boolean passedStatus = compareOutput(submissionResponse.getStdout(), testCase.getOutput());
-                    if (passedStatus) {
+                if (passedStatus) {
                         passed++;
-                    }
+                }
                 TestCaseHistory testCaseHistory = TestCaseHistory.builder()
                         .passed(passedStatus)
                         .testCaseExpected(testCase.getOutput())
@@ -81,8 +91,9 @@ public class JudgeServiceImpl implements Judge0Service {
                         .time(submissionResponse.getTime())
                         .memory(submissionResponse.getMemory())
                         .errorMessage(submissionResponse.getErrorMessage())
-
+                        .submissionHistory(submissionHistorySaved)
                         .build();
+                    testCaseHistories.add(testCaseHistory);
                 // tao ket qua cho tung test
                 testCaseResponses.add(new TestCaseResponse(
                         testCase.getId(),
@@ -100,6 +111,15 @@ public class JudgeServiceImpl implements Judge0Service {
             FinalResponse finalResponse = new FinalResponse(
                     status ,passed, score, testCases.size(), testCaseResponses
             );
+
+            submissionHistorySaved.setStatus(status);
+            submissionHistorySaved.setPassCount(passed);
+            submissionHistorySaved.setScore(score);
+            submissionHistorySaved.setTotalTestCases(testCases.size());
+            submissionRepository.save(submissionHistorySaved);
+
+            testCaseHistoryRepo.saveAll(testCaseHistories);
+
             return CodeSphereResponses.generateResponse(finalResponse, "Submission and score success", HttpStatus.OK);
         }
         catch (Exception e) {
@@ -188,5 +208,11 @@ public class JudgeServiceImpl implements Judge0Service {
             return "";
         }
         else return output.trim();
+    }
+
+    private User getUser() {
+        return userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
+                () -> new NotFoundException("User not found")
+        );
     }
 }
