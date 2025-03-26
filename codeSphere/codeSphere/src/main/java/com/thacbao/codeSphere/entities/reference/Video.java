@@ -1,6 +1,5 @@
 package com.thacbao.codeSphere.entities.reference;
 
-import com.thacbao.codeSphere.entities.core.Course;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,5 +29,5 @@ public class Video {
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    private Section section;
 }

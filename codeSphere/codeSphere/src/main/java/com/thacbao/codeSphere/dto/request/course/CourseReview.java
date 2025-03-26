@@ -7,11 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class VideoRequest {
+public class CourseReview {
+    private int rating;
+    private String content;
     private int courseId;
-    private String title;
-    private String videoUrl;
-    private int orderIndex;
-
-    private int sectionId;
 }

@@ -13,13 +13,14 @@ public class CourseRequest {
     @NotBlank(message = "Course title cannot be blank")
     private String title;
 
-    @Size(min = 2, message = "Description must be lest than 2 character")
+    @Size(min = 10, message = "Description must be lest than 10 character")
     private String description;
     private double price;
 
     @NotBlank(message = "Thumbnail cannot be blank")
-    private String thumbnail;
-    private boolean isActive = true;
+    private boolean isActive;
     private int duration;
     private int discount;
+
+    private int courseCategoryId;
 }

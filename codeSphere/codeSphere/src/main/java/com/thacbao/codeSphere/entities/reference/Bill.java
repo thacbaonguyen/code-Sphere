@@ -32,12 +32,4 @@ public class Bill {
     @Column(name = "created_by", length = 255)
     private String createdBy;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
-
 }

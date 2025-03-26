@@ -1,17 +1,18 @@
-package com.thacbao.codeSphere.dto.request.course;
+package com.thacbao.codeSphere.dto.response.course;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class VideoRequest {
-    private int courseId;
+public class VideoDTO {
+    private Integer id;
     private String title;
     private String videoUrl;
     private int orderIndex;
-
-    private int sectionId;
+    private LocalDate createdAt;
 }
