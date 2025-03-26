@@ -50,6 +50,11 @@ public class JudgeServiceImpl implements Judge0Service {
     private final RestTemplate restTemplate;
     private final JwtFilter jwtFilter;
 
+    /**
+     * tạo 1 submission và gọi đến hàm getsubmission lấy kết quả, thực hiện lưu lịch sử submit
+     * @param submissionRequest
+     * @return
+     */
     @Override
     public ResponseEntity<ApiResponse> createSubmission(SubmissionRequest submissionRequest) {
 
@@ -128,6 +133,14 @@ public class JudgeServiceImpl implements Judge0Service {
 
     }
 
+    /**
+     * Convert sang judge0 request để gọi api
+     * @param sourceCode
+     * @param languageId
+     * @param input
+     * @param output
+     * @return
+     */
     private HttpEntity<Judge0Request> getJudge0Request(String sourceCode, Integer languageId, String input, String output) {
         Judge0Request judge0Request = new Judge0Request();
         judge0Request.setSource_code(Base64.getEncoder().encodeToString(sourceCode.getBytes()));
@@ -148,6 +161,11 @@ public class JudgeServiceImpl implements Judge0Service {
         return new HttpEntity<>(judge0Request, headers);
     }
 
+    /**
+     * Lấy kết quả qua param token tạo từ rq trên
+     * @param token
+     * @return
+     */
     private SubmissionResponse getSubmission(String token){
         try {
             HttpHeaders headers = new HttpHeaders();

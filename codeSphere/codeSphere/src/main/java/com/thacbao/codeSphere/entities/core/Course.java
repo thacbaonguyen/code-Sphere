@@ -35,6 +35,10 @@ public class Course {
     @Column(name = "created_at")
     private LocalDate createdAt;
 
+    private int duration;
+    private int discount;
+    private float rate;
+
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Video> videos;
 

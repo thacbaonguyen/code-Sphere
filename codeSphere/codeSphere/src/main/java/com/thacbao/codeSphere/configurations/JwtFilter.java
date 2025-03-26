@@ -58,8 +58,17 @@ public class JwtFilter extends OncePerRequestFilter {
                 if (username != null) {
                     log.info("refresh token : {}", username);
                     UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+
+                    if (customUserDetailsService.getUserDetails().getIsBlocked()){
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"message\":\"Your account has been blocked\",\"status\":\"BLOCKED\"}");
+                        return;
+                    }
+
                     UsernamePasswordAuthenticationToken authentication = new
-                            UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
+                            UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
