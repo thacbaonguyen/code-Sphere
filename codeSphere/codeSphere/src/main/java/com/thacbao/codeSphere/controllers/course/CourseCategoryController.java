@@ -5,10 +5,7 @@ import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.services.courseImpl.CourseCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -18,8 +15,13 @@ import java.util.Map;
 public class CourseCategoryController {
 
     private final CourseCategoryService courseCategoryService;
-    @PostMapping
+    @PostMapping("/insert")
     public ResponseEntity<ApiResponse> createCourseCategory(@RequestBody CourseCategoryRequest request) {
         return courseCategoryService.create(request);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse> getAllCourseCategory() {
+        return courseCategoryService.getAllCategories();
     }
 }

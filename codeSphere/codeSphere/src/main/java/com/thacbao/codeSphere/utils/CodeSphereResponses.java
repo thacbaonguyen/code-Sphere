@@ -11,7 +11,7 @@ public class CodeSphereResponses {
         ApiResponse apiResponse = new ApiResponse(
                 LocalDateTime.now(),
                 status.value(),
-                status == HttpStatus.OK ? "success" : "error",
+                status == HttpStatus.OK || status == HttpStatus.CREATED ? "success" : "error",
                 message,
                 data
         );

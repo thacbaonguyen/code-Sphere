@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 @Data
 @NoArgsConstructor
@@ -17,7 +18,7 @@ public class CourseRequest {
     private String description;
     private double price;
 
-    @NotBlank(message = "Thumbnail cannot be blank")
+    @NotNull(message = "Thumbnail cannot be blank")
     private boolean isActive;
     private int duration;
     private int discount;

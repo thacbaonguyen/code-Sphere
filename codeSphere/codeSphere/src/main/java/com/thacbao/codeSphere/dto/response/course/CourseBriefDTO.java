@@ -1,7 +1,7 @@
 package com.thacbao.codeSphere.dto.response.course;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.thacbao.codeSphere.entities.core.Course;
-import com.thacbao.codeSphere.entities.reference.CourseCategory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +19,8 @@ public class CourseBriefDTO {
     private String title;
     private String description;
     private String thumbnail;
-    private LocalDate createdAt;
+    @JsonFormat(pattern = "dd-MM-yyyy")
+    private String createdAt;
     private int duration;
     private double rating;
     private int sectionCount;
@@ -32,7 +33,7 @@ public class CourseBriefDTO {
         this.title = course.getTitle();
         this.description = course.getDescription();
         this.thumbnail = course.getThumbnail();
-        this.createdAt = course.getCreatedAt();
+        this.createdAt = course.getCreatedAt().toString();
         this.duration = course.getDuration();
         this.videoCount = videoCount;
         this.category = course.getCategory().getName();

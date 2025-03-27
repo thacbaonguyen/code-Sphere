@@ -11,6 +11,9 @@ import javax.persistence.criteria.JoinType;
 
 public class CourseSpecification {
     public static Specification<Course> hasSearchText(String searchText) {
+        if (searchText == null) {
+            return null;
+        }
         return (root, query, criteriaBuilder) -> {
             return criteriaBuilder.like(root.get("title"), "%" + searchText + "%");
         };

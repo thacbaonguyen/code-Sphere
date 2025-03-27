@@ -24,6 +24,8 @@ public class Video {
     @Column(name = "order_index")
     private Integer orderIndex;
 
+    private String s3url;
+
     @Column(name = "created_at")
     private LocalDate createdAt;
 

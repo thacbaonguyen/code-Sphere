@@ -44,7 +44,7 @@ public class CourseReviewServiceImpl implements CourseReviewService {
 
     @Override
     public List<CourseReviewDTO> getCourseReviews(Integer courseId) {
-        List<CourseReviewDTO> courseReviewDTOS = courseReviewRepository.findByCourseId(courseId)
+        return courseReviewRepository.findByCourseId(courseId)
                 .stream().map(review -> {
                     CourseReviewDTO courseReviewDTO = new CourseReviewDTO();
                     courseReviewDTO.setId(review.getId());
@@ -54,6 +54,5 @@ public class CourseReviewServiceImpl implements CourseReviewService {
                     courseReviewDTO.setAuthor(review.getUser().getUsername());
                     return courseReviewDTO;
                 }).toList();
-        return courseReviewDTOS;
     }
 }

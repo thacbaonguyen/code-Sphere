@@ -6,7 +6,9 @@ import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thacbao.codeSphere.configurations.JwtFilter;
+import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.data.repository.course.*;
+import com.thacbao.codeSphere.data.repository.user.UserRepository;
 import com.thacbao.codeSphere.data.specification.BlogSpecification;
 import com.thacbao.codeSphere.data.specification.CourseSpecification;
 import com.thacbao.codeSphere.dto.request.course.CourseRequest;
@@ -18,10 +20,13 @@ import com.thacbao.codeSphere.dto.response.course.CourseReviewDTO;
 import com.thacbao.codeSphere.dto.response.course.SectionDTO;
 import com.thacbao.codeSphere.entities.core.Blog;
 import com.thacbao.codeSphere.entities.core.Course;
+import com.thacbao.codeSphere.entities.core.User;
 import com.thacbao.codeSphere.entities.reference.CourseCategory;
 import com.thacbao.codeSphere.entities.reference.Section;
+import com.thacbao.codeSphere.exceptions.common.AlreadyException;
 import com.thacbao.codeSphere.exceptions.common.AppException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
+import com.thacbao.codeSphere.exceptions.user.PermissionException;
 import com.thacbao.codeSphere.services.CourseReviewService;
 import com.thacbao.codeSphere.services.CourseService;
 import com.thacbao.codeSphere.services.SectionService;
@@ -68,20 +73,28 @@ public class CourseServiceImpl implements CourseService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final CourseCategoryRepo courseCategoryRepo;
+    private final UserRepository userRepository;
 
     @Value("${cloud.aws.s3.bucketFeature}")
     private String bucketFeature;
 
     @Override
     public ResponseEntity<ApiResponse> createCourse(CourseRequest request) {
-        Course course = modelMapper.map(request, Course.class);
-        course.setCreatedAt(LocalDate.now());
-        course.setRate(0);
-        courseRepository.save(course);
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", course.getId());
-        redisTemplate.delete(redisTemplate.keys("allCourse:*"));
-        return CodeSphereResponses.generateResponse(response, "Insert Course success", HttpStatus.CREATED);
+        if(jwtFilter.isAdmin() || jwtFilter.isManager()){
+            Course courseExist = courseRepository.findByTitle(request.getTitle());
+            if (courseExist != null) {
+                throw new AlreadyException("Course already exist");
+            }
+            Course course = modelMapper.map(request, Course.class);
+            course.setCreatedAt(LocalDate.now());
+            course.setRate(0);
+            courseRepository.save(course);
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", course.getId());
+            redisTemplate.delete(redisTemplate.keys("allCourse:*"));
+            return CodeSphereResponses.generateResponse(response, "Insert Course success", HttpStatus.CREATED);
+        }
+        throw new PermissionException(CodeSphereConstants.PERMISSION_DENIED);
     }
 
     @Override
@@ -108,8 +121,8 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public ResponseEntity<ApiResponse> getAllCourses(String search, Integer page, Integer pageSize, String order, String by) {
-        String cacheKey = "allCourse:" + jwtFilter.getCurrentUsername() + search + (by != null ? by : "")
-                + (order != null ? order : "") + page;
+        String cacheKey = "allCourse:" + jwtFilter.getCurrentUsername() + (search != null ? search : "") + (by != null ? by : "")
+                + (order != null ? order : "") + page + pageSize;
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -138,23 +151,29 @@ public class CourseServiceImpl implements CourseService {
         }
 
     }
-
+    // xu ly sau
     @Override
     public ResponseEntity<ApiResponse> getCourseById(int id) {
-        Course course = courseRepository.findById(id).orElseThrow(
-                () -> new NotFoundException(String.format("Course with id '%d' not found", id))
-        );
-        double rating = courseReviewRepository.averageRating(course.getId());
-        List<CourseReviewDTO> courseReviewDTOS = courseReviewService.getCourseReviews(course.getId());
-        List<SectionDTO> sectionDTOS = sectionService.getAllSection(course.getId());
-        CourseDTO courseDTO = new CourseDTO(course, courseReviewDTOS, sectionDTOS, rating);
-        return CodeSphereResponses.generateResponse(courseDTO, "View course successfully", HttpStatus.OK);
+        CourseDTO courseDTO = getCourseDTO(id);
+        if (courseDTO.getThumbnail() != null) {
+            courseDTO.setImage(viewImageFromS3(courseDTO.getThumbnail()));
+        }
+        if (jwtFilter.isAdmin() || jwtFilter.isManager()) {
+            return CodeSphereResponses.generateResponse(courseDTO, "View course successfully", HttpStatus.OK);
+        }
+        else{
+            User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
+                    () -> new NotFoundException("Cannot found this user")
+            );
+            return CodeSphereResponses.generateResponse(courseDTO, "View course successfully", HttpStatus.OK);
+        }
+
     }
 
     @Override
     public ResponseEntity<ApiResponse> getAllCoursesByCategory(Integer categoryId, String search, Integer page, Integer pageSize, String order, String by) {
-        String cacheKey = "allCourse:" + jwtFilter.getCurrentUsername() + categoryId + search + (by != null ? by : "")
-                + (order != null ? order : "") + page;
+        String cacheKey = "allCourse:" + jwtFilter.getCurrentUsername() + categoryId + (search != null ? search : "") + (by != null ? by : "")
+                + (order != null ? order : "") + page +pageSize;
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -303,7 +322,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private Page<CourseBriefDTO> getCourseBriefPage(Specification<Course> spec, Pageable pageable) {
-        Page<CourseBriefDTO> result = courseRepository.findAll(spec, pageable)
+        return courseRepository.findAll(spec, pageable)
                 .map(course -> {
                     int sectionCount = countSection(course.getId());
                     int videoCount = countVideo(course.getId());
@@ -315,6 +334,15 @@ public class CourseServiceImpl implements CourseService {
 
                     return courseBriefDTO;
                 });
-        return result;
+    }
+
+    private CourseDTO getCourseDTO(int id) {
+        Course course = courseRepository.findById(id).orElseThrow(
+                () -> new NotFoundException(String.format("Course with id '%d' not found", id))
+        );
+        double rating = courseReviewRepository.averageRating(course.getId());
+        List<CourseReviewDTO> courseReviewDTOS = courseReviewService.getCourseReviews(course.getId());
+        List<SectionDTO> sectionDTOS = sectionService.getAllSection(course.getId());
+        return new CourseDTO(course, courseReviewDTOS, sectionDTOS, rating);
     }
 }
