@@ -29,7 +29,7 @@ public class CourseDTO {
     private List<CourseReviewDTO> courseReviews;
     private List<SectionDTO> sections;
 
-    public CourseDTO(Course course, List<CourseReviewDTO> courseReviews, List<SectionDTO> sections, int rating) {
+    public CourseDTO(Course course, List<CourseReviewDTO> courseReviews, List<SectionDTO> sections, double rating) {
         this.id = course.getId();
         this.title = course.getTitle();
         this.description = course.getDescription();

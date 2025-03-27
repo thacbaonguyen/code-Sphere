@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VideoRequest {
-    private int courseId;
     private String title;
     private String videoUrl;
     private int orderIndex;

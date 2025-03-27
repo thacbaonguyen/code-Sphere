@@ -1,34 +1,68 @@
 package com.thacbao.codeSphere.services.courseImpl;
 
+import com.thacbao.codeSphere.data.repository.course.SectionRepository;
 import com.thacbao.codeSphere.dto.request.course.SectionRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
+import com.thacbao.codeSphere.dto.response.course.SectionDTO;
+import com.thacbao.codeSphere.dto.response.course.VideoDTO;
+import com.thacbao.codeSphere.entities.reference.Section;
+import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import com.thacbao.codeSphere.services.SectionService;
+import com.thacbao.codeSphere.services.VideoService;
+import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class SectionServiceImpl implements SectionService {
+
+    private final SectionRepository sectionRepository;
+    private ModelMapper modelMapper;
+    private final VideoService videoService;
+
     @Override
     public ResponseEntity<ApiResponse> createSection(SectionRequest request) {
-        return null;
+        Section section = modelMapper.map(request, Section.class);
+        sectionRepository.save(section);
+        return CodeSphereResponses.generateResponse(null, "Create section success", HttpStatus.CREATED);
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getAllSection(Integer courseId) {
-        return null;
+    public List<SectionDTO> getAllSection(Integer courseId) {
+        List<Section> sections = sectionRepository.findByCourseId(courseId);
+        return sections.stream().map(section -> {
+            List<VideoDTO> videoDTOs = videoService.getAllVideo(section.getId());
+                    return new SectionDTO(section, videoDTOs);
+        }).collect(Collectors.toList());
     }
 
     @Override
     public ResponseEntity<ApiResponse> updateSection(Integer sectionId, SectionRequest request) {
+        Section section = sectionRepository.findById(sectionId).orElseThrow(
+                () -> new NotFoundException("Section not found")
+        );
+        section.setTitle(request.getTitle());
+        section.setDescription(request.getDescription());
+        section.setOrderIndex(request.getOrderIndex());
+        sectionRepository.save(section);
         return null;
     }
 
     @Override
     public ResponseEntity<ApiResponse> deleteSection(Integer sectionId) {
-        return null;
+        Section section = sectionRepository.findById(sectionId).orElseThrow(
+                () -> new NotFoundException("Section not found")
+        );
+        sectionRepository.delete(section);
+        return CodeSphereResponses.generateResponse(null, "Delete section success", HttpStatus.OK);
     }
 }

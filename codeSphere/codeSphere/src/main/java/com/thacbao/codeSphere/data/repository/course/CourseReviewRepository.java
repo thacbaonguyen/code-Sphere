@@ -6,9 +6,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface CourseReviewRepository extends JpaRepository<CourseReview, Integer> {
 
     @Query(value = "SELECT AVG(rating) FROM coursereviews WHERE course_id = :courseId", nativeQuery = true)
     double averageRating(@Param("courseId") Integer courseId);
+    @Query(value = "SELECT * FROM coursereviews WHERE course_id = :courseId", nativeQuery = true)
+    List<CourseReview> findByCourseId(@Param("courseId") Integer courseId);
 }

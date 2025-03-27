@@ -13,12 +13,18 @@ import com.thacbao.codeSphere.dto.request.course.CourseRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.blog.BlogBriefDTO;
 import com.thacbao.codeSphere.dto.response.course.CourseBriefDTO;
+import com.thacbao.codeSphere.dto.response.course.CourseDTO;
+import com.thacbao.codeSphere.dto.response.course.CourseReviewDTO;
+import com.thacbao.codeSphere.dto.response.course.SectionDTO;
 import com.thacbao.codeSphere.entities.core.Blog;
 import com.thacbao.codeSphere.entities.core.Course;
 import com.thacbao.codeSphere.entities.reference.CourseCategory;
+import com.thacbao.codeSphere.entities.reference.Section;
 import com.thacbao.codeSphere.exceptions.common.AppException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
+import com.thacbao.codeSphere.services.CourseReviewService;
 import com.thacbao.codeSphere.services.CourseService;
+import com.thacbao.codeSphere.services.SectionService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,10 +46,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -57,6 +60,8 @@ public class CourseServiceImpl implements CourseService {
     private final SectionRepository sectionRepository;
     private final VideoRepository videoRepository;
     private final CourseReviewRepository courseReviewRepository;
+    private final SectionService sectionService;
+    private final CourseReviewService courseReviewService;
     private final AmazonS3 amazonS3;
     
     private final JwtFilter jwtFilter;
@@ -92,8 +97,7 @@ public class CourseServiceImpl implements CourseService {
                 courseRepository.save(course);
                 if (oldFilename != null) {
                     deleteFromS3(oldFilename);
-                    redisTemplate.delete(redisTemplate.keys("blog:" + course.getThumbnail()));
-                    log.info("update action and clear cache blog:{}", course.getThumbnail());
+                    log.info("update action and clear cache course:{}", course.getThumbnail());
                 }
             }
         }
@@ -137,7 +141,14 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public ResponseEntity<ApiResponse> getCourseById(int id) {
-        return null;
+        Course course = courseRepository.findById(id).orElseThrow(
+                () -> new NotFoundException(String.format("Course with id '%d' not found", id))
+        );
+        double rating = courseReviewRepository.averageRating(course.getId());
+        List<CourseReviewDTO> courseReviewDTOS = courseReviewService.getCourseReviews(course.getId());
+        List<SectionDTO> sectionDTOS = sectionService.getAllSection(course.getId());
+        CourseDTO courseDTO = new CourseDTO(course, courseReviewDTOS, sectionDTOS, rating);
+        return CodeSphereResponses.generateResponse(courseDTO, "View course successfully", HttpStatus.OK);
     }
 
     @Override
@@ -189,6 +200,7 @@ public class CourseServiceImpl implements CourseService {
         course.setActive(request.isActive());
         course.setCategory(category);
         courseRepository.save(course);
+        redisTemplate.delete(redisTemplate.keys("allCourse:*"));
         return CodeSphereResponses.generateResponse(null, "Update course successfully", HttpStatus.OK);
     }
 
@@ -198,6 +210,7 @@ public class CourseServiceImpl implements CourseService {
                 () -> new NotFoundException(String.format("Course with id '%d' not found", courseId))
         );
         courseRepository.delete(course);
+        redisTemplate.delete(redisTemplate.keys("allCourse:*"));
         return CodeSphereResponses.generateResponse(null, "Delete course successfully", HttpStatus.OK);
     }
 
