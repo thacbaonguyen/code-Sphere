@@ -14,6 +14,7 @@ public class OrderDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "course_price")
     private float price;
 
     @ManyToOne

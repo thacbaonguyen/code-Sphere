@@ -22,10 +22,12 @@ public class Order {
     @Column(name = "order_date")
     private LocalDateTime orderDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status")
     private PaymentStatus paymentStatus = PaymentStatus.pending;
 
-    @Column(name = "transaction_id")
-    private String transactionId;
+    @Column(name = "order_code")
+    private String orderCode;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

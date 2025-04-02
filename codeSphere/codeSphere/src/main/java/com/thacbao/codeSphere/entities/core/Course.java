@@ -27,7 +27,7 @@ public class Course {
 
     private String thumbnail;
 
-    private Double price;
+    private float price;
 
     @Column(name = "is_active", length = 50)
     private boolean isActive;
@@ -51,4 +51,7 @@ public class Course {
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<CourseReview> courseReviews;
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private List<OrderDetail> orderDetail;
 }

@@ -15,5 +15,5 @@ public class VideoDTO {
     private String videoUrl;
     private int orderIndex;
     private String s3url;
-    private LocalDate createdAt;
+    private String createdAt;
 }

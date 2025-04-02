@@ -13,6 +13,6 @@ public interface VideoRepository extends JpaRepository<Video, Integer> {
     @Query(value = "SELECT COUNT(*) FROM videos WHERE section_id = :sectionId", nativeQuery = true)
     int countBySectionId(@Param("sectionId") int sectionId);
 
-    @Query(value = "SELECT * FROM videos WHERE section_id = :sectionId", nativeQuery = true)
+    @Query(value = "SELECT * FROM videos WHERE section_id = :sectionId order by order_index", nativeQuery = true)
     List<Video> findBySectionId(@Param("sectionId") int sectionId);
 }

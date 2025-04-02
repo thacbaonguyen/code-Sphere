@@ -16,10 +16,9 @@ public class CourseRequest {
 
     @Size(min = 10, message = "Description must be lest than 10 character")
     private String description;
-    private double price;
+    private float price;
 
-    @NotNull(message = "Thumbnail cannot be blank")
-    private boolean isActive;
+    private String isActive;
     private int duration;
     private int discount;
 

@@ -5,13 +5,17 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thacbao.codeSphere.configurations.JwtFilter;
+import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.data.repository.course.VideoRepository;
 import com.thacbao.codeSphere.dto.request.course.VideoRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.course.VideoDTO;
 import com.thacbao.codeSphere.entities.reference.Video;
+import com.thacbao.codeSphere.exceptions.common.AppException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
+import com.thacbao.codeSphere.exceptions.user.PermissionException;
 import com.thacbao.codeSphere.services.VideoService;
+import com.thacbao.codeSphere.services.redis.RedisService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +30,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,15 +45,21 @@ public class VideoServiceImpl implements VideoService {
     private final ModelMapper modelMapper;
     private final AmazonS3 amazonS3;
     private final JwtFilter jwtFilter;
+    private final RedisService redisService;
 
     @Value("${cloud.aws.s3.bucketFeature}")
     private String bucketFeature;
     @Override
     public ResponseEntity<ApiResponse> createVideo(VideoRequest request) {
-        Video video = modelMapper.map(request, Video.class);
-        video.setCreatedAt(LocalDate.now());
-        videoRepository.save(video);
-        return CodeSphereResponses.generateResponse(null, "Create video success", HttpStatus.CREATED);
+        if (jwtFilter.isAdmin() || jwtFilter.isManager()){
+            Video video = modelMapper.map(request, Video.class);
+            video.setCreatedAt(LocalDate.now());
+            video.setId(null);
+            videoRepository.save(video);
+            redisService.delete("courseDetails:");
+            return CodeSphereResponses.generateResponse(null, "Create video success", HttpStatus.CREATED);
+        }
+        throw new PermissionException(CodeSphereConstants.PERMISSION_DENIED);
     }
 
     @Override
@@ -55,10 +67,14 @@ public class VideoServiceImpl implements VideoService {
         Video video = videoRepository.findById(videoId).orElseThrow(
                 () -> new NotFoundException("Video not found")
         );
+        validateFile(file);
         try {
-            String urlS3 = uploadToS3(file);
+            String fileGen = genFileName(file);
+            String urlS3 = uploadToS3(file, fileGen);
             video.setS3url(urlS3);
+            video.setVideoUrl(fileGen);
             videoRepository.save(video);
+            log.info("Upload video success");
         }
         catch (Exception e) {
             log.error("Failed to upload video: {}", e.getMessage(), e.getCause());
@@ -73,23 +89,47 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> updateVideo(Integer videoId, VideoRequest request) {
-        Video video = videoRepository.findById(videoId).orElseThrow(
+    public ResponseEntity<ApiResponse> viewDetail(Integer id) {
+        String cacheKey = String.format("videoDetails:%s", id);
+        String cacheValue = redisService.get(cacheKey);
+        if (cacheValue != null) {
+            return CodeSphereResponses.generateResponse(cacheValue, "Video details", HttpStatus.OK);
+        }
+        Video video = videoRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Video not found")
         );
-        video.setTitle(request.getTitle());
-        video.setOrderIndex(request.getOrderIndex());
-        videoRepository.save(video);
-        return CodeSphereResponses.generateResponse(null, "Update video success", HttpStatus.OK);
+        String url = generateSignedUrl(video.getVideoUrl());
+        redisService.set(cacheKey, url, 1, TimeUnit.HOURS);
+        return CodeSphereResponses.generateResponse(url, "View video success", HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> updateVideo(Integer videoId, VideoRequest request) {
+        if (jwtFilter.isAdmin() || jwtFilter.isManager()){
+            Video video = videoRepository.findById(videoId).orElseThrow(
+                    () -> new NotFoundException("Video not found")
+            );
+            video.setTitle(request.getTitle());
+            video.setOrderIndex(request.getOrderIndex());
+            videoRepository.save(video);
+            redisService.delete("courseDetails:");
+            return CodeSphereResponses.generateResponse(null, "Update video success", HttpStatus.OK);
+        }
+        throw new PermissionException(CodeSphereConstants.PERMISSION_DENIED);
     }
 
     @Override
     public ResponseEntity<ApiResponse> deleteVideo(Integer videoId) {
-        Video video = videoRepository.findById(videoId).orElseThrow(
-                () -> new NotFoundException("Video not found")
-        );
-        videoRepository.delete(video);
-        return CodeSphereResponses.generateResponse(null, "Delete video success", HttpStatus.OK);
+        if (jwtFilter.isAdmin() || jwtFilter.isManager()){
+            Video video = videoRepository.findById(videoId).orElseThrow(
+                    () -> new NotFoundException("Video not found")
+            );
+            videoRepository.delete(video);
+            deleteFromS3(video.getVideoUrl());
+            redisService.delete("courseDetails:");
+            return CodeSphereResponses.generateResponse(null, "Delete video success", HttpStatus.OK);
+        }
+        throw new PermissionException(CodeSphereConstants.PERMISSION_DENIED);
     }
 
     /**
@@ -98,15 +138,14 @@ public class VideoServiceImpl implements VideoService {
      * @return
      * @throws IOException
      */
-    private String uploadToS3(MultipartFile file) throws IOException {
+    private String uploadToS3(MultipartFile file, String fileGen) throws IOException {
         File compressedFile = compressVideo(file);
-        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(compressedFile.length());
 
-        amazonS3.putObject(bucketFeature, fileName, new FileInputStream(compressedFile), metadata);
-        return generateSignedUrl(fileName);
+        amazonS3.putObject(bucketFeature, fileGen, new FileInputStream(compressedFile), metadata);
+        return generateSignedUrl(fileGen);
     }
     private File compressVideo(MultipartFile file) throws IOException {
         File inputFile = File.createTempFile("input_", file.getOriginalFilename());
@@ -127,7 +166,9 @@ public class VideoServiceImpl implements VideoService {
             Process process = pb.start();
             process.waitFor();
         } catch (Exception e) {
+            log.error("error while compressing video: {}", e.getMessage(), e.getCause());
             throw new RuntimeException("Failed to compress video: " + e.getMessage());
+
         }
         inputFile.delete();
         return outputFile;
@@ -138,6 +179,33 @@ public class VideoServiceImpl implements VideoService {
                 .withMethod(HttpMethod.GET)
                 .withExpiration(new Date(System.currentTimeMillis() + 3600 * 1000));
         return amazonS3.generatePresignedUrl(request).toString();
+    }
+
+    private String genFileName(MultipartFile file) {
+        return file.getOriginalFilename() + "_" + LocalDateTime.now();
+    }
+
+    /**
+     * Validate file trước khi up lên cloud
+     * @param file
+     * @return
+     */
+    private boolean validateFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new AppException("File is empty");
+        }
+        if (file.getSize() == 0){
+            throw new AppException("File is empty");
+        }
+        String contentType = file.getContentType();
+        if (!contentType.startsWith("video/")) {
+            throw new AppException("File is not an video");
+        }
+        long maxSize = 150 * 1024 * 1024;
+        if (file.getSize() > maxSize) {
+            throw new AppException("File is too large");
+        }
+        return true;
     }
 
     /**

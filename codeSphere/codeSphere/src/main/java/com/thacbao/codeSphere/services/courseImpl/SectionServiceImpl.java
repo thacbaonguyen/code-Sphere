@@ -1,5 +1,7 @@
 package com.thacbao.codeSphere.services.courseImpl;
 
+import com.thacbao.codeSphere.configurations.JwtFilter;
+import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.data.repository.course.SectionRepository;
 import com.thacbao.codeSphere.dto.request.course.SectionRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
@@ -7,8 +9,10 @@ import com.thacbao.codeSphere.dto.response.course.SectionDTO;
 import com.thacbao.codeSphere.dto.response.course.VideoDTO;
 import com.thacbao.codeSphere.entities.reference.Section;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
+import com.thacbao.codeSphere.exceptions.user.PermissionException;
 import com.thacbao.codeSphere.services.SectionService;
 import com.thacbao.codeSphere.services.VideoService;
+import com.thacbao.codeSphere.services.redis.RedisService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,14 +30,21 @@ import java.util.stream.Collectors;
 public class SectionServiceImpl implements SectionService {
 
     private final SectionRepository sectionRepository;
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
     private final VideoService videoService;
+    private final JwtFilter jwtFilter;
+    private final RedisService redisService;
 
     @Override
     public ResponseEntity<ApiResponse> createSection(SectionRequest request) {
-        Section section = modelMapper.map(request, Section.class);
-        sectionRepository.save(section);
-        return CodeSphereResponses.generateResponse(null, "Create section success", HttpStatus.CREATED);
+        if (jwtFilter.isAdmin() || jwtFilter.isManager()){
+            Section section = modelMapper.map(request, Section.class);
+            section.setId(null);
+            sectionRepository.save(section);
+            redisService.delete("courseDetails:");
+            return CodeSphereResponses.generateResponse(null, "Create section success", HttpStatus.CREATED);
+        }
+       throw new PermissionException(CodeSphereConstants.PERMISSION_DENIED);
     }
 
     @Override
@@ -50,19 +61,27 @@ public class SectionServiceImpl implements SectionService {
         Section section = sectionRepository.findById(sectionId).orElseThrow(
                 () -> new NotFoundException("Section not found")
         );
-        section.setTitle(request.getTitle());
-        section.setDescription(request.getDescription());
-        section.setOrderIndex(request.getOrderIndex());
-        sectionRepository.save(section);
-        return null;
+        if (jwtFilter.isAdmin() || jwtFilter.isManager()){
+            section.setTitle(request.getTitle());
+            section.setDescription(request.getDescription());
+            section.setOrderIndex(request.getOrderIndex());
+            sectionRepository.save(section);
+            redisService.delete("courseDetails:");
+            return CodeSphereResponses.generateResponse(null, "Update section success", HttpStatus.OK);
+        }
+        throw new PermissionException(CodeSphereConstants.PERMISSION_DENIED);
     }
 
     @Override
     public ResponseEntity<ApiResponse> deleteSection(Integer sectionId) {
-        Section section = sectionRepository.findById(sectionId).orElseThrow(
-                () -> new NotFoundException("Section not found")
-        );
-        sectionRepository.delete(section);
-        return CodeSphereResponses.generateResponse(null, "Delete section success", HttpStatus.OK);
+        if (jwtFilter.isAdmin() || jwtFilter.isManager()){
+            Section section = sectionRepository.findById(sectionId).orElseThrow(
+                    () -> new NotFoundException("Section not found")
+            );
+            sectionRepository.delete(section);
+            redisService.delete("courseDetails:");
+            return CodeSphereResponses.generateResponse(null, "Delete section success", HttpStatus.OK);
+        }
+        throw new PermissionException(CodeSphereConstants.PERMISSION_DENIED);
     }
 }

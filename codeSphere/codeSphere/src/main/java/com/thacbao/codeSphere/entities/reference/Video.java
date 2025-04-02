@@ -30,6 +30,6 @@ public class Video {
     private LocalDate createdAt;
 
     @ManyToOne
-    @JoinColumn(name = "course_id", nullable = false)
+    @JoinColumn(name = "section_id", nullable = false)
     private Section section;
 }

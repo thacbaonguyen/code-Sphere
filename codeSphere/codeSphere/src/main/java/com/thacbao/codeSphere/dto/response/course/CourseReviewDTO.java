@@ -13,6 +13,6 @@ public class CourseReviewDTO {
     private Integer id;
     private int rating;
     private String content;
-    private LocalDateTime createdAt;
+    private String createdAt;
     private String author;
 }

@@ -30,6 +30,7 @@ import com.thacbao.codeSphere.exceptions.user.PermissionException;
 import com.thacbao.codeSphere.services.CourseReviewService;
 import com.thacbao.codeSphere.services.CourseService;
 import com.thacbao.codeSphere.services.SectionService;
+import com.thacbao.codeSphere.services.redis.RedisService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +75,7 @@ public class CourseServiceImpl implements CourseService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final CourseCategoryRepo courseCategoryRepo;
     private final UserRepository userRepository;
+    private final RedisService redisService;
 
     @Value("${cloud.aws.s3.bucketFeature}")
     private String bucketFeature;
@@ -81,17 +83,15 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public ResponseEntity<ApiResponse> createCourse(CourseRequest request) {
         if(jwtFilter.isAdmin() || jwtFilter.isManager()){
-            Course courseExist = courseRepository.findByTitle(request.getTitle());
-            if (courseExist != null) {
-                throw new AlreadyException("Course already exist");
-            }
             Course course = modelMapper.map(request, Course.class);
+            course.setId(null);
             course.setCreatedAt(LocalDate.now());
             course.setRate(0);
+            course.setActive(Boolean.parseBoolean(request.getIsActive()) );
             courseRepository.save(course);
             Map<String, Object> response = new HashMap<>();
             response.put("id", course.getId());
-            redisTemplate.delete(redisTemplate.keys("allCourse:*"));
+            redisService.delete("allCourse:");
             return CodeSphereResponses.generateResponse(response, "Insert Course success", HttpStatus.CREATED);
         }
         throw new PermissionException(CodeSphereConstants.PERMISSION_DENIED);
@@ -154,18 +154,27 @@ public class CourseServiceImpl implements CourseService {
     // xu ly sau
     @Override
     public ResponseEntity<ApiResponse> getCourseById(int id) {
-        CourseDTO courseDTO = getCourseDTO(id);
-        if (courseDTO.getThumbnail() != null) {
-            courseDTO.setImage(viewImageFromS3(courseDTO.getThumbnail()));
+        String cacheKey = "courseDetails:" + jwtFilter.getCurrentUsername() + (id > 0 ? id : "");
+        try {
+            CourseDTO courseCache = (CourseDTO) redisService.get(cacheKey);
+            if (courseCache != null) {
+                return CodeSphereResponses.generateResponse(courseCache, "View course successfully", HttpStatus.OK);
+            }
+            CourseDTO courseDTO = getCourseDTO(id);
+            if (courseDTO.getThumbnail() != null) {
+                courseDTO.setImage(viewImageFromS3(courseDTO.getThumbnail()));
+            }
+            redisService.set(cacheKey, courseDTO, 24, TimeUnit.HOURS);
+            if (jwtFilter.isAdmin() || jwtFilter.isManager()) {
+                return CodeSphereResponses.generateResponse(courseDTO, "View course successfully", HttpStatus.OK);
+            }
+            else{
+                throw new PermissionException(CodeSphereConstants.PERMISSION_DENIED);
+            }
         }
-        if (jwtFilter.isAdmin() || jwtFilter.isManager()) {
-            return CodeSphereResponses.generateResponse(courseDTO, "View course successfully", HttpStatus.OK);
-        }
-        else{
-            User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                    () -> new NotFoundException("Cannot found this user")
-            );
-            return CodeSphereResponses.generateResponse(courseDTO, "View course successfully", HttpStatus.OK);
+        catch (Exception e) {
+            log.error("logging error with message {}", e.getMessage(), e.getCause());
+            return CodeSphereResponses.generateResponse(null, "View course failed", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
@@ -216,10 +225,11 @@ public class CourseServiceImpl implements CourseService {
         course.setPrice(request.getPrice());
         course.setDiscount(request.getDiscount());
         course.setDuration(request.getDuration());
-        course.setActive(request.isActive());
+        course.setActive(Boolean.parseBoolean(request.getIsActive()));
         course.setCategory(category);
         courseRepository.save(course);
-        redisTemplate.delete(redisTemplate.keys("allCourse:*"));
+        redisService.delete("allCourse:");
+        redisService.delete("courseDetails:");
         return CodeSphereResponses.generateResponse(null, "Update course successfully", HttpStatus.OK);
     }
 
@@ -290,7 +300,7 @@ public class CourseServiceImpl implements CourseService {
         if (!contentType.startsWith("image/")) {
             throw new AppException("File is not an image");
         }
-        long maxSize = 150 * 1024 * 1024;
+        long maxSize = 5 * 1024 * 1024;
         if (file.getSize() > maxSize) {
             throw new AppException("File is too large");
         }

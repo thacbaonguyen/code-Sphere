@@ -13,6 +13,6 @@ public interface SectionRepository extends JpaRepository<Section, Integer> {
     @Query(value = "SELECT COUNT(*) FROM sections WHERE course_id = :courseId", nativeQuery = true)
     int countByCourseId(@Param("courseId") int courseId);
 
-    @Query(value = "SELECT * FROM sections WHERE course_id = :courseId", nativeQuery = true)
+    @Query(value = "SELECT * FROM sections WHERE course_id = :courseId order by order_index", nativeQuery = true)
     List<Section> findByCourseId(@Param("courseId") int courseId);
 }

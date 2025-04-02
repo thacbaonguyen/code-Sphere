@@ -23,6 +23,7 @@ public class CourseBriefDTO {
     private String createdAt;
     private int duration;
     private double rating;
+    private float price;
     private int sectionCount;
     private int videoCount;
     private String category;
@@ -39,5 +40,17 @@ public class CourseBriefDTO {
         this.category = course.getCategory().getName();
         this.sectionCount = sectionCount;
         this.rating = rating;
+        this.price = course.getPrice();
+    }
+
+    public CourseBriefDTO(Course course) {
+        this.id = course.getId();
+        this.title = course.getTitle();
+        this.description = course.getDescription();
+        this.thumbnail = course.getThumbnail();
+        this.createdAt = course.getCreatedAt().toString();
+        this.duration = course.getDuration();
+        this.category = course.getCategory().getName();
+        this.price = course.getPrice();
     }
 }

@@ -7,6 +7,7 @@ import com.thacbao.codeSphere.dto.request.course.CourseReview;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.course.CourseReviewDTO;
 import com.thacbao.codeSphere.entities.core.User;
+import com.thacbao.codeSphere.exceptions.common.AlreadyException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import com.thacbao.codeSphere.services.CourseReviewService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
@@ -29,15 +30,20 @@ public class CourseReviewServiceImpl implements CourseReviewService {
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
     private final JwtFilter jwtFilter;
+
     @Override
     public ResponseEntity<ApiResponse> createCourseReview(CourseReview request) {
         User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
                 ()-> new NotFoundException("Cannot found t his user")
         );
-
+        boolean existing = courseReviewRepository.exists(request.getCourseId(), user.getId());
+        if (existing) {
+            throw new AlreadyException("Your review already exists");
+        }
         com.thacbao.codeSphere.entities.reference.CourseReview courseReview = modelMapper.map(request, com.thacbao.codeSphere.entities.reference.CourseReview.class);
         courseReview.setCreatedAt(LocalDateTime.now());
         courseReview.setUser(user);
+        courseReview.setId(null);
         courseReviewRepository.save(courseReview);
         return CodeSphereResponses.generateResponse(null, "Create rating success", HttpStatus.CREATED);
     }
@@ -50,7 +56,7 @@ public class CourseReviewServiceImpl implements CourseReviewService {
                     courseReviewDTO.setId(review.getId());
                     courseReviewDTO.setContent(review.getContent());
                     courseReviewDTO.setRating(review.getRating());
-                    courseReviewDTO.setCreatedAt(review.getCreatedAt());
+                    courseReviewDTO.setCreatedAt(review.getCreatedAt().toString());
                     courseReviewDTO.setAuthor(review.getUser().getUsername());
                     return courseReviewDTO;
                 }).toList();

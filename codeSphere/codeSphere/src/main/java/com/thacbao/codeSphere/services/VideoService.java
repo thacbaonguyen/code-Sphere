@@ -13,7 +13,7 @@ public interface VideoService {
     void uploadVideo(Integer videoId, MultipartFile file);
 
     List<VideoDTO> getAllVideo(Integer sectionId);
-
+    ResponseEntity<ApiResponse> viewDetail(Integer id);
     ResponseEntity<ApiResponse> updateVideo(Integer videoId, VideoRequest request);
 
     ResponseEntity<ApiResponse> deleteVideo(Integer videoId);
