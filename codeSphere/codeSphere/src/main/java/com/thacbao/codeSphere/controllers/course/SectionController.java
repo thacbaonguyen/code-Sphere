@@ -33,10 +33,10 @@ public class SectionController {
         return sectionService.createSection(request);
     }
 
-//    @GetMapping("/all/{courseId}")
-//    public ResponseEntity<ApiResponse> getAll(@PathVariable("courseId") Integer courseId) {
-//        return sectionService.getAllSection(courseId);
-//    }
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<ApiResponse> getAll(@PathVariable("id") Integer id) {
+        return sectionService.viewSectionDetails(id);
+    }
 
     @PutMapping("/update/{sectionId}")
     public ResponseEntity<ApiResponse> updateSection(@Valid @RequestBody SectionRequest request,

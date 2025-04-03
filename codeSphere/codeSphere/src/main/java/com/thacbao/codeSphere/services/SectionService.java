@@ -12,6 +12,8 @@ public interface SectionService {
 
     List<SectionDTO> getAllSection(Integer courseId);
 
+    ResponseEntity<ApiResponse> viewSectionDetails(Integer id);
+
     ResponseEntity<ApiResponse> updateSection(Integer sectionId, SectionRequest request);
 
     ResponseEntity<ApiResponse> deleteSection(Integer sectionId);

@@ -32,7 +32,9 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -55,9 +57,11 @@ public class VideoServiceImpl implements VideoService {
             Video video = modelMapper.map(request, Video.class);
             video.setCreatedAt(LocalDate.now());
             video.setId(null);
-            videoRepository.save(video);
+            Video videoSave = videoRepository.save(video);
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", videoSave.getId());
             redisService.delete("courseDetails:");
-            return CodeSphereResponses.generateResponse(null, "Create video success", HttpStatus.CREATED);
+            return CodeSphereResponses.generateResponse(response, "Create video success", HttpStatus.CREATED);
         }
         throw new PermissionException(CodeSphereConstants.PERMISSION_DENIED);
     }
@@ -104,6 +108,18 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
+    public ResponseEntity<ApiResponse> videoInfo(Integer id) {
+        if (jwtFilter.isAdmin() || jwtFilter.isManager()){
+            Video video = videoRepository.findById(id).orElseThrow(
+                    () -> new NotFoundException("Video not found")
+            );
+            VideoDTO videoDTO = new VideoDTO(video);
+            return CodeSphereResponses.generateResponse(videoDTO, "Video info success", HttpStatus.OK);
+        }
+        throw new PermissionException(CodeSphereConstants.PERMISSION_DENIED);
+    }
+
+    @Override
     public ResponseEntity<ApiResponse> updateVideo(Integer videoId, VideoRequest request) {
         if (jwtFilter.isAdmin() || jwtFilter.isManager()){
             Video video = videoRepository.findById(videoId).orElseThrow(
@@ -141,11 +157,17 @@ public class VideoServiceImpl implements VideoService {
     private String uploadToS3(MultipartFile file, String fileGen) throws IOException {
         File compressedFile = compressVideo(file);
 
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentLength(compressedFile.length());
+        try {
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(compressedFile.length());
 
-        amazonS3.putObject(bucketFeature, fileGen, new FileInputStream(compressedFile), metadata);
-        return generateSignedUrl(fileGen);
+            amazonS3.putObject(bucketFeature, fileGen, new FileInputStream(compressedFile), metadata);
+            return generateSignedUrl(fileGen);
+        } finally {
+            if (compressedFile != null && compressedFile.exists()) {
+                compressedFile.delete();
+            }
+        }
     }
     private File compressVideo(MultipartFile file) throws IOException {
         File inputFile = File.createTempFile("input_", file.getOriginalFilename());
@@ -157,8 +179,13 @@ public class VideoServiceImpl implements VideoService {
         //fgfmpeg nén video
         ProcessBuilder pb = new ProcessBuilder(
                 "ffmpeg", "-i", inputFile.getAbsolutePath(),
-                "-vcodec", "h264", "-acodec", "aac",
-                "-b:v", "1000k",
+                "-vcodec", "libx264", // Sử dụng libx264 thay vì h264 để có khả năng nén tốt hơn
+                "-preset", "medium", // Cân bằng giữa tốc độ mã hóa và chất lượng
+                "-crf", "28", // Kiểm soát chất lượng hình ảnh (23-28 là hợp lý cho web, càng thấp càng tốt)
+                "-b:v", "0", // Cho phép CRF điều khiển bitrate
+                "-acodec", "aac",
+                "-b:a", "48k", // Bitrate audio thấp hơn nhưng vẫn đủ cho giọng nói
+                "-movflags", "+faststart", // Tối ưu cho phát trực tuyến
                 outputFile.getAbsolutePath()
         );
         pb.inheritIO();

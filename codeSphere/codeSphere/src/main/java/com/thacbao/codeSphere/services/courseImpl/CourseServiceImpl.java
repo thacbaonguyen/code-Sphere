@@ -63,8 +63,6 @@ public class CourseServiceImpl implements CourseService {
     private final ModelMapper modelMapper;
 
     private final CourseRepository courseRepository;
-    private final SectionRepository sectionRepository;
-    private final VideoRepository videoRepository;
     private final CourseReviewRepository courseReviewRepository;
     private final SectionService sectionService;
     private final CourseReviewService courseReviewService;
@@ -121,7 +119,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public ResponseEntity<ApiResponse> getAllCourses(String search, Integer page, Integer pageSize, String order, String by) {
-        String cacheKey = "allCourse:" + jwtFilter.getCurrentUsername() + (search != null ? search : "") + (by != null ? by : "")
+        String cacheKey = "allCourse:" + (search != null ? search : "") + (by != null ? by : "")
                 + (order != null ? order : "") + page + pageSize;
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         ObjectMapper objectMapper = new ObjectMapper();
@@ -154,7 +152,7 @@ public class CourseServiceImpl implements CourseService {
     // xu ly sau
     @Override
     public ResponseEntity<ApiResponse> getCourseById(int id) {
-        String cacheKey = "courseDetails:" + jwtFilter.getCurrentUsername() + (id > 0 ? id : "");
+        String cacheKey = "courseDetails:" + (id > 0 ? id : "");
         try {
             CourseDTO courseCache = (CourseDTO) redisService.get(cacheKey);
             if (courseCache != null) {
@@ -181,7 +179,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public ResponseEntity<ApiResponse> getAllCoursesByCategory(Integer categoryId, String search, Integer page, Integer pageSize, String order, String by) {
-        String cacheKey = "allCourse:" + jwtFilter.getCurrentUsername() + categoryId + (search != null ? search : "") + (by != null ? by : "")
+        String cacheKey = "allCourse:" + categoryId + (search != null ? search : "") + (by != null ? by : "")
                 + (order != null ? order : "") + page +pageSize;
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         ObjectMapper objectMapper = new ObjectMapper();
@@ -307,14 +305,6 @@ public class CourseServiceImpl implements CourseService {
         return true;
     }
     
-    private int countSection(Integer courseId){
-        return sectionRepository.countByCourseId(courseId);
-    }
-    
-    private int countVideo(Integer sectionId){
-        return videoRepository.countBySectionId(sectionId);
-    }
-    
     private double avgRating(Integer courseId){
         return courseReviewRepository.averageRating(courseId);
     }
@@ -334,10 +324,13 @@ public class CourseServiceImpl implements CourseService {
     private Page<CourseBriefDTO> getCourseBriefPage(Specification<Course> spec, Pageable pageable) {
         return courseRepository.findAll(spec, pageable)
                 .map(course -> {
-                    int sectionCount = countSection(course.getId());
-                    int videoCount = countVideo(course.getId());
+                    int videoCount = 0;
+                    List<Integer> secIds = new ArrayList<>();
+                    for (Section item : course.getSections()){
+                        videoCount += item.getVideos().size();
+                    }
                     double avgRate = avgRating(course.getId());
-                    CourseBriefDTO courseBriefDTO = new CourseBriefDTO(course, sectionCount, videoCount, avgRate);
+                    CourseBriefDTO courseBriefDTO = new CourseBriefDTO(course, course.getSections().size(), videoCount, avgRate);
                     if (course.getThumbnail() != null){
                         courseBriefDTO.setImage(viewImageFromS3(course.getThumbnail()));
                     }

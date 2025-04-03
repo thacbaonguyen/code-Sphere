@@ -16,16 +16,15 @@ import com.thacbao.codeSphere.dto.request.course.CartRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.course.CartDTO;
 import com.thacbao.codeSphere.entities.core.User;
+import com.thacbao.codeSphere.entities.reference.Section;
 import com.thacbao.codeSphere.entities.reference.ShoppingCart;
 import com.thacbao.codeSphere.exceptions.common.AlreadyException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import com.thacbao.codeSphere.services.CartService;
-import com.thacbao.codeSphere.services.SectionService;
 import com.thacbao.codeSphere.services.redis.RedisService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.apache.bcel.classfile.Code;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -36,9 +35,7 @@ import java.math.BigInteger;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,8 +47,6 @@ public class CartServiceImpl implements CartService {
     private final UserRepository userRepository;
     private final JwtFilter jwtFilter;
     private final AmazonS3 amazonS3;
-    private final SectionRepository sectionRepository;
-    private final VideoRepository videoRepository;
     private final CourseReviewRepository courseReviewRepository;
     private final RedisService redisService;
 
@@ -91,8 +86,12 @@ public class CartServiceImpl implements CartService {
                         CartDTO cartDTO = new CartDTO(item);
                         String fileName = cartDTO.getCourseBriefDTO().getThumbnail();
                         cartDTO.getCourseBriefDTO().setImage(viewImageFromS3(fileName));
-                        cartDTO.getCourseBriefDTO().setVideoCount(countVideo(cartDTO.getCourseBriefDTO().getId()));
-                        cartDTO.getCourseBriefDTO().setSectionCount(countSection(cartDTO.getCourseBriefDTO().getId()));
+                        int videoCount = 0;
+                        for (Section sec : item.getCourse().getSections()){
+                            videoCount+= sec.getVideos().size();
+                        }
+                        cartDTO.getCourseBriefDTO().setVideoCount(videoCount);
+                        cartDTO.getCourseBriefDTO().setSectionCount(item.getCourse().getSections().size());
                         cartDTO.getCourseBriefDTO().setRating(avgRating(cartDTO.getCourseBriefDTO().getId()));
                         return cartDTO;
                     }).toList();
@@ -132,13 +131,6 @@ public class CartServiceImpl implements CartService {
         catch (Exception ex){
             throw new NotFoundException("Cannot find image with name " + fileName);
         }
-    }
-    private int countSection(Integer courseId){
-        return sectionRepository.countByCourseId(courseId);
-    }
-
-    private int countVideo(Integer sectionId){
-        return videoRepository.countBySectionId(sectionId);
     }
 
     private double avgRating(Integer courseId){

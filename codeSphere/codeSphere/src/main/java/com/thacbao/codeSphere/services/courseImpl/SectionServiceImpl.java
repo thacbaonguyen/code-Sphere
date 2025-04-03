@@ -57,6 +57,18 @@ public class SectionServiceImpl implements SectionService {
     }
 
     @Override
+    public ResponseEntity<ApiResponse> viewSectionDetails(Integer id) {
+        if (jwtFilter.isAdmin() || jwtFilter.isManager()){
+            Section section = sectionRepository.findById(id).orElseThrow(
+                    () -> new NotFoundException("Section not found")
+            );
+            SectionDTO result = new SectionDTO(section);
+            return CodeSphereResponses.generateResponse(result, "View Section success", HttpStatus.OK);
+        }
+        throw new PermissionException(CodeSphereConstants.PERMISSION_DENIED);
+    }
+
+    @Override
     public ResponseEntity<ApiResponse> updateSection(Integer sectionId, SectionRequest request) {
         Section section = sectionRepository.findById(sectionId).orElseThrow(
                 () -> new NotFoundException("Section not found")

@@ -24,4 +24,10 @@ public class SectionDTO {
         this.orderIndex = section.getOrderIndex();
         this.videos = videos;
     }
+    public SectionDTO(Section section) {
+        this.id = section.getId();
+        this.title = section.getTitle();
+        this.description = section.getDescription();
+        this.orderIndex = section.getOrderIndex();
+    }
 }

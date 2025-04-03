@@ -1,5 +1,6 @@
 package com.thacbao.codeSphere.dto.response.course;
 
+import com.thacbao.codeSphere.entities.reference.Video;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,4 +17,10 @@ public class VideoDTO {
     private int orderIndex;
     private String s3url;
     private String createdAt;
+
+    public VideoDTO(Video video) {
+        this.id = video.getId();
+        this.title = video.getTitle();
+        this.orderIndex = video.getOrderIndex();
+    }
 }

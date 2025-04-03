@@ -14,6 +14,7 @@ import com.thacbao.codeSphere.dto.response.course.CourseDTO;
 import com.thacbao.codeSphere.dto.response.course.CourseReviewDTO;
 import com.thacbao.codeSphere.dto.response.course.SectionDTO;
 import com.thacbao.codeSphere.entities.core.Course;
+import com.thacbao.codeSphere.entities.reference.Section;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import com.thacbao.codeSphere.exceptions.user.PermissionException;
 import com.thacbao.codeSphere.services.CourseReviewService;
@@ -35,6 +36,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -44,16 +46,13 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @Slf4j
 public class CourseAccessService {
-    private final OrderRepository orderRepository;
-    private final OrderDetailsRepository orderDetailsRepository;
     private final CourseRepository courseRepository;
     private final CourseReviewRepository courseReviewRepository;
     private final CourseReviewService courseReviewService;
     private final SectionService sectionService;
     private final RedisTemplate<String, Object> redisTemplate;
     private final JwtFilter jwtFilter;
-    private final SectionRepository sectionRepository;
-    private final VideoRepository videoRepository;
+
     private final AmazonS3 amazonS3;
     private final RedisService redisService;
     @Value("${cloud.aws.s3.bucketFeature}")
@@ -132,23 +131,19 @@ public class CourseAccessService {
     private Page<CourseBriefDTO> getCourseBriefPage(Specification<Course> spec, Pageable pageable) {
         return courseRepository.findAll(spec, pageable)
                 .map(course -> {
-                    int sectionCount = countSection(course.getId());
-                    int videoCount = countVideo(course.getId());
+                    int videoCount = 0;
+                    for (Section item : course.getSections()){
+                        videoCount+= item.getVideos().size();
+                    }
+
                     double avgRate = avgRating(course.getId());
-                    CourseBriefDTO courseBriefDTO = new CourseBriefDTO(course, sectionCount, videoCount, avgRate);
+                    CourseBriefDTO courseBriefDTO = new CourseBriefDTO(course, course.getSections().size(), videoCount, avgRate);
                     if (course.getThumbnail() != null){
                         courseBriefDTO.setImage(viewImageFromS3(course.getThumbnail()));
                     }
 
                     return courseBriefDTO;
                 });
-    }
-    private int countSection(Integer courseId){
-        return sectionRepository.countByCourseId(courseId);
-    }
-
-    private int countVideo(Integer sectionId){
-        return videoRepository.countBySectionId(sectionId);
     }
 
     private double avgRating(Integer courseId){

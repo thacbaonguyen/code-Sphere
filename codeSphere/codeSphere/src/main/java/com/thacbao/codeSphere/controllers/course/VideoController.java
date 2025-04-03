@@ -27,6 +27,11 @@ public class VideoController {
         return "success";
     }
 
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<ApiResponse> getVideoInfo(@PathVariable("id") Integer id) {
+        return videoService.videoInfo(id);
+    }
+
     @GetMapping("/video-detail/{id}")
     public ResponseEntity<ApiResponse> videoDetail(@PathVariable("id") Integer id) {
         return videoService.viewDetail(id);
