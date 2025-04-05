@@ -22,6 +22,7 @@ public class CourseDTO {
     private String createdAt;
     private int duration;
     private double rating;
+    private int totalRate;
     private int sectionCount;
     private int videoCount;
     private String category;
@@ -34,7 +35,7 @@ public class CourseDTO {
     private List<CourseReviewDTO> courseReviews;
     private List<SectionDTO> sections;
 
-    public CourseDTO(Course course, List<CourseReviewDTO> courseReviews, List<SectionDTO> sections, double rating) {
+    public CourseDTO(Course course, List<CourseReviewDTO> courseReviews, List<SectionDTO> sections) {
         this.id = course.getId();
         this.title = course.getTitle();
         this.excerpt = course.getExcerpt();
@@ -43,7 +44,8 @@ public class CourseDTO {
         this.createdAt = course.getCreatedAt().toString();
         this.duration = course.getDuration();
         this.category = course.getCategory().getName();
-        this.rating = rating;
+        this.rating = course.getRate();
+        this.totalRate = course.getTotalRate();
         this.videoCount = videoCount(sections);
         this.sectionCount = sections.size();
         this.courseReviews = courseReviews == null ? new ArrayList<>() : courseReviews;

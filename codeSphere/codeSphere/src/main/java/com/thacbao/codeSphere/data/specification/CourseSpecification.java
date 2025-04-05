@@ -12,6 +12,8 @@ import org.springframework.data.jpa.domain.Specification;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CourseSpecification {
     public static Specification<Course> hasSearchText(String searchText) {
@@ -22,6 +24,64 @@ public class CourseSpecification {
             return criteriaBuilder.like(root.get("title"), "%" + searchText + "%");
         };
     }
+
+    public static Specification<Course> hasRating(Float rating) {
+        if (rating == null) {
+            return null;
+        }
+        return (root, query, criteriaBuilder) -> {
+            return criteriaBuilder.greaterThanOrEqualTo(root.get("rate"), rating);
+        };
+    }
+
+    public static Specification<Course> hasDuration(List<String> durations) {
+        if (durations == null) {
+            return null;
+        }
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            for (String duration : durations) {
+                switch (duration.toLowerCase()) {
+                    case "extrashort":
+                        predicates.add(criteriaBuilder.between(root.get("duration"), 0, 5));
+                        break;
+                    case "short":
+                        predicates.add(criteriaBuilder.between(root.get("duration"), 5, 10));
+                        break;
+                    case "medium":
+                        predicates.add(criteriaBuilder.between(root.get("duration"), 10, 15));
+                        break;
+                    case "long":
+                        predicates.add(criteriaBuilder.between(root.get("duration"), 15, 25));
+                        break;
+                    case "extralong":
+                        predicates.add(criteriaBuilder.between(root.get("duration"), 25, Integer.MAX_VALUE));
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (predicates.isEmpty()) {
+                return null;
+            }
+            return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<Course> hasPrice(Boolean isFree) {
+        if (isFree == null) {
+            return null;
+        }
+        return (root, query, criteriaBuilder) -> {
+            if (isFree) {
+                return criteriaBuilder.equal(root.get("price"), 0);
+            } else {
+                return criteriaBuilder.greaterThan(root.get("price"), 0);
+            }
+        };
+    }
+
     public static Specification<Course> hasCategory(Integer categoryId) {
         if (categoryId == null) {
             return null;

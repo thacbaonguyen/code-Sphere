@@ -85,6 +85,7 @@ public class CourseServiceImpl implements CourseService {
             course.setId(null);
             course.setCreatedAt(LocalDate.now());
             course.setRate(0);
+            course.setTotalRate(0);
             course.setActive(Boolean.parseBoolean(request.getIsActive()) );
             courseRepository.save(course);
             Map<String, Object> response = new HashMap<>();
@@ -118,15 +119,23 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getAllCourses(String search, Integer page, Integer pageSize, String order, String by) {
-        String cacheKey = "allCourse:" + (search != null ? search : "") + (by != null ? by : "")
-                + (order != null ? order : "") + page + pageSize;
+    public ResponseEntity<ApiResponse> getAllCourses(String search, Integer page, Integer pageSize,
+                                                     String order, String by,
+                                                     Float rating, List<String> durations, Boolean isFree) {
+        StringBuilder cacheKey = new StringBuilder("allCourse:" + (search != null ? search : "") + (by != null ? by : "")
+                + (order != null ? order : "") + page + pageSize + (rating != null ? rating : "") +
+                (isFree != null ? isFree : ""));
+        if (durations != null && !durations.isEmpty()) {
+            for (String key : durations) {
+                cacheKey.append(":").append(key);
+            }
+        }
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            String cachedData = (String) ops.get(cacheKey);
+            String cachedData = (String) ops.get(cacheKey.toString());
             if (cachedData != null) {
-                log.info("cache all {}", cacheKey);
+                log.info("cache all {}", cacheKey.toString());
                 // Chuyển đổi dữ liệu từ cache về đối tượng mới
                 Map<String, Object> responseMap = objectMapper.readValue(cachedData, Map.class);
                 return CodeSphereResponses.generateResponse(responseMap, "All contribute successfully", HttpStatus.OK);
@@ -135,11 +144,13 @@ public class CourseServiceImpl implements CourseService {
             log.info("current page {}", page);
             log.info("current pageS {}", pageSize);
             // Create specification
-            Specification<Course> spec = Specification.where(CourseSpecification.hasSearchText(search));
+            Specification<Course> spec = Specification.where(CourseSpecification.hasSearchText(search)).and(CourseSpecification.hasRating(rating))
+                    .and(CourseSpecification.hasDuration(durations))
+                    .and(CourseSpecification.hasPrice(isFree));
 
             Page<CourseBriefDTO> result = getCourseBriefPage(spec, pageable);
             String jsonData = objectMapper.writeValueAsString(result);
-            ops.set(cacheKey, jsonData, 24, TimeUnit.HOURS);
+            ops.set(cacheKey.toString(), jsonData, 24, TimeUnit.HOURS);
 
             return CodeSphereResponses.generateResponse(result, "View all course successfully", HttpStatus.OK);
         }
@@ -178,15 +189,23 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getAllCoursesByCategory(Integer categoryId, String search, Integer page, Integer pageSize, String order, String by) {
-        String cacheKey = "allCourse:" + (categoryId != null ? categoryId : "") + (search != null ? search : "") + (by != null ? by : "")
-                + (order != null ? order : "") + page +pageSize;
+    public ResponseEntity<ApiResponse> getAllCoursesByCategory(Integer categoryId, String search, Integer page,
+                                                               Integer pageSize, String order, String by,
+                                                               Float rating, List<String> durations, Boolean isFree) {
+        StringBuilder cacheKey = new StringBuilder("allCourse:" + (categoryId != null ? categoryId : "") + (search != null ? search : "") + (by != null ? by : "")
+                + (order != null ? order : "") + page + pageSize + (rating != null ? rating : "") +
+                (isFree != null ? isFree : ""));
+        if (durations != null && !durations.isEmpty()) {
+            for (String key : durations) {
+                cacheKey.append(":").append(key);
+            }
+        }
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            String cachedData = (String) ops.get(cacheKey);
+            String cachedData = (String) ops.get(cacheKey.toString());
             if (cachedData != null) {
-                log.info("cache all {}", cacheKey);
+                log.info("cache all {}", cacheKey.toString());
                 // Chuyển đổi dữ liệu từ cache về đối tượng mới
                 Map<String, Object> responseMap = objectMapper.readValue(cachedData, Map.class);
                 return CodeSphereResponses.generateResponse(responseMap, "All contribute successfully", HttpStatus.OK);
@@ -196,11 +215,14 @@ public class CourseServiceImpl implements CourseService {
             log.info("current pageS {}", pageSize);
             // Create specificationString
             Specification<Course> spec = Specification.where(CourseSpecification.hasSearchText(search))
-                    .and(CourseSpecification.hasCategory(categoryId));
+                    .and(CourseSpecification.hasCategory(categoryId))
+                    .and(CourseSpecification.hasRating(rating))
+                    .and(CourseSpecification.hasDuration(durations))
+                    .and(CourseSpecification.hasPrice(isFree));
 
             Page<CourseBriefDTO> result = getCourseBriefPage(spec, pageable);
             String jsonData = objectMapper.writeValueAsString(result);
-            ops.set(cacheKey, jsonData, 24, TimeUnit.HOURS);
+            ops.set(cacheKey.toString(), jsonData, 24, TimeUnit.HOURS);
 
             return CodeSphereResponses.generateResponse(result, "View all course successfully", HttpStatus.OK);
         }
@@ -330,8 +352,7 @@ public class CourseServiceImpl implements CourseService {
                     for (Section item : course.getSections()){
                         videoCount += item.getVideos().size();
                     }
-                    double avgRate = avgRating(course.getId());
-                    CourseBriefDTO courseBriefDTO = new CourseBriefDTO(course, course.getSections().size(), videoCount, avgRate);
+                    CourseBriefDTO courseBriefDTO = new CourseBriefDTO(course, course.getSections().size(), videoCount);
                     if (course.getThumbnail() != null){
                         courseBriefDTO.setImage(viewImageFromS3(course.getThumbnail()));
                     }
@@ -344,9 +365,8 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(String.format("Course with id '%d' not found", id))
         );
-        double rating = courseReviewRepository.averageRating(course.getId());
         List<CourseReviewDTO> courseReviewDTOS = courseReviewService.getCourseReviews(course.getId());
         List<SectionDTO> sectionDTOS = sectionService.getAllSection(course.getId());
-        return new CourseDTO(course, courseReviewDTOS, sectionDTOS, rating);
+        return new CourseDTO(course, courseReviewDTOS, sectionDTOS);
     }
 }

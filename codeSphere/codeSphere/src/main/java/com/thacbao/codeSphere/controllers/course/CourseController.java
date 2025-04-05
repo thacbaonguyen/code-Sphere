@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -43,9 +44,12 @@ public class CourseController {
                                                     @RequestParam(defaultValue = "1") Integer page,
                                                     @RequestParam(defaultValue = "15") Integer pageSize,
                                                     @RequestParam(required = false) String order,
-                                                    @RequestParam(required = false) String by){
+                                                    @RequestParam(required = false) String by,
+                                                      @RequestParam(required = false) Float rating,
+                                                      @RequestParam(value = "duration", required = false) List<String> durations,
+                                                      @RequestParam(required = false) Boolean isFree) {
 
-        return courseService.getAllCourses(search, page, pageSize, order, by);
+        return courseService.getAllCourses(search, page, pageSize, order, by, rating, durations, isFree);
     }
 
     @GetMapping("/all-course/category/{categoryId}")
@@ -54,8 +58,11 @@ public class CourseController {
                                                              @RequestParam(defaultValue = "1") Integer page,
                                                              @RequestParam(defaultValue = "15") Integer pageSize,
                                                              @RequestParam(required = false) String order,
-                                                             @RequestParam(required = false) String by) {
-        return courseService.getAllCoursesByCategory(categoryId, search, page, pageSize, order, by);
+                                                             @RequestParam(required = false) String by,
+                                                               @RequestParam(required = false) Float rating,
+                                                               @RequestParam(value = "duration", required = false) List<String> durations,
+                                                               @RequestParam(required = false) Boolean isFree) {
+        return courseService.getAllCoursesByCategory(categoryId, search, page, pageSize, order, by, rating, durations, isFree);
     }
 
     @GetMapping("/course-details/{id}")

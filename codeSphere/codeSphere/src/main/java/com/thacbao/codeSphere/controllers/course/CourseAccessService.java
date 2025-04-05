@@ -110,10 +110,9 @@ public class CourseAccessService {
         Course course = courseRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(String.format("Course with id '%d' not found", id))
         );
-        double rating = courseReviewRepository.averageRating(course.getId());
         List<CourseReviewDTO> courseReviewDTOS = courseReviewService.getCourseReviews(course.getId());
         List<SectionDTO> sectionDTOS = sectionService.getAllSection(course.getId());
-        return new CourseDTO(course, courseReviewDTOS, sectionDTOS, rating);
+        return new CourseDTO(course, courseReviewDTOS, sectionDTOS);
     }
 
     private Pageable createPageable(Integer page, Integer pageSize, String order, String by){
@@ -135,19 +134,13 @@ public class CourseAccessService {
                     for (Section item : course.getSections()){
                         videoCount+= item.getVideos().size();
                     }
-
-                    double avgRate = avgRating(course.getId());
-                    CourseBriefDTO courseBriefDTO = new CourseBriefDTO(course, course.getSections().size(), videoCount, avgRate);
+                    CourseBriefDTO courseBriefDTO = new CourseBriefDTO(course, course.getSections().size(), videoCount);
                     if (course.getThumbnail() != null){
                         courseBriefDTO.setImage(viewImageFromS3(course.getThumbnail()));
                     }
 
                     return courseBriefDTO;
                 });
-    }
-
-    private double avgRating(Integer courseId){
-        return courseReviewRepository.averageRating(courseId);
     }
 
     private URL viewImageFromS3(String fileName){

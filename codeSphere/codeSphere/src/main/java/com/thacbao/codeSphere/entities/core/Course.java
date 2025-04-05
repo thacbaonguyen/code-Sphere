@@ -42,6 +42,8 @@ public class Course {
     private int discount;
     private float rate;
 
+    @Column(name = "total_rate")
+    private int totalRate;
 
     @ManyToOne
     @JoinColumn(name = "category_id")

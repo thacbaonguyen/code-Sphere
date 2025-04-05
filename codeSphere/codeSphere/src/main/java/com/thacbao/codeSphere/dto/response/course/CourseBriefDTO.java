@@ -24,13 +24,14 @@ public class CourseBriefDTO {
     private String createdAt;
     private int duration;
     private double rating;
+    private int totalRate;
     private float price;
     private int sectionCount;
     private int videoCount;
     private String category;
     private URL image;
 
-    public CourseBriefDTO(Course course, int sectionCount, int videoCount, double rating) {
+    public CourseBriefDTO(Course course, int sectionCount, int videoCount) {
         this.id = course.getId();
         this.title = course.getTitle();
         this.excerpt = course.getExcerpt();
@@ -41,7 +42,8 @@ public class CourseBriefDTO {
         this.videoCount = videoCount;
         this.category = course.getCategory().getName();
         this.sectionCount = sectionCount;
-        this.rating = rating;
+        this.rating = course.getRate();
+        this.totalRate = course.getTotalRate();
         this.price = course.getPrice();
     }
 
@@ -55,5 +57,7 @@ public class CourseBriefDTO {
         this.duration = course.getDuration();
         this.category = course.getCategory().getName();
         this.price = course.getPrice();
+        this.totalRate = course.getTotalRate();
+        this.rating = course.getRate();
     }
 }

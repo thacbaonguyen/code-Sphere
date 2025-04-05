@@ -1,15 +1,17 @@
 package com.thacbao.codeSphere.services.courseImpl;
 
-import com.thacbao.codeSphere.configurations.JwtFilter;
+import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
+import com.thacbao.codeSphere.data.repository.course.CourseRepository;
 import com.thacbao.codeSphere.data.repository.course.CourseReviewRepository;
-import com.thacbao.codeSphere.data.repository.user.UserRepository;
 import com.thacbao.codeSphere.dto.request.course.CourseReview;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.course.CourseReviewDTO;
+import com.thacbao.codeSphere.entities.core.Course;
 import com.thacbao.codeSphere.entities.core.User;
 import com.thacbao.codeSphere.exceptions.common.AlreadyException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import com.thacbao.codeSphere.services.CourseReviewService;
+import com.thacbao.codeSphere.services.CourseService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -28,13 +29,14 @@ import java.util.stream.Collectors;
 public class CourseReviewServiceImpl implements CourseReviewService {
     private final CourseReviewRepository courseReviewRepository;
     private final ModelMapper modelMapper;
-    private final UserRepository userRepository;
-    private final JwtFilter jwtFilter;
+    private final CustomUserDetailsService customUserDetailsService;
+    private final CourseRepository courseRepository;
 
     @Override
     public ResponseEntity<ApiResponse> createCourseReview(CourseReview request) {
-        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                ()-> new NotFoundException("Cannot found t his user")
+        User user = customUserDetailsService.getUserDetails();
+        Course course = courseRepository.findById(request.getCourseId()).orElseThrow(
+                () -> new NotFoundException("Course not found")
         );
         boolean existing = courseReviewRepository.exists(request.getCourseId(), user.getId());
         if (existing) {
@@ -45,6 +47,11 @@ public class CourseReviewServiceImpl implements CourseReviewService {
         courseReview.setUser(user);
         courseReview.setId(null);
         courseReviewRepository.save(courseReview);
+        course.setTotalRate(course.getTotalRate() + 1);
+        int rating = courseReview.getRating();
+        float result = (rating + (course.getRate() * course.getTotalRate()))/(course.getTotalRate() + 1);
+        course.setRate(result);
+        courseRepository.save(course);
         return CodeSphereResponses.generateResponse(null, "Create rating success", HttpStatus.CREATED);
     }
 
