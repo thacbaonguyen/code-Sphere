@@ -49,7 +49,7 @@ public class CourseController {
     }
 
     @GetMapping("/all-course/category/{categoryId}")
-    public ResponseEntity<ApiResponse> findAllCourseByCategory(@PathVariable("categoryId") Integer categoryId,
+    public ResponseEntity<ApiResponse> findAllCourseByCategory(@PathVariable(value = "categoryId", required = false) Integer categoryId,
                                                              @RequestParam(required = false) String search,
                                                              @RequestParam(defaultValue = "1") Integer page,
                                                              @RequestParam(defaultValue = "15") Integer pageSize,

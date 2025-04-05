@@ -22,6 +22,9 @@ public class Course {
     @Column(nullable = false)
     private String title;
 
+    @Column(name = "excerp", columnDefinition = "TEXT")
+    private String excerpt;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -38,6 +41,7 @@ public class Course {
     private int duration;
     private int discount;
     private float rate;
+
 
     @ManyToOne
     @JoinColumn(name = "category_id")

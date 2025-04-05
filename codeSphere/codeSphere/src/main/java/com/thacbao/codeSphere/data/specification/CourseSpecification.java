@@ -23,6 +23,9 @@ public class CourseSpecification {
         };
     }
     public static Specification<Course> hasCategory(Integer categoryId) {
+        if (categoryId == null) {
+            return null;
+        }
         return (root, query, criteriaBuilder) -> {
             Join<Course, CourseCategory> categoryJoin = root.join("category", JoinType.INNER);
             return criteriaBuilder.equal(categoryJoin.get("id"), categoryId);

@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface VideoService {
     ResponseEntity<ApiResponse> createVideo(VideoRequest request);
-    void uploadVideo(Integer videoId, MultipartFile file);
+    ResponseEntity<ApiResponse> uploadVideo(Integer videoId, MultipartFile file);
 
     List<VideoDTO> getAllVideo(Integer sectionId);
     ResponseEntity<ApiResponse> viewDetail(Integer id);

@@ -21,10 +21,9 @@ public class VideoController {
     }
 
     @PostMapping(value = "/upload/{videoId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String uploadVideo(@PathVariable("videoId") Integer videoId,
+    public ResponseEntity<ApiResponse> uploadVideo(@PathVariable("videoId") Integer videoId,
                                                    @RequestParam("file") MultipartFile file) {
-        videoService.uploadVideo(videoId, file);
-        return "success";
+        return videoService.uploadVideo(videoId, file);
     }
 
     @GetMapping("/detail/{id}")

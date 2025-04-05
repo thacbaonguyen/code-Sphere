@@ -17,6 +17,7 @@ import java.time.LocalDate;
 public class CourseBriefDTO {
     private Integer id;
     private String title;
+    private String excerpt;
     private String description;
     private String thumbnail;
     @JsonFormat(pattern = "dd-MM-yyyy")
@@ -32,6 +33,7 @@ public class CourseBriefDTO {
     public CourseBriefDTO(Course course, int sectionCount, int videoCount, double rating) {
         this.id = course.getId();
         this.title = course.getTitle();
+        this.excerpt = course.getExcerpt();
         this.description = course.getDescription();
         this.thumbnail = course.getThumbnail();
         this.createdAt = course.getCreatedAt().toString();
@@ -46,6 +48,7 @@ public class CourseBriefDTO {
     public CourseBriefDTO(Course course) {
         this.id = course.getId();
         this.title = course.getTitle();
+        this.excerpt = course.getExcerpt();
         this.description = course.getDescription();
         this.thumbnail = course.getThumbnail();
         this.createdAt = course.getCreatedAt().toString();

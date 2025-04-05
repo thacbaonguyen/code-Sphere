@@ -179,7 +179,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public ResponseEntity<ApiResponse> getAllCoursesByCategory(Integer categoryId, String search, Integer page, Integer pageSize, String order, String by) {
-        String cacheKey = "allCourse:" + categoryId + (search != null ? search : "") + (by != null ? by : "")
+        String cacheKey = "allCourse:" + (categoryId != null ? categoryId : "") + (search != null ? search : "") + (by != null ? by : "")
                 + (order != null ? order : "") + page +pageSize;
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         ObjectMapper objectMapper = new ObjectMapper();
@@ -219,6 +219,7 @@ public class CourseServiceImpl implements CourseService {
                 () -> new NotFoundException(String.format("Category with id '%d' not found", request.getCourseCategoryId()))
         );
         course.setTitle(request.getTitle());
+        course.setExcerpt(request.getExcerpt());
         course.setDescription(request.getDescription());
         course.setPrice(request.getPrice());
         course.setDiscount(request.getDiscount());

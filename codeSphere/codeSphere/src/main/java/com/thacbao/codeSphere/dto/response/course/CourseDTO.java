@@ -16,6 +16,7 @@ import java.util.List;
 public class CourseDTO {
     private Integer id;
     private String title;
+    private String excerpt;
     private String description;
     private String thumbnail;
     private String createdAt;
@@ -36,6 +37,7 @@ public class CourseDTO {
     public CourseDTO(Course course, List<CourseReviewDTO> courseReviews, List<SectionDTO> sections, double rating) {
         this.id = course.getId();
         this.title = course.getTitle();
+        this.excerpt = course.getExcerpt();
         this.description = course.getDescription();
         this.thumbnail = course.getThumbnail();
         this.createdAt = course.getCreatedAt().toString();

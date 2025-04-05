@@ -67,7 +67,7 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public void uploadVideo(Integer videoId, MultipartFile file) {
+    public ResponseEntity<ApiResponse> uploadVideo(Integer videoId, MultipartFile file) {
         Video video = videoRepository.findById(videoId).orElseThrow(
                 () -> new NotFoundException("Video not found")
         );
@@ -79,9 +79,11 @@ public class VideoServiceImpl implements VideoService {
             video.setVideoUrl(fileGen);
             videoRepository.save(video);
             log.info("Upload video success");
+            return CodeSphereResponses.generateResponse(null, "Upload video success", HttpStatus.CREATED);
         }
         catch (Exception e) {
             log.error("Failed to upload video: {}", e.getMessage(), e.getCause());
+            return CodeSphereResponses.generateResponse(null, "Failed to upload video", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -177,15 +179,30 @@ public class VideoServiceImpl implements VideoService {
         File outputFile = new File(outputFileName);
 
         //fgfmpeg nén video
+        // truong hop 9mb -> 6mb
+//        ProcessBuilder pb = new ProcessBuilder(
+//                "ffmpeg", "-i", inputFile.getAbsolutePath(),
+//                "-vcodec", "libx264", // use libx264
+//                "-preset", "medium",
+//                "-crf", "28", // chat luong hinh anh?
+//                "-b:v", "0", // bitrate
+//                "-acodec", "aac",
+//                "-b:a", "48k", // birate audio
+//                "-movflags", "+faststart",
+//                outputFile.getAbsolutePath()
+//        );
+        // truong hop 9mb -> 2mb
         ProcessBuilder pb = new ProcessBuilder(
                 "ffmpeg", "-i", inputFile.getAbsolutePath(),
-                "-vcodec", "libx264", // Sử dụng libx264 thay vì h264 để có khả năng nén tốt hơn
-                "-preset", "medium", // Cân bằng giữa tốc độ mã hóa và chất lượng
-                "-crf", "28", // Kiểm soát chất lượng hình ảnh (23-28 là hợp lý cho web, càng thấp càng tốt)
-                "-b:v", "0", // Cho phép CRF điều khiển bitrate
+                "-vcodec", "libx264",
+                "-preset", "veryslow",
+                "-crf", "32",
+                "-vf", "scale=iw*0.5:ih*0.5", // kích thước xuống 50%
+                "-r", "24", // frame rate
                 "-acodec", "aac",
-                "-b:a", "48k", // Bitrate audio thấp hơn nhưng vẫn đủ cho giọng nói
-                "-movflags", "+faststart", // Tối ưu cho phát trực tuyến
+                "-b:a", "24k",
+                "-ac", "1",
+                "-movflags", "+faststart",
                 outputFile.getAbsolutePath()
         );
         pb.inheritIO();

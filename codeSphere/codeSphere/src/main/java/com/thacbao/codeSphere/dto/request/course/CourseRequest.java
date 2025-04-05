@@ -13,6 +13,8 @@ import javax.validation.constraints.Size;
 public class CourseRequest {
     @NotBlank(message = "Course title cannot be blank")
     private String title;
+    @NotBlank(message = "Excerpt cannot be blank")
+    private String excerpt;
 
     @Size(min = 10, message = "Description must be lest than 10 character")
     private String description;
