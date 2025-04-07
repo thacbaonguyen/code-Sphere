@@ -1,11 +1,10 @@
-package com.thacbao.codeSphere.controllers.course;
+package com.thacbao.codeSphere.services.courseImpl;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thacbao.codeSphere.configurations.JwtFilter;
-import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.data.repository.course.*;
 import com.thacbao.codeSphere.data.specification.CourseSpecification;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
@@ -16,7 +15,6 @@ import com.thacbao.codeSphere.dto.response.course.SectionDTO;
 import com.thacbao.codeSphere.entities.core.Course;
 import com.thacbao.codeSphere.entities.reference.Section;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
-import com.thacbao.codeSphere.exceptions.user.PermissionException;
 import com.thacbao.codeSphere.services.CourseReviewService;
 import com.thacbao.codeSphere.services.SectionService;
 import com.thacbao.codeSphere.services.redis.RedisService;
@@ -36,7 +34,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;

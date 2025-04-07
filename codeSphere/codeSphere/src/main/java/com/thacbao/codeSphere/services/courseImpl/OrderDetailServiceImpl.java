@@ -37,6 +37,6 @@ public class OrderDetailServiceImpl implements OrderDetailService {
                 })
                 .collect(Collectors.toList());
         orderDetailsRepository.saveAll(orderDetails);
-        cartRepository.deleteByUser(jwtFilter.getCurrentUsername());
+//        cartRepository.deleteByUser(jwtFilter.getCurrentUsername());
     }
 }

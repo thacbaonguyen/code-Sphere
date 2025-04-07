@@ -3,10 +3,13 @@ package com.thacbao.codeSphere.controllers.payment;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.thacbao.codeSphere.dto.request.course.CreatePaymentLinkRequestBody;
+import com.thacbao.codeSphere.dto.request.course.OrderConfirmRequest;
+import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.entities.reference.Order;
 import com.thacbao.codeSphere.services.OrderDetailService;
 import com.thacbao.codeSphere.services.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.payos.PayOS;
 import vn.payos.type.CheckoutResponseData;
@@ -83,7 +86,6 @@ public class OrderController {
             response.set("data", null);
             return response;
         }
-
     }
 
     @PutMapping(path = "/{orderId}")
@@ -122,5 +124,10 @@ public class OrderController {
             response.set("data", null);
             return response;
         }
+    }
+
+    @PutMapping("/update-status")
+    public ResponseEntity<ApiResponse> updateStatusOrder(@RequestBody OrderConfirmRequest request){
+        return orderService.updateStatus(request);
     }
 }

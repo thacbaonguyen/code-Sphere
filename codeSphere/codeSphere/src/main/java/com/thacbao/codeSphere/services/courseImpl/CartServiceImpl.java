@@ -9,8 +9,6 @@ import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.data.repository.course.CartRepository;
 import com.thacbao.codeSphere.data.repository.course.CourseReviewRepository;
-import com.thacbao.codeSphere.data.repository.course.SectionRepository;
-import com.thacbao.codeSphere.data.repository.course.VideoRepository;
 import com.thacbao.codeSphere.data.repository.user.UserRepository;
 import com.thacbao.codeSphere.dto.request.course.CartRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
@@ -59,7 +57,7 @@ public class CartServiceImpl implements CartService {
         );
         BigInteger courseCount = cartRepository.countCourse(jwtFilter.getCurrentUsername(), request.getCourseId());
         if (courseCount.compareTo(BigInteger.ZERO) > 0) {
-            throw new AlreadyException("This course already exists");
+            throw new AlreadyException("This course already exists in your cart");
         }
         ShoppingCart cart = modelMapper.map(request, ShoppingCart.class);
         cart.setId(null);

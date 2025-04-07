@@ -251,6 +251,8 @@ public class CourseServiceImpl implements CourseService {
         courseRepository.save(course);
         redisService.delete("allCourse:");
         redisService.delete("courseDetails:");
+        redisService.delete("Cart:");
+        redisService.delete("myCourses:");
         return CodeSphereResponses.generateResponse(null, "Update course successfully", HttpStatus.OK);
     }
 
