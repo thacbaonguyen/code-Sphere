@@ -5,20 +5,21 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
-import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.data.repository.course.CartRepository;
-import com.thacbao.codeSphere.data.repository.course.CourseReviewRepository;
-import com.thacbao.codeSphere.data.repository.user.UserRepository;
+import com.thacbao.codeSphere.data.repository.course.CourseRepository;
 import com.thacbao.codeSphere.dto.request.course.CartRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.course.CartDTO;
+import com.thacbao.codeSphere.entities.core.Course;
 import com.thacbao.codeSphere.entities.core.User;
 import com.thacbao.codeSphere.entities.reference.Section;
 import com.thacbao.codeSphere.entities.reference.ShoppingCart;
 import com.thacbao.codeSphere.exceptions.common.AlreadyException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import com.thacbao.codeSphere.services.CartService;
+import com.thacbao.codeSphere.services.OrderService;
 import com.thacbao.codeSphere.services.redis.RedisService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ import java.math.BigInteger;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -42,23 +44,33 @@ public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
     private final ModelMapper modelMapper;
-    private final UserRepository userRepository;
     private final JwtFilter jwtFilter;
     private final AmazonS3 amazonS3;
-    private final CourseReviewRepository courseReviewRepository;
     private final RedisService redisService;
+    private final CustomUserDetailsService userDetailsService;
+    private final CourseAccessService courseAccessService;
+    private final CourseRepository courseRepository;
+    private final OrderService orderService;
 
     @Value("${cloud.aws.s3.bucketFeature}")
     private String bucketFeature;
     @Override
     public ResponseEntity<ApiResponse> addNewProduct(CartRequest request) {
-        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException(CodeSphereConstants.User.USER_NOT_FOUND)
-        );
+        boolean isAlready = courseAccessService.isAlreadyCourse(request.getCourseId());
+        if (isAlready) {
+            throw new AlreadyException("You already own this course. Please check it in your courses.");
+        }
+        User user = userDetailsService.getUserDetails();
         BigInteger courseCount = cartRepository.countCourse(jwtFilter.getCurrentUsername(), request.getCourseId());
         if (courseCount.compareTo(BigInteger.ZERO) > 0) {
             throw new AlreadyException("This course already exists in your cart");
         }
+
+        boolean freeCourse = checkIsFreeCourse(request.getCourseId());
+        if (freeCourse) {
+            return CodeSphereResponses.generateResponse(null, "The course is ready. Start learning now!", HttpStatus.CREATED);
+        }
+
         ShoppingCart cart = modelMapper.map(request, ShoppingCart.class);
         cart.setId(null);
         cart.setUser(user);
@@ -90,7 +102,7 @@ public class CartServiceImpl implements CartService {
                         }
                         cartDTO.getCourseBriefDTO().setVideoCount(videoCount);
                         cartDTO.getCourseBriefDTO().setSectionCount(item.getCourse().getSections().size());
-                        cartDTO.getCourseBriefDTO().setRating(avgRating(cartDTO.getCourseBriefDTO().getId()));
+                        cartDTO.getCourseBriefDTO().setRating(item.getCourse().getRate());
                         return cartDTO;
                     }).toList();
             String jsonData = objectMapper.writeValueAsString(cartDTOS);
@@ -118,6 +130,18 @@ public class CartServiceImpl implements CartService {
 
     }
 
+    private boolean checkIsFreeCourse(Integer courseId) {
+        Optional<Course> course = courseRepository.findById(courseId);
+        if (course.isEmpty()) {
+            throw new NotFoundException("Course not found");
+        }
+        if (course.get().getPrice() == 0){
+            orderService.createFreeOrder(course.get());
+            return true;
+        }
+        return false;
+    }
+
     private URL viewImageFromS3(String fileName){
         try {
             Date expiration = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
@@ -129,9 +153,5 @@ public class CartServiceImpl implements CartService {
         catch (Exception ex){
             throw new NotFoundException("Cannot find image with name " + fileName);
         }
-    }
-
-    private double avgRating(Integer courseId){
-        return courseReviewRepository.averageRating(courseId);
     }
 }

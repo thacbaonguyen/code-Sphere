@@ -4,6 +4,7 @@ import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.data.repository.course.*;
 import com.thacbao.codeSphere.data.specification.CourseSpecification;
@@ -44,12 +45,12 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CourseAccessService {
     private final CourseRepository courseRepository;
-    private final CourseReviewRepository courseReviewRepository;
+    private final OrderRepository orderRepository;
     private final CourseReviewService courseReviewService;
     private final SectionService sectionService;
     private final RedisTemplate<String, Object> redisTemplate;
     private final JwtFilter jwtFilter;
-
+    private final CustomUserDetailsService userDetailsService;
     private final AmazonS3 amazonS3;
     private final RedisService redisService;
     @Value("${cloud.aws.s3.bucketFeature}")
@@ -64,7 +65,7 @@ public class CourseAccessService {
             if (cachedData != null) {
                 log.info("cache all {}", cacheKey);
                 Map<String, Object> responseMap = objectMapper.readValue(cachedData, Map.class);
-                return CodeSphereResponses.generateResponse(responseMap, "All contribute successfully", HttpStatus.OK);
+                return CodeSphereResponses.generateResponse(responseMap, "All courses successfully", HttpStatus.OK);
             }
             Pageable pageable = createPageable(1, 100, "asc", "title");
             // Create specificationString
@@ -82,7 +83,7 @@ public class CourseAccessService {
         }
     }
 
-    public ResponseEntity<ApiResponse> getCourseById(int id) {
+    public ResponseEntity<ApiResponse> getCourseById(Integer id) {
         String cacheKey = "courseDetails:" + jwtFilter.getCurrentUsername() + (id > 0 ? id : "");
         try {
             CourseDTO courseCache = (CourseDTO) redisService.get(cacheKey);
@@ -103,13 +104,22 @@ public class CourseAccessService {
 
     }
 
-    private CourseDTO getCourseDTO(int id) {
-        Course course = courseRepository.findById(id).orElseThrow(
-                () -> new NotFoundException(String.format("Course with id '%d' not found", id))
-        );
-        List<CourseReviewDTO> courseReviewDTOS = courseReviewService.getCourseReviews(course.getId());
-        List<SectionDTO> sectionDTOS = sectionService.getAllSection(course.getId());
-        return new CourseDTO(course, courseReviewDTOS, sectionDTOS);
+    public boolean isAlreadyCourse(Integer courseId){
+        return orderRepository.checkExistsByCourseId(courseId, userDetailsService.getUserDetails().getId());
+    }
+
+    private CourseDTO getCourseDTO(Integer id) {
+        try {
+            Course course = courseRepository.findByIdAndUserId(id, userDetailsService.getUserDetails().getId());
+            List<CourseReviewDTO> courseReviewDTOS = courseReviewService.getCourseReviews(course.getId());
+            List<SectionDTO> sectionDTOS = sectionService.getAllSection(course.getId());
+            return new CourseDTO(course, courseReviewDTOS, sectionDTOS);
+        }
+        catch (Exception e) {
+            log.error("logging error with message {}", e.getMessage(), e.getCause());
+            throw new NotFoundException("Not found your course");
+        }
+
     }
 
     private Pageable createPageable(Integer page, Integer pageSize, String order, String by){

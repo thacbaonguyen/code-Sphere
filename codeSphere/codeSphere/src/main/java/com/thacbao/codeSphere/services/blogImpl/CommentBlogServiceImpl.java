@@ -1,5 +1,6 @@
 package com.thacbao.codeSphere.services.blogImpl;
 
+import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.data.repository.blog.BlogRepository;
@@ -38,6 +39,7 @@ public class CommentBlogServiceImpl implements CommentBlogService {
     private final BlogRepository blogRepository;
 
     private final CommentBlogHistoryService commentBlogHistoryService;
+    private final CustomUserDetailsService userDetailsService;
     @Override
     @Transactional
     public ResponseEntity<ApiResponse> insertComment(CommentBlogReq request) {
@@ -94,9 +96,7 @@ public class CommentBlogServiceImpl implements CommentBlogService {
     }
 
     private User getUser() {
-        return userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException(CodeSphereConstants.User.USER_NOT_FOUND)
-        );
+        return userDetailsService.getUserDetails();
     }
 
     private Blog getBlog(Integer id) {

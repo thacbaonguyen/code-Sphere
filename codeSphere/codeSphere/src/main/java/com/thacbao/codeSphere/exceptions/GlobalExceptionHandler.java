@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AlreadyException.class)
     public ResponseEntity<ApiResponse> handleUserAlreadyException(AlreadyException ex) {
         log.error("exception details: {}", ex.getMessage(), ex.getCause());
-        return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.BAD_REQUEST);
+        return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(InvalidException.class)

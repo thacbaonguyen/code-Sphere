@@ -14,7 +14,9 @@ public interface CourseReviewRepository extends JpaRepository<CourseReview, Inte
 
     @Query(value = "SELECT COALESCE(AVG(rating), 0) FROM coursereviews WHERE course_id = :courseId", nativeQuery = true)
     double averageRating(@Param("courseId") Integer courseId);
-    @Query(value = "SELECT * FROM coursereviews WHERE course_id = :courseId", nativeQuery = true)
+    @Query(value = """
+                    SELECT cv from CourseReview cv WHERE cv.course.id = :courseId order by cv.createdAt
+                    """)
     List<CourseReview> findByCourseId(@Param("courseId") Integer courseId);
 
     @Query(value = "SELECT EXISTS (SELECT 1 FROM coursereviews WHERE course_id = :courseId AND user_id = :userId)", nativeQuery = true)

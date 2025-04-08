@@ -3,6 +3,7 @@ package com.thacbao.codeSphere.services.courseImpl;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.data.repository.course.CartRepository;
 import com.thacbao.codeSphere.data.repository.course.OrderDetailsRepository;
+import com.thacbao.codeSphere.entities.core.Course;
 import com.thacbao.codeSphere.entities.reference.Order;
 import com.thacbao.codeSphere.entities.reference.OrderDetail;
 import com.thacbao.codeSphere.entities.reference.ShoppingCart;
@@ -37,6 +38,16 @@ public class OrderDetailServiceImpl implements OrderDetailService {
                 })
                 .collect(Collectors.toList());
         orderDetailsRepository.saveAll(orderDetails);
-//        cartRepository.deleteByUser(jwtFilter.getCurrentUsername());
     }
+
+    @Override
+    public void createOrderDetailFree(Order order, Course course) {
+        OrderDetail orderDetail = new OrderDetail();
+        orderDetail.setOrder(order);
+        orderDetail.setCourse(course);
+        orderDetail.setPrice(course.getPrice());
+        orderDetailsRepository.save(orderDetail);
+    }
+
+
 }

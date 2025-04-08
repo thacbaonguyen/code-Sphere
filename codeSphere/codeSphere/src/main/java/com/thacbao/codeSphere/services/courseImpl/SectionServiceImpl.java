@@ -51,7 +51,8 @@ public class SectionServiceImpl implements SectionService {
     public List<SectionDTO> getAllSection(Integer courseId) {
         List<Section> sections = sectionRepository.findByCourseId(courseId);
         return sections.stream().map(section -> {
-            List<VideoDTO> videoDTOs = videoService.getAllVideo(section.getId());
+            List<VideoDTO> videoDTOs = section.getVideos().stream().map(
+                    item -> modelMapper.map(item, VideoDTO.class)).collect(Collectors.toList());
                     return new SectionDTO(section, videoDTOs);
         }).collect(Collectors.toList());
     }

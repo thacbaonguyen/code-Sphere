@@ -329,10 +329,6 @@ public class CourseServiceImpl implements CourseService {
         }
         return true;
     }
-    
-    private double avgRating(Integer courseId){
-        return courseReviewRepository.averageRating(courseId);
-    }
 
     private Pageable createPageable(Integer page, Integer pageSize, String order, String by){
         Sort.Direction direction = order != null && order.equalsIgnoreCase("asc") ?

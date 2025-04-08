@@ -1,5 +1,6 @@
 package com.thacbao.codeSphere.services.judge0;
 
+import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.data.repository.exercise.SubmissionRepository;
 import com.thacbao.codeSphere.data.repository.exercise.TestCaseHistoryRepo;
@@ -49,6 +50,7 @@ public class JudgeServiceImpl implements Judge0Service {
     private final UserRepository userRepository;
     private final RestTemplate restTemplate;
     private final JwtFilter jwtFilter;
+    private final CustomUserDetailsService userDetailsService;
 
     /**
      * tạo 1 submission và gọi đến hàm getsubmission lấy kết quả, thực hiện lưu lịch sử submit
@@ -229,8 +231,6 @@ public class JudgeServiceImpl implements Judge0Service {
     }
 
     private User getUser() {
-        return userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException("User not found")
-        );
+        return userDetailsService.getUserDetails();
     }
 }

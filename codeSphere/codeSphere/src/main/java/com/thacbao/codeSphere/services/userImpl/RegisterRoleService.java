@@ -1,5 +1,6 @@
 package com.thacbao.codeSphere.services.userImpl;
 
+import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.data.dao.AuthorizationDao;
@@ -42,6 +43,7 @@ public class RegisterRoleService {
     private final RoleRepository roleRepository;
     private final AuthorizationDao authorizationDao;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final CustomUserDetailsService userDetailsService;
 
     /**
      * Không thể đăng kí quyền admin
@@ -52,9 +54,7 @@ public class RegisterRoleService {
      */
     public ResponseEntity<ApiResponse> sendRequestRegisterRole(Map<String, String > request){
         try{
-            User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                    () -> new NotFoundException("User not found")
-            );
+            User user = userDetailsService.getUserDetails();
             Role role = roleRepository.findById(Integer.parseInt(request.get("roleId")))
                     .orElseThrow(() -> new NotFoundException("Role not found"));
             if (role.getName().equalsIgnoreCase("admin")){

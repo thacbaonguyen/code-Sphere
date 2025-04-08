@@ -80,6 +80,7 @@ public class UserServiceImpl implements UserService {
     private final JwtFilter jwtFilter;
     private final RedisTemplate<String, Object> redisTemplate;
     private final AmazonS3 amazonS3;
+    private final CustomUserDetailsService userDetailsService;
 
     @Value("${cloud.aws.s3.bucketAvatar}")
     private String bucket;
@@ -203,9 +204,7 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<?> login(UserLoginReq request) {
         String cacheKey = "user:jwt:" + request.getUsername();
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
-        User user = userRepository.findByUsername(request.getUsername()).orElseThrow(
-                () -> new NotFoundException(USER_NOT_FOUND)
-        );
+        User user = getUser();
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         Boolean isPasswordCorrect = passwordEncoder.matches(request.getPassword(), user.getPassword());
         if(!isPasswordCorrect){
@@ -630,8 +629,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private User getUser(){
-        return userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException(USER_NOT_FOUND));
+        return userDetailsService.getUserDetails();
     }
 
     /**

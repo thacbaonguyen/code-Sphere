@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.util.IOUtils;
+import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.exercise.StorageDTO;
@@ -48,7 +49,6 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
     private final SolutionRepository solutionRepository;
 
     private final ExerciseRepository exerciseRepository;
-    private final UserRepository userRepository;
 
     private final AmazonS3 amazonS3;
 
@@ -57,6 +57,8 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
     private static final List<String> FILE_EXTENSIONS = Arrays.asList("java", "py", "cpp", "txt");
 
     private final RedisTemplate<String, String> redisTemplate;
+
+    private final CustomUserDetailsService userDetailsService;
 
     @Value("${cloud.aws.s3.bucketSolution}")
     private String bucket;
@@ -70,9 +72,7 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
     @Override
     public ResponseEntity<ApiResponse> uploadFile(MultipartFile file, String code) {
         Exercise exercise = exerciseRepository.findByCode(code);
-        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException(USER_NOT_FOUND)
-        );
+        User user = userDetailsService.getUserDetails();
         if (solutionRepository.countSolution(exercise.getId(), user.getId()) > 5){
             throw new AppException("You have stored more than the allowed number of files");
         }
@@ -174,9 +174,7 @@ public class SolutionStorageServiceImpl implements SolutionStorageService {
      */
     @Override
     public ResponseEntity<ApiResponse> getAllToList(String code) {
-        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException(USER_NOT_FOUND)
-        );
+        User user = userDetailsService.getUserDetails();
         Exercise exercise = exerciseRepository.findByCode(code);
         List<SolutionStorage> storages = solutionRepository.findByExerciseIdAndUserId(exercise.getId(), user.getId());
         List<StorageDTO> result = storages.stream().map(StorageDTO::new).toList();

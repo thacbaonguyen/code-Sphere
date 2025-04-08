@@ -8,12 +8,14 @@ import com.thacbao.codeSphere.data.repository.course.OrderRepository;
 import com.thacbao.codeSphere.data.repository.user.UserRepository;
 import com.thacbao.codeSphere.dto.request.course.OrderConfirmRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
+import com.thacbao.codeSphere.entities.core.Course;
 import com.thacbao.codeSphere.entities.core.User;
 import com.thacbao.codeSphere.entities.reference.Order;
 import com.thacbao.codeSphere.entities.reference.ShoppingCart;
 import com.thacbao.codeSphere.enums.PaymentStatus;
 import com.thacbao.codeSphere.exceptions.common.AppException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
+import com.thacbao.codeSphere.services.OrderDetailService;
 import com.thacbao.codeSphere.services.OrderService;
 import com.thacbao.codeSphere.services.redis.RedisService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
@@ -34,7 +36,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final JwtFilter jwtFilter;
-    private final UserRepository userRepository;
+    private final OrderDetailService orderDetailService;
     private final CustomUserDetailsService customUserDetailsService;
     private final CartRepository shoppingCartRepository;
     private final RedisService redisService;
@@ -62,6 +64,25 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void saveOrder(Order order) {
         orderRepository.save(order);
+    }
+
+    @Override
+    public Order createFreeOrder(Course course) {
+        Order order = new Order();
+        order.setTotalAmount(course.getPrice());
+        order.setOrderDate(LocalDateTime.now());
+        order.setPaymentStatus(PaymentStatus.paid);
+        order.setUser(customUserDetailsService.getUserDetails());
+        try {
+            Order orderSave = orderRepository.save(order);
+            orderDetailService.createOrderDetailFree(orderSave, course);
+            redisService.delete("myCourses:" + jwtFilter.getCurrentUsername());
+            return orderSave;
+        }
+        catch (AppException e) {
+            throw new AppException("Error create order free");
+        }
+
     }
 
     @Override

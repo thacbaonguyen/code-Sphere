@@ -4,6 +4,7 @@ import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.data.repository.blog.BlogRepository;
 import com.thacbao.codeSphere.data.repository.user.UserRepository;
@@ -49,7 +50,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @Slf4j
 public class BlogServiceImpl implements BlogService {
-    private final UserRepository userRepository;
+
 
     private final JwtFilter jwtFilter;
 
@@ -61,14 +62,14 @@ public class BlogServiceImpl implements BlogService {
 
     private final AmazonS3 amazonS3;
 
+    private final CustomUserDetailsService userDetailsService;
+
     @Value("${cloud.aws.s3.bucketFeature}")
     private String bucketFeature;
 
     @Override
     public ResponseEntity<ApiResponse> insertBlog(BlogReq request) {
-        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                ()-> new NotFoundException(USER_NOT_FOUND)
-        );
+        User user = userDetailsService.getUserDetails();
 
         if (jwtFilter.isAdmin() || jwtFilter.isBlogger()){
             Set<Tag> tags = tagService.getOrCreateTags(request.getTags());

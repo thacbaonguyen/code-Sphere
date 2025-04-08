@@ -11,7 +11,7 @@ import com.thacbao.codeSphere.entities.core.User;
 import com.thacbao.codeSphere.exceptions.common.AlreadyException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import com.thacbao.codeSphere.services.CourseReviewService;
-import com.thacbao.codeSphere.services.CourseService;
+import com.thacbao.codeSphere.services.redis.RedisService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +31,7 @@ public class CourseReviewServiceImpl implements CourseReviewService {
     private final ModelMapper modelMapper;
     private final CustomUserDetailsService customUserDetailsService;
     private final CourseRepository courseRepository;
+    private final RedisService redisService;
 
     @Override
     public ResponseEntity<ApiResponse> createCourseReview(CourseReview request) {
@@ -52,6 +53,7 @@ public class CourseReviewServiceImpl implements CourseReviewService {
         float result = (rating + (course.getRate() * course.getTotalRate()))/(course.getTotalRate() + 1);
         course.setRate(result);
         courseRepository.save(course);
+        redisService.delete("courseDetails:");
         return CodeSphereResponses.generateResponse(null, "Create rating success", HttpStatus.CREATED);
     }
 

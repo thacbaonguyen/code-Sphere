@@ -1,5 +1,6 @@
 package com.thacbao.codeSphere.services.exerciseImpl;
 
+import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.data.dao.CmtExDao;
 import com.thacbao.codeSphere.dto.request.exercise.CmExReq;
@@ -41,8 +42,6 @@ public class CommentServiceImpl implements CommentService {
 
     private final JwtFilter jwtFilter;
 
-    private final UserRepository userRepository;
-
     private final ExerciseRepository exerciseRepository;
 
     private final CmtExDao commentExDao;
@@ -50,6 +49,7 @@ public class CommentServiceImpl implements CommentService {
     private final CmExHistoryRepository cmExHistoryRepository;
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final CustomUserDetailsService userDetailsService;
 
     /**
      * Tạo mới comment cho bài tập
@@ -60,9 +60,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public ResponseEntity<ApiResponse> insertComment(CmExReq request) {
         Exercise exercise = exerciseRepository.findByCode(request.getCode());
-        User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                ()-> new NotFoundException("User not found")
-        );
+        User user = userDetailsService.getUserDetails();
         try {
             CommentExercise commentExercise = CommentExercise.builder()
                     .exercise(exercise)

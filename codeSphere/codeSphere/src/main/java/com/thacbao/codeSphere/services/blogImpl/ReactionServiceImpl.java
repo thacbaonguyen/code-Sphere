@@ -1,5 +1,6 @@
 package com.thacbao.codeSphere.services.blogImpl;
 
+import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
 import com.thacbao.codeSphere.constants.CodeSphereConstants;
 import com.thacbao.codeSphere.data.repository.blog.BlogRepository;
@@ -34,6 +35,7 @@ public class ReactionServiceImpl implements ReactionService {
     private final UserRepository userRepository;
     private final BlogRepository blogRepository;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final CustomUserDetailsService userDetailsService;
     @Override
     public ResponseEntity<ApiResponse> insertReaction(ReactionReq request) {
         try{
@@ -78,9 +80,7 @@ public class ReactionServiceImpl implements ReactionService {
     }
 
     private User getUser(){
-        return userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
-                () -> new NotFoundException(CodeSphereConstants.User.USER_NOT_FOUND)
-        );
+        return userDetailsService.getUserDetails();
     }
 
     private Blog getBlog(Integer id){
