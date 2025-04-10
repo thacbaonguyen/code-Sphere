@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -29,6 +30,9 @@ public class SubmissionHistory {
     private int score;
     @Column(name = "total_testcase")
     private int totalTestCases;
+
+    @Column(name = "created_at")
+    private LocalDate createdAt;
 
     @OneToMany(mappedBy = "submissionHistory", cascade = CascadeType.ALL)
     private List<TestCaseHistory> testCaseHistory;

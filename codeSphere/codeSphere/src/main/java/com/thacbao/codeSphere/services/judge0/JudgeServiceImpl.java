@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.transaction.Transactional;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -69,6 +70,7 @@ public class JudgeServiceImpl implements Judge0Service {
             submissionHistory.setExercise(testCases.get(0).getExercise());
             submissionHistory.setUser(user);
             submissionHistory.setSourceCode(submissionRequest.getSourceCode());
+            submissionHistory.setCreatedAt(LocalDate.now());
             SubmissionHistory submissionHistorySaved = submissionRepository.save(submissionHistory);
 
             int passed = 0;
