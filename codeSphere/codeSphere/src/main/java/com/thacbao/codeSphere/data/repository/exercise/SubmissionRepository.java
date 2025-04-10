@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SubmissionRepository extends JpaRepository<SubmissionHistory, Integer> {
+public interface SubmissionRepository extends JpaRepository<SubmissionHistory, Integer>, SubmissionRepositoryCustom {
     @Query(value = "select * from submissionhistories as s" +
             " join exercises as e on s.exercise_id = e.id " +
             " join users as u on  s.user_id = u.id " +
