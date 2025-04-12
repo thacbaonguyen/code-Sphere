@@ -7,8 +7,8 @@ import java.util.List;
 
 public interface OrderRepositoryCustom {
 
-    List<SpendResponse> totalSpendByDay(Integer userId);
+    List<SpendResponse> totalSpendByDay(String ago);
 
-    List<SpendByMothResponse> totalSpendByMonth(Integer userId);
+    List<SpendByMothResponse> totalSpendByMonth();
     List<?> totalSpendByYear(Integer userId);
 }

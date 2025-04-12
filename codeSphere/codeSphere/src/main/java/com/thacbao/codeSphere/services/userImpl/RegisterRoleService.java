@@ -10,9 +10,12 @@ import com.thacbao.codeSphere.data.repository.user.UserRepository;
 import com.thacbao.codeSphere.data.specification.RegisterRoleSpecification;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
 import com.thacbao.codeSphere.dto.response.user.RegisterRoleDTO;
+import com.thacbao.codeSphere.dto.response.user.UserDTO;
 import com.thacbao.codeSphere.entities.core.User;
+import com.thacbao.codeSphere.entities.reference.Authorization;
 import com.thacbao.codeSphere.entities.reference.RegisterRole;
 import com.thacbao.codeSphere.entities.reference.Role;
+import com.thacbao.codeSphere.exceptions.common.AlreadyException;
 import com.thacbao.codeSphere.exceptions.common.AppException;
 import com.thacbao.codeSphere.exceptions.common.NotFoundException;
 import com.thacbao.codeSphere.exceptions.user.PermissionException;
@@ -30,16 +33,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLDataException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RegisterRoleService {
 
-    private final UserRepository userRepository;
     private final JwtFilter jwtFilter;
     private final RegisterRoleRepository registerRoleRepository;
+    private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final AuthorizationDao authorizationDao;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -54,17 +60,19 @@ public class RegisterRoleService {
      */
     public ResponseEntity<ApiResponse> sendRequestRegisterRole(Map<String, String > request){
         try{
-            User user = userDetailsService.getUserDetails();
+            User user = userRepository.findByUsername(jwtFilter.getCurrentUsername()).orElseThrow(
+                    () -> new NotFoundException("Cannot found this user")
+            );
+            UserDTO userDTO = new UserDTO(user);
             Role role = roleRepository.findById(Integer.parseInt(request.get("roleId")))
                     .orElseThrow(() -> new NotFoundException("Role not found"));
             if (role.getName().equalsIgnoreCase("admin")){
                 throw new PermissionException("You are not allowed to register admin role");
             }
-            user.getAuthorizations().stream().forEach(auth -> {
-                if (auth.getRole().getName().equalsIgnoreCase(role.getName())){
-                    throw new PermissionException("You already have this role");
-                }
-            });
+
+            if (userDTO.getRoles().contains(role.getName())){
+                throw new AlreadyException("You already have this role");
+            }
 
             RegisterRole existsByUser = registerRoleRepository.findByUserAndRole(user, role);
             if (existsByUser != null) {
@@ -82,6 +90,18 @@ public class RegisterRoleService {
             log.error("logging error with message {}",ex.getMessage(), ex.getCause());
             return CodeSphereResponses.generateResponse(null, ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public ResponseEntity<ApiResponse> getAllRoles(){
+        List<Role> roles = roleRepository.findAll();
+        Map<String, Object> customResponse = new HashMap<>();
+
+        roles.stream().forEach(role -> {
+            customResponse.put("roleName", role.getName());
+            customResponse.put("roleId", role.getId());
+        });
+
+        return CodeSphereResponses.generateResponse(customResponse, "All roles", HttpStatus.OK);
     }
 
     /**

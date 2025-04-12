@@ -50,14 +50,6 @@ public class UserDTO {
         this.roles = roles;
     }
 
-    public UserDTO(String username, String fullName, String avatarUrl, String email, List<String> roles) {
-        this.username = username;
-        this.fullName = fullName;
-        this.avatarUrl = avatarUrl;
-        this.email = email;
-        this.roles = roles;
-    }
-
     public UserDTO(User author) {
         this.username = author.getUsername();
         this.fullName = author.getFullName();

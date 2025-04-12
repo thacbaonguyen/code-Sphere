@@ -19,6 +19,11 @@ public class RegisterRoleController {
 
     private final RegisterRoleService registerService;
 
+    @GetMapping("/all-roles")
+    public ResponseEntity<ApiResponse> getAllRoles() {
+        return registerService.getAllRoles();
+    }
+
     @PostMapping("/send-request")
     public ResponseEntity<ApiResponse> sendRequestRegisterRole(@RequestBody Map<String, String> request){
         return registerService.sendRequestRegisterRole(request);

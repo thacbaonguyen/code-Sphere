@@ -1,0 +1,60 @@
+version: '3.8'
+
+## services
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: codesphere-v1
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/codesphere?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=codesphere
+      - SPRING_DATASOURCE_PASSWORD=CodeSphere123!
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQL8Dialect
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+    depends_on:
+      - mysql
+      - redis
+    restart: always
+    networks:
+      - codesphere-network
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=codesphere
+    volumes:
+      - /var/lib/mysql:/var/lib/mysql
+    restart: always
+    networks:
+      - codesphere-network
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+    restart: always
+    networks:
+      - codesphere-network
+    command: redis-server --appendonly yes
+
+networks:
+  codesphere-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:

@@ -5,6 +5,7 @@ import com.querydsl.core.types.dsl.DateTemplate;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.dto.response.course.SpendByMothResponse;
 import com.thacbao.codeSphere.dto.response.course.SpendResponse;
 import com.thacbao.codeSphere.entities.reference.QOrder;
@@ -13,19 +14,23 @@ import lombok.RequiredArgsConstructor;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class OrderRepositoryImpl implements OrderRepositoryCustom{
 
+    private final CustomUserDetailsService userDetailsService;
+
     private final JPAQueryFactory queryFactory;
+
     @Override
-    public List<SpendResponse> totalSpendByDay(Integer userId) {
+    public List<SpendResponse> totalSpendByDay(String ago) {
         QOrder order = QOrder.order;
 
-        LocalDate today = LocalDate.now();
-        LocalDate oneWeekAgo = today.minusWeeks(1);
+        LocalDate endQ = LocalDate.now();
+        LocalDate startQ = endQ.minusDays(Integer.parseInt(ago));
 
         //trich xuat ngay
         DateTemplate<Date> dateOnly = Expressions.dateTemplate(Date.class, "DATE({0})", order.orderDate);
@@ -33,9 +38,9 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom{
         List<Tuple> results = queryFactory.select(dateOnly, order.totalAmount.sum())
                 .from(order)
                 .where(
-                        order.user.id.eq(userId)
+                        order.user.id.eq(userDetailsService.getUserDetails().getId())
                                 .and(order.orderDate.between(
-                                        oneWeekAgo.atStartOfDay(), today.atStartOfDay()
+                                        startQ.atStartOfDay(), endQ.atStartOfDay()
                                 ))
                                 .and(order.paymentStatus.eq(PaymentStatus.paid))
                 )
@@ -51,9 +56,9 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom{
     }
 
     @Override
-    public List<SpendByMothResponse> totalSpendByMonth(Integer userId) {
+    public List<SpendByMothResponse> totalSpendByMonth() {
         QOrder order = QOrder.order;
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.of(LocalDate.now().getYear(), 12, 31);
         LocalDate oneYearAgo = today.minusYears(1);
 
         // trich xuar thang va nam
@@ -63,7 +68,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom{
         List<Tuple> results = queryFactory.select(year, month, order.totalAmount.sum())
                 .from(order)
                 .where(
-                        order.user.id.eq(userId)
+                        order.user.id.eq(userDetailsService.getUserDetails().getId())
                                 .and(order.orderDate.between(
                                         oneYearAgo.atStartOfDay(), today.atStartOfDay()
                                 ))
