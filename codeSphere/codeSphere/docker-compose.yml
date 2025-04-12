@@ -11,8 +11,8 @@ services:
       - "8080:8080"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/codesphere?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      - SPRING_DATASOURCE_USERNAME=codesphere
-      - SPRING_DATASOURCE_PASSWORD=CodeSphere123!
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQL8Dialect
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
@@ -21,6 +21,18 @@ services:
     depends_on:
       - mysql
       - redis
+    restart: always
+    networks:
+      - codesphere-network
+  frontend:
+    build:
+      context: ../../../codeSphere-Fe/codesphere #chinh lai duong dan den cai file docker trong fe cua ban
+      dockerfile: Dockerfile
+    container_name: codesphere-fe
+    ports:
+      - "4200:80"
+    depends_on:
+      - app
     restart: always
     networks:
       - codesphere-network
@@ -33,7 +45,8 @@ services:
       - MYSQL_ROOT_PASSWORD=123456
       - MYSQL_DATABASE=codesphere
     volumes:
-      - /var/lib/mysql:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
+      - ./codesphere.sql:/docker-entrypoint-initdb.d/codesphere.sql
     restart: always
     networks:
       - codesphere-network

@@ -204,7 +204,9 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<?> login(UserLoginReq request) {
         String cacheKey = "user:jwt:" + request.getUsername();
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
-        User user = getUser();
+        User user = userRepository.findByUsername(request.getUsername()).orElseThrow(
+                () -> new NotFoundException(USER_NOT_FOUND)
+        );
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         Boolean isPasswordCorrect = passwordEncoder.matches(request.getPassword(), user.getPassword());
         if(!isPasswordCorrect){

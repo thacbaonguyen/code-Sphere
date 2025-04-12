@@ -13,7 +13,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:4200")
+                .allowedOrigins("http://localhost:4200", "http://20.42.212.224:4200/",
+                        "https://20.42.212.224", "https://codesphere.id.vn")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
@@ -23,6 +24,9 @@ public class WebConfig implements WebMvcConfigurer {
     public static CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedOrigin("http://localhost:4200"); // allow Angular
+        configuration.addAllowedOrigin("http://20.42.212.224:4200");
+        configuration.addAllowedOrigin("https://20.42.212.224");
+        configuration.addAllowedOrigin("https://codesphere.id.vn");
         configuration.addAllowedMethod("*"); // allow (GET, POST, PUT, DELETE, etc.)
         configuration.addAllowedHeader("*"); // allow header
         configuration.setAllowCredentials(true); // cookie
