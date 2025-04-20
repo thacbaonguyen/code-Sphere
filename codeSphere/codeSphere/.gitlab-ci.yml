@@ -1,0 +1,61 @@
+variables:
+  BACKEND_IMAGE: ${REGISTRY_URL}/${REGISTRY_PROJECT}/${CI_PROJECT_NAME}_be:${CI_COMMIT_TAG}_${CI_COMMIT_SHORT_SHA}
+  FRONTEND_IMAGE: ${REGISTRY_URL}/${REGISTRY_PROJECT}/${CI_PROJECT_NAME}_fe:${CI_COMMIT_TAG}_${CI_COMMIT_SHORT_SHA}
+  COMPOSE_FILE: be/docker-compose.yml
+stages:
+  - buildandpush # build and push image
+  - deploy # pull and deploy image
+  - log # log app
+
+buildandpush:
+  stage: buildandpush
+  variables:
+    GIT_STRATEGY: clone
+  before_script:
+    - docker login ${REGISTRY_URL} -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} # login harbor registry
+  script:
+    # build and push be
+    - cd be
+    - docker build -t $BACKEND_IMAGE .
+    - docker push $BACKEND_IMAGE
+    # build and push fe
+    - cd ../fe
+    - docker build -t $FRONTEND_IMAGE .
+    - docker push $FRONTEND_IMAGE
+  tags:
+    - runner-server
+
+  only:
+    - tags
+
+deploy:
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  before_script:
+    - docker login ${REGISTRY_URL} -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} # login harbor registry
+  script:
+    # export variables to use docker-compose.yml (/docs)
+    - export IMAGE_TAG=${CI_COMMIT_TAG}_${CI_COMMIT_SHORT_SHA}
+    - export REGISTRY_URL=${REGISTRY_URL}
+    - export REGISTRY_PROJECT=${REGISTRY_PROJECT}
+    - export CI_PROJECT_NAME=${CI_PROJECT_NAME}
+    - docker compose -f ${COMPOSE_FILE} down # down container
+    - docker compose -f ${COMPOSE_FILE} pull # pull new images
+    - docker compose -f ${COMPOSE_FILE} up -d # up
+  tags:
+    - runner-server
+  only:
+    - tags
+
+log:
+  stage: log
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - docker compose -f ${COMPOSE_FILE} ps
+    - docker compose -f ${COMPOSE_FILE} logs --tail=100
+  tags:
+    - runner-server
+  only:
+    - tags
