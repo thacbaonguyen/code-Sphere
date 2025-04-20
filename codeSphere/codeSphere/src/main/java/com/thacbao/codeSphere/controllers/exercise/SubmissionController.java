@@ -1,10 +1,9 @@
 package com.thacbao.codeSphere.controllers.exercise;
 
-import com.querydsl.core.Tuple;
 import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.data.repository.exercise.SubmissionRepository;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.judge0.SubmissionByDayResponse;
+import com.thacbao.codeSphere.dto.response.sandbox.SubmissionByDayResponse;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

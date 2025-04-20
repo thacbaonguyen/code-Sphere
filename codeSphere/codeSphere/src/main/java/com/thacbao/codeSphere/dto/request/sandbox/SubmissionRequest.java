@@ -1,4 +1,4 @@
-package com.thacbao.codeSphere.dto.request.judge0;
+package com.thacbao.codeSphere.dto.request.sandbox;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

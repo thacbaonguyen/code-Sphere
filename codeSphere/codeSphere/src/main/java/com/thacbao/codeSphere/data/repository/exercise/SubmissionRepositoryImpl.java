@@ -1,13 +1,11 @@
 package com.thacbao.codeSphere.data.repository.exercise;
 
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Expression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.thacbao.codeSphere.dto.response.judge0.SubmissionByDayResponse;
+import com.thacbao.codeSphere.dto.response.sandbox.SubmissionByDayResponse;
 import com.thacbao.codeSphere.entities.reference.QSubmissionHistory;
 import lombok.RequiredArgsConstructor;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -1,4 +1,4 @@
-package com.thacbao.codeSphere.services.judge0;
+package com.thacbao.codeSphere.services.sandbox;
 
 import com.thacbao.codeSphere.configurations.CustomUserDetailsService;
 import com.thacbao.codeSphere.configurations.JwtFilter;
@@ -6,18 +6,17 @@ import com.thacbao.codeSphere.data.repository.exercise.SubmissionRepository;
 import com.thacbao.codeSphere.data.repository.exercise.TestCaseHistoryRepo;
 import com.thacbao.codeSphere.data.repository.exercise.TestCaseRepository;
 import com.thacbao.codeSphere.data.repository.user.UserRepository;
-import com.thacbao.codeSphere.dto.request.judge0.Judge0Request;
-import com.thacbao.codeSphere.dto.request.judge0.SubmissionRequest;
+import com.thacbao.codeSphere.dto.request.sandbox.SandBoxRequest;
+import com.thacbao.codeSphere.dto.request.sandbox.SubmissionRequest;
 import com.thacbao.codeSphere.dto.response.ApiResponse;
-import com.thacbao.codeSphere.dto.response.judge0.FinalResponse;
-import com.thacbao.codeSphere.dto.response.judge0.SubmissionResponse;
-import com.thacbao.codeSphere.dto.response.judge0.TestCaseResponse;
+import com.thacbao.codeSphere.dto.response.sandbox.FinalResponse;
+import com.thacbao.codeSphere.dto.response.sandbox.SubmissionResponse;
+import com.thacbao.codeSphere.dto.response.sandbox.TestCaseResponse;
 import com.thacbao.codeSphere.entities.core.User;
 import com.thacbao.codeSphere.entities.reference.SubmissionHistory;
 import com.thacbao.codeSphere.entities.reference.TestCase;
 import com.thacbao.codeSphere.entities.reference.TestCaseHistory;
-import com.thacbao.codeSphere.exceptions.common.NotFoundException;
-import com.thacbao.codeSphere.services.Judge0Service;
+import com.thacbao.codeSphere.services.SandBoxService;
 import com.thacbao.codeSphere.utils.CodeSphereResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,13 +36,13 @@ import java.util.Map;
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
-public class JudgeServiceImpl implements Judge0Service {
+public class SandBoxServiceImpl implements SandBoxService {
 
-    @Value("${judge0.api.apiUrl}")
-    private String judge0ApiUrl;
+    @Value("${sandbox.api.apiUrl}")
+    private String sandBoxUrl;
 
-    @Value("${judge0.api.apiKey}")
-    private String judge0ApiKey;
+    @Value("${sandbox.api.apiKey}")
+    private String sandBoxApiKey;
 
     private final TestCaseRepository testCaseRepository;
     private final SubmissionRepository submissionRepository;
@@ -76,10 +75,10 @@ public class JudgeServiceImpl implements Judge0Service {
             int passed = 0;
             ArrayList<TestCaseHistory> testCaseHistories = new ArrayList<>();
             for (TestCase testCase : testCases) {
-                HttpEntity<Judge0Request> requestHttpEntity = getJudge0Request(submissionRequest.getSourceCode(),
+                HttpEntity<SandBoxRequest> requestHttpEntity = getJudge0Request(submissionRequest.getSourceCode(),
                         submissionRequest.getLanguageId(), testCase.getInput(), testCase.getOutput());
 
-                ResponseEntity<Map> responseEntity = restTemplate.exchange(judge0ApiUrl
+                ResponseEntity<Map> responseEntity = restTemplate.exchange(sandBoxUrl
                                 + "/submissions?base64_encoded=true&wait=true&fields=*"
                         , HttpMethod.POST, requestHttpEntity, Map.class);
 
@@ -145,24 +144,24 @@ public class JudgeServiceImpl implements Judge0Service {
      * @param output
      * @return
      */
-    private HttpEntity<Judge0Request> getJudge0Request(String sourceCode, Integer languageId, String input, String output) {
-        Judge0Request judge0Request = new Judge0Request();
-        judge0Request.setSource_code(Base64.getEncoder().encodeToString(sourceCode.getBytes()));
-        judge0Request.setLanguage_id(languageId);
+    private HttpEntity<SandBoxRequest> getJudge0Request(String sourceCode, Integer languageId, String input, String output) {
+        SandBoxRequest sandBoxRequest = new SandBoxRequest();
+        sandBoxRequest.setSource_code(Base64.getEncoder().encodeToString(sourceCode.getBytes()));
+        sandBoxRequest.setLanguage_id(languageId);
         String encodedInput = (input != null) ?
                 Base64.getEncoder().encodeToString(input.getBytes()) :
                 Base64.getEncoder().encodeToString("".getBytes());
-        judge0Request.setStdin(encodedInput);
+        sandBoxRequest.setStdin(encodedInput);
 
         String encodedOutput = (output != null) ?
                 Base64.getEncoder().encodeToString(output.getBytes()) :
                 Base64.getEncoder().encodeToString("".getBytes());
-        judge0Request.setExpected_output(encodedOutput);
+        sandBoxRequest.setExpected_output(encodedOutput);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-RapidAPI-Key", judge0ApiKey);
-        return new HttpEntity<>(judge0Request, headers);
+        headers.set("X-RapidAPI-Key", sandBoxApiKey);
+        return new HttpEntity<>(sandBoxRequest, headers);
     }
 
     /**
@@ -173,11 +172,11 @@ public class JudgeServiceImpl implements Judge0Service {
     private SubmissionResponse getSubmission(String token){
         try {
             HttpHeaders headers = new HttpHeaders();
-            headers.set("X-RapidAPI-Key", judge0ApiKey);
+            headers.set("X-RapidAPI-Key", sandBoxApiKey);
             HttpEntity<?> entity = new HttpEntity<>(headers);
 
             ResponseEntity<Map> responseEntity = restTemplate.exchange(
-                    judge0ApiUrl + "/submissions/" + token + "?base64_encoded=true&fields=*",
+                    sandBoxUrl + "/submissions/" + token + "?base64_encoded=true&fields=*",
                     HttpMethod.GET,
                     entity,
                     Map.class);
@@ -199,7 +198,10 @@ public class JudgeServiceImpl implements Judge0Service {
             }
 
             if (responseBody.get("stdout") != null) {
-                String stdout = new String(Base64.getDecoder().decode((String) responseBody.get("stdout")));
+                String base64Data = (String) responseBody.get("stdout");
+                base64Data = base64Data.trim();
+                byte[] decodedBytes = Base64.getDecoder().decode(base64Data);
+                String stdout = new String(decodedBytes, "UTF-8");
                 submissionResponse.setStdout(stdout);
             }
             else {

@@ -1,7 +1,6 @@
 package com.thacbao.codeSphere.data.repository.exercise;
 
-import com.querydsl.core.Tuple;
-import com.thacbao.codeSphere.dto.response.judge0.SubmissionByDayResponse;
+import com.thacbao.codeSphere.dto.response.sandbox.SubmissionByDayResponse;
 
 import java.util.List;
 
