@@ -36,6 +36,32 @@ spring:
           starttls:
             enable: true
             required: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id:
+            client-secret:
+            redirect-uri: http://localhost:8080/oauth2/callback/google
+            scope:
+              - email
+              - profile
+          github:
+            clientId:
+            clientSecret:
+            redirectUri: http://localhost:8080/oauth2/callback/github
+            scope:
+              - user:email
+              - read:user
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+            user-name-attribute: sub
 server:
   port: 8080
 

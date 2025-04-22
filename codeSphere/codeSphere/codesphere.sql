@@ -38,7 +38,7 @@ CREATE TABLE `authorization` (
 
 LOCK TABLES `authorization` WRITE;
 /*!40000 ALTER TABLE `authorization` DISABLE KEYS */;
-INSERT INTO `authorization` VALUES (7,1),(14,2),(17,2),(27,2),(29,2),(7,3),(27,3),(14,4);
+INSERT INTO `authorization` VALUES (7,1),(14,2),(17,2),(27,2),(29,2),(32,2),(33,2),(7,3),(27,3),(14,4);
 /*!40000 ALTER TABLE `authorization` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -745,7 +745,7 @@ CREATE TABLE `submissionhistories` (
   KEY `user_id` (`user_id`),
   CONSTRAINT `submissionhistories_ibfk_1` FOREIGN KEY (`exercise_id`) REFERENCES `exercises` (`id`),
   CONSTRAINT `submissionhistories_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -754,7 +754,7 @@ CREATE TABLE `submissionhistories` (
 
 LOCK TABLES `submissionhistories` WRITE;
 /*!40000 ALTER TABLE `submissionhistories` DISABLE KEYS */;
-INSERT INTO `submissionhistories` VALUES (1,5463,7,'Accepted',2,100,2,NULL,'2024-11-25'),(2,5463,7,'Error',0,0,2,'import java.util.Scanner;\npublic class Main {\n	public static void main(String[] args) {\n		Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int rs = (n*(n+1))/3;\n        System.out.println(rs);\n	}\n}','2025-03-28'),(3,5463,7,'Error',0,0,2,'public class Main {\n	public static void main(String[] args) {\n		System.out.println(\"Hello World\");\n	}\n}','2025-02-22'),(4,5463,7,'Error',0,0,2,'public class Main {\n	public static void main(String[] args) {\n		System.out.println(\"Hello World\");\n	}\n}','2025-02-22'),(5,5463,7,'Error',1,50,2,'print(\"6\")','2025-04-10'),(6,5463,7,'Error',1,50,2,'print(\"6\")','2025-04-10'),(7,5463,7,'Error',0,0,2,'int n = input()\nprint(n)','2025-04-10'),(8,5463,7,'Error',0,0,2,'int n = int(input())\nprint((n*(n+1)/2))','2025-04-10'),(9,5463,7,'Accepted',2,100,2,'n = int(input())\nprint(n * (n + 1) // 2)','2025-04-10'),(10,5463,7,'Accepted',2,100,2,'#include <iostream>\nusing namespace std;\nint main() {\n	int n;\n    cin >> n;\n    int m = (int)n*(n+1)/2;\n    cout << m;\n	return 0;\n}','2025-04-10');
+INSERT INTO `submissionhistories` VALUES (1,5463,7,'Accepted',2,100,2,NULL,'2024-11-25'),(2,5463,7,'Error',0,0,2,'import java.util.Scanner;\npublic class Main {\n	public static void main(String[] args) {\n		Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int rs = (n*(n+1))/3;\n        System.out.println(rs);\n	}\n}','2025-03-28'),(3,5463,7,'Error',0,0,2,'public class Main {\n	public static void main(String[] args) {\n		System.out.println(\"Hello World\");\n	}\n}','2025-02-22'),(4,5463,7,'Error',0,0,2,'public class Main {\n	public static void main(String[] args) {\n		System.out.println(\"Hello World\");\n	}\n}','2025-02-22'),(5,5463,7,'Error',1,50,2,'print(\"6\")','2025-04-10'),(6,5463,7,'Error',1,50,2,'print(\"6\")','2025-04-10'),(7,5463,7,'Error',0,0,2,'int n = input()\nprint(n)','2025-04-10'),(8,5463,7,'Error',0,0,2,'int n = int(input())\nprint((n*(n+1)/2))','2025-04-10'),(9,5463,7,'Accepted',2,100,2,'n = int(input())\nprint(n * (n + 1) // 2)','2025-04-10'),(10,5463,7,'Accepted',2,100,2,'#include <iostream>\nusing namespace std;\nint main() {\n	int n;\n    cin >> n;\n    int m = (int)n*(n+1)/2;\n    cout << m;\n	return 0;\n}','2025-04-10'),(20,5463,7,'Accepted',2,100,2,'\n#include <iostream>\nusing namespace std;\nint main() {\n	int n;\n    cin >> n;\n    int m = (int)n*(n+1)/2;\n    cout << m;\n	return 0;\n}','2025-04-21'),(21,5463,33,NULL,0,0,0,'n = int(input())\n\nm = int( n * (n + 1)/2)\nprint(m)','2025-04-22'),(22,5463,33,NULL,0,0,0,'n = int(input())\n\nm = int( n * (n + 1)/2)\nprint(m)','2025-04-22');
 /*!40000 ALTER TABLE `submissionhistories` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -803,7 +803,7 @@ CREATE TABLE `testcasehistories` (
   PRIMARY KEY (`id`),
   KEY `submission_id` (`submission_id`),
   CONSTRAINT `testcasehistories_ibfk_1` FOREIGN KEY (`submission_id`) REFERENCES `submissionhistories` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -812,7 +812,7 @@ CREATE TABLE `testcasehistories` (
 
 LOCK TABLES `testcasehistories` WRITE;
 /*!40000 ALTER TABLE `testcasehistories` DISABLE KEYS */;
-INSERT INTO `testcasehistories` VALUES (1,1,1,'6','6\n',3,'Accepted',0.08,28560,NULL),(2,1,1,'55','55\n',3,'Accepted',0.076,27096,NULL),(3,2,0,'6','4\n',4,'Wrong Answer',0.08,27144,NULL),(4,2,0,'55','36\n',4,'Wrong Answer',0.078,26732,NULL),(5,3,0,'6','Hello World\n',4,'Wrong Answer',0.049,25992,NULL),(6,3,0,'55','Hello World\n',4,'Wrong Answer',0.047,26364,NULL),(7,4,0,'6','Hello World\n',4,'Wrong Answer',0.03,17536,NULL),(8,4,0,'55','Hello World\n',4,'Wrong Answer',0.028,15104,NULL),(9,5,1,'6','6\n',3,'Accepted',0.008,3296,NULL),(10,5,0,'55','6\n',4,'Wrong Answer',0.009,3552,NULL),(11,6,1,'6','6\n',3,'Accepted',0.008,3300,NULL),(12,6,0,'55','6\n',4,'Wrong Answer',0.007,3296,NULL),(13,7,0,'6','',11,'Runtime Error (NZEC)',0.009,3296,'  File \"script.py\", line 1\n    int n = input()\n        ^\nSyntaxError: invalid syntax\n'),(14,7,0,'55','',11,'Runtime Error (NZEC)',0.008,3296,'  File \"script.py\", line 1\n    int n = input()\n        ^\nSyntaxError: invalid syntax\n'),(15,8,0,'6','',11,'Runtime Error (NZEC)',0.007,3296,'  File \"script.py\", line 1\n    int n = int(input())\n        ^\nSyntaxError: invalid syntax\n'),(16,8,0,'55','',11,'Runtime Error (NZEC)',0.007,3296,'  File \"script.py\", line 1\n    int n = int(input())\n        ^\nSyntaxError: invalid syntax\n'),(17,9,1,'6','6\n',3,'Accepted',0.008,3244,NULL),(18,9,1,'55','55\n',3,'Accepted',0.009,3224,NULL),(19,10,1,'6','6',3,'Accepted',0.001,1108,NULL),(20,10,1,'55','55',3,'Accepted',0.001,1096,NULL);
+INSERT INTO `testcasehistories` VALUES (1,1,1,'6','6\n',3,'Accepted',0.08,28560,NULL),(2,1,1,'55','55\n',3,'Accepted',0.076,27096,NULL),(3,2,0,'6','4\n',4,'Wrong Answer',0.08,27144,NULL),(4,2,0,'55','36\n',4,'Wrong Answer',0.078,26732,NULL),(5,3,0,'6','Hello World\n',4,'Wrong Answer',0.049,25992,NULL),(6,3,0,'55','Hello World\n',4,'Wrong Answer',0.047,26364,NULL),(7,4,0,'6','Hello World\n',4,'Wrong Answer',0.03,17536,NULL),(8,4,0,'55','Hello World\n',4,'Wrong Answer',0.028,15104,NULL),(9,5,1,'6','6\n',3,'Accepted',0.008,3296,NULL),(10,5,0,'55','6\n',4,'Wrong Answer',0.009,3552,NULL),(11,6,1,'6','6\n',3,'Accepted',0.008,3300,NULL),(12,6,0,'55','6\n',4,'Wrong Answer',0.007,3296,NULL),(13,7,0,'6','',11,'Runtime Error (NZEC)',0.009,3296,'  File \"script.py\", line 1\n    int n = input()\n        ^\nSyntaxError: invalid syntax\n'),(14,7,0,'55','',11,'Runtime Error (NZEC)',0.008,3296,'  File \"script.py\", line 1\n    int n = input()\n        ^\nSyntaxError: invalid syntax\n'),(15,8,0,'6','',11,'Runtime Error (NZEC)',0.007,3296,'  File \"script.py\", line 1\n    int n = int(input())\n        ^\nSyntaxError: invalid syntax\n'),(16,8,0,'55','',11,'Runtime Error (NZEC)',0.007,3296,'  File \"script.py\", line 1\n    int n = int(input())\n        ^\nSyntaxError: invalid syntax\n'),(17,9,1,'6','6\n',3,'Accepted',0.008,3244,NULL),(18,9,1,'55','55\n',3,'Accepted',0.009,3224,NULL),(19,10,1,'6','6',3,'Accepted',0.001,1108,NULL),(20,10,1,'55','55',3,'Accepted',0.001,1096,NULL),(21,20,1,'6','6',3,'Accepted',0.005,804,NULL),(22,20,1,'55','55',3,'Accepted',0.005,816,NULL);
 /*!40000 ALTER TABLE `testcasehistories` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -854,7 +854,7 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_name` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
+  `password` varchar(255) DEFAULT NULL,
   `full_name` varchar(255) DEFAULT NULL,
   `phone_number` varchar(20) DEFAULT NULL,
   `email` varchar(255) NOT NULL,
@@ -866,10 +866,12 @@ CREATE TABLE `users` (
   `updated_at` date DEFAULT NULL,
   `avatar` varchar(255) DEFAULT NULL,
   `is_blocked` tinyint(1) DEFAULT '0',
+  `provider` varchar(255) DEFAULT NULL,
+  `provider_id` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_name` (`user_name`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -878,7 +880,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (7,'thacbao','$2a$10$1cQyqE3G.aEwjARZzMJsR.MbC07XqiKWgHcw0H9xxBWi8EmIR1hpC','Nguyễn Thạc Bảo','0989841037','baolog9201@gmail.com','2004-11-25','560838','2025-02-15 08:43:10',1,'2024-12-27','2024-12-27','c9e7cc86-4b96-40e2-a0eb-f2e0e728f5ea-2025-01-11dog3.jpg',0),(14,'thacbao3','$2a$10$opJfa4CCWn.OrrUvZHQ0V.Y10vug./bplCYe0DgP.up4r1x.yW/m.','nguyen thac bao','0987890987','baolog9202@gmail.com','2003-02-03','553579','2024-12-28 13:54:26',1,'2024-12-28','2024-12-28',NULL,0),(17,'thacbao4','$2a$10$BahMws2qGGMAijpT0TIm4ufJaLrBGsrsmw94DqMSUSVkpJh.2eaey','nguyen thac bao','0987890987','baolog9204@gmail.com','2003-11-03','111622','2024-12-29 11:38:45',1,'2024-12-29','2024-12-29',NULL,0),(27,'thacbao5','$2a$10$9cNKiQ14RXuWw4nL1lSZbuyhZu9nGuFtIUXnfDTy1P6EWGde0dwz2','nguyen thac bao','0999999999','nguyenbaojava@gmail.com','2001-07-12','838696','2025-02-14 12:23:54',1,'2025-02-14','2025-02-14',NULL,0),(29,'ducbach','$2a$10$tdjGxOjoN59DcOGbxgxzLewuHArFfjH8Vi2yowVgy6/wc.9cYWSfy','duc bach','0999999999','phungducbach@gmail.com','2002-07-04','381345','2025-02-15 03:03:50',1,'2025-02-15','2025-02-15',NULL,0),(31,'xuanbach','$2a$10$aYJ3jClIXdXT.fwQGNOeaeuruTwYRh/tFZrn2t7gQvS73LHEQEiaa','hoang xuan bach','0999999999','bach230704@gmail.com','2002-07-04','835976','2025-02-24 09:53:26',0,'2025-02-24','2025-02-24',NULL,0);
+INSERT INTO `users` VALUES (7,'thacbao','$2a$10$1cQyqE3G.aEwjARZzMJsR.MbC07XqiKWgHcw0H9xxBWi8EmIR1hpC','Nguyễn Thạc Bảo','0989841037','baolog9201@gmail.com','2004-11-25','560838','2025-02-15 08:43:10',1,'2024-12-27','2024-12-27','c9e7cc86-4b96-40e2-a0eb-f2e0e728f5ea-2025-01-11dog3.jpg',0,NULL,NULL),(14,'thacbao3','$2a$10$opJfa4CCWn.OrrUvZHQ0V.Y10vug./bplCYe0DgP.up4r1x.yW/m.','nguyen thac bao','0987890987','baolog9202@gmail.com','2003-02-03','553579','2024-12-28 13:54:26',1,'2024-12-28','2024-12-28',NULL,0,NULL,NULL),(17,'thacbao4','$2a$10$BahMws2qGGMAijpT0TIm4ufJaLrBGsrsmw94DqMSUSVkpJh.2eaey','nguyen thac bao','0987890987','baolog9204@gmail.com','2003-11-03','111622','2024-12-29 11:38:45',1,'2024-12-29','2024-12-29',NULL,0,NULL,NULL),(27,'thacbao5','$2a$10$9cNKiQ14RXuWw4nL1lSZbuyhZu9nGuFtIUXnfDTy1P6EWGde0dwz2','nguyen thac bao','0999999999','nguyenbaojava@gmail.com','2001-07-12','838696','2025-02-14 12:23:54',1,'2025-02-14','2025-02-14',NULL,0,NULL,NULL),(29,'ducbach','$2a$10$tdjGxOjoN59DcOGbxgxzLewuHArFfjH8Vi2yowVgy6/wc.9cYWSfy','duc bach','0999999999','phungducbach@gmail.com','2002-07-04','381345','2025-02-15 03:03:50',1,'2025-02-15','2025-02-15',NULL,0,NULL,NULL),(31,'xuanbach','$2a$10$aYJ3jClIXdXT.fwQGNOeaeuruTwYRh/tFZrn2t7gQvS73LHEQEiaa','hoang xuan bach','0999999999','bach230704@gmail.com','2002-07-04','835976','2025-02-24 09:53:26',0,'2025-02-24','2025-02-24',NULL,0,NULL,NULL),(32,'baocen204',NULL,'bao thac',NULL,'baocen204@gmail.com',NULL,NULL,NULL,1,'2025-04-22','2025-04-22','https://lh3.googleusercontent.com/a/ACg8ocKiRMhjX57sTogDOauYOhNnyYJOfD7iD6t8V-UdxuPi_eVC_Pc=s96-c',0,'google','113156322605003525978'),(33,'thacbaonguyen',NULL,'Nguyen Thac Bao',NULL,'thacbaonguyen@codeSphere.com',NULL,NULL,NULL,1,'2025-04-22','2025-04-22','https://avatars.githubusercontent.com/u/132820448?v=4',0,'github','132820448');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -922,4 +924,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-04-12 23:04:32
+-- Dump completed on 2025-04-22 16:04:57

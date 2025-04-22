@@ -39,6 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
             "/api/v1/auth/test",
             "/api/v1/auth/set-password.*",
             "/api/v1/auth/verify-forgot-password",
+            "/oauth2/callback.*"
     };
     private Boolean isPublicPath(String path){
         return Arrays.stream(PUBLIC_PATHS).anyMatch(path::matches);
@@ -80,8 +81,12 @@ public class JwtFilter extends OncePerRequestFilter {
             if (authorizationHeader != null){
                 if(authorizationHeader.startsWith("Bearer ")){
                     token = authorizationHeader.substring(7);
-                    claims = jwtUtils.getClaimsFromToken(token);
-                    username = jwtUtils.getUsernameFromToken(token);
+                    try {
+                        claims = jwtUtils.getClaimsFromToken(token);
+                        username = jwtUtils.getUsernameFromToken(token);
+                    } catch (Exception e) {
+                        log.error("Invalid JWT token: {}", e.getMessage());
+                    }
                 }
             }
             if(claims != null && username != null && SecurityContextHolder.getContext().getAuthentication() == null){
@@ -105,18 +110,22 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     public Boolean isAdmin(){
+        if (claims == null) return false;
         List<String> roles = claims.get("role", List.class);
         return roles.contains("admin".toUpperCase());
     }
     public Boolean isUser(){
+        if (claims == null) return false;
         List<String> roles = claims.get("role", List.class);
         return roles.contains("user".toUpperCase());
     }
     public Boolean isManager(){
+        if (claims == null) return false;
         List<String> roles = claims.get("role", List.class);
         return roles.contains("manager".toUpperCase());
     }
     public Boolean isBlogger(){
+        if (claims == null) return false;
         List<String> roles = claims.get("role", List.class);
         return roles.contains("blogger".toUpperCase());
     }

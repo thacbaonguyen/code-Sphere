@@ -15,4 +15,6 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
     @Query(value = "SELECT COUNT(*) FROM users WHERE is_active = true AND is_blocked = false", nativeQuery = true)
     long count();
+
+    boolean existsByUsername(String username);
 }

@@ -58,6 +58,11 @@ public class User {
 
     private String avatar;
 
+    private String provider;
+
+    @Column(name = "provider_id")
+    private String providerId;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Authorization> authorizations;
 

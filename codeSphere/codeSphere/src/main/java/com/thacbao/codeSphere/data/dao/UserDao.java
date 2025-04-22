@@ -13,7 +13,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,9 +40,7 @@ public class UserDao {
             Object[] results = (Object[]) entityManager.createNativeQuery(sql)
                     .setParameter("username", username)
                     .getSingleResult();
-            return new UserDTO((String) results[0], (String) results[1], (String) results[2],
-                    (String) results[3], results[4].toString(),results[5].toString(), results[6].toString(),
-                    Arrays.asList(results[7].toString().split(",")));
+            return convertToDTO(results);
         }
         catch (Exception ex){
             throw new SQLDataException(ex.getMessage());
@@ -68,9 +65,7 @@ public class UserDao {
             List<Object[]> results = entityManager.createNativeQuery(sql)
                     .getResultList();
             return results.stream()
-                    .map(result -> new UserDTO(result[0].toString(), result[1].toString(), result[2].toString(),
-                            result[3].toString(), result[4].toString(), result[5].toString(), result[6].toString(),
-                            Arrays.asList(result[7].toString().split(",")))).collect(Collectors.toList());
+                    .map(result -> convertToDTO(result)).collect(Collectors.toList());
         }
         catch (Exception exception){
             throw new SQLDataException(exception.getMessage());
@@ -95,9 +90,7 @@ public class UserDao {
             List<Object[]> results = entityManager.createNativeQuery(sql)
                     .getResultList();
             return results.stream()
-                    .map(result -> new UserDTO(result[0].toString(), result[1].toString(), result[2].toString(),
-                            result[3].toString(), result[4].toString(), result[5].toString(), result[6].toString(),
-                            Arrays.asList(result[7].toString().split(",")))).collect(Collectors.toList());
+                    .map(result -> convertToDTO(result)).collect(Collectors.toList());
         }
         catch (Exception exception){
             throw new SQLDataException(exception.getMessage());
@@ -122,9 +115,7 @@ public class UserDao {
             List<Object[]> results = entityManager.createNativeQuery(sql)
                     .getResultList();
             return results.stream()
-                    .map(result -> new UserDTO(result[0].toString(), result[1].toString(), result[2].toString(),
-                            result[3].toString(), result[4].toString(), result[5].toString(), result[6].toString(),
-                            Arrays.asList(result[7].toString().split(",")))).collect(Collectors.toList());
+                    .map(result -> convertToDTO(result)).collect(Collectors.toList());
         }
         catch (Exception exception){
             throw new SQLDataException(exception.getMessage());
@@ -149,9 +140,7 @@ public class UserDao {
             List<Object[]> results = entityManager.createNativeQuery(sql)
                     .getResultList();
             return results.stream()
-                    .map(result -> new UserDTO(result[0].toString(), result[1].toString(), result[2].toString(),
-                            result[3].toString(), result[4].toString(), result[5].toString(), result[6].toString(),
-                            Arrays.asList(result[7].toString().split(",")))).collect(Collectors.toList());
+                    .map(result -> convertToDTO(result)).collect(Collectors.toList());
         }
         catch (Exception exception){
             throw new SQLDataException(exception.getMessage());
@@ -223,5 +212,18 @@ public class UserDao {
         catch (Exception ex){
             throw new SQLDataException(ex.getMessage());
         }
+    }
+
+    private UserDTO convertToDTO(Object[] result) {
+        String dob;
+        if (result[4] == null) {
+            dob = "";
+        }
+        else {
+            dob = result[4].toString();
+        }
+        return new UserDTO(result[0].toString(), result[1].toString(), result[2].toString(),
+                (String) result[3], dob, result[5].toString(), result[6].toString(),
+                Arrays.asList(result[7].toString().split(",")));
     }
 }

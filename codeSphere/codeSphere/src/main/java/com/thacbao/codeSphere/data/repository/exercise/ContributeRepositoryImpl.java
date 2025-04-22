@@ -36,9 +36,17 @@ public class ContributeRepositoryImpl implements ContributeRepositoryCustom {
                 )
                 .groupBy(contribute.user.id)
                 .fetchOne();
+        Long totalCon = 0L;
+        if (result != null) {
+            totalCon = (Long) result.get(contribute.count());
+        }
+        Long activeCon = 0L;
+        if (contributeActive != null) {
+            activeCon = (Long) contributeActive.get(contribute.count());
+        }
         List<CommonResponse> responses = new ArrayList<>();
-        responses.add(new CommonResponse("Total contribute", result.get(contribute.count())));
-        responses.add(new CommonResponse("Active contribute", contributeActive.get(contribute.count())));
+        responses.add(new CommonResponse("Total contribute", totalCon));
+        responses.add(new CommonResponse("Active contribute", activeCon));
         return responses;
     }
 
@@ -62,11 +70,15 @@ public class ContributeRepositoryImpl implements ContributeRepositoryCustom {
                     .groupBy(commentExercise.user.id)
                     .fetchOne();
             Long cmtBlog = 0L;
+            Long cmtExercise = 0L;
             if (rsBlog != null) {
                 cmtBlog = rsBlog.get(commentBlog.count()) != null ? rsBlog.get(commentBlog.count()) : 0L;
             }
+            if (rsExercise != null) {
+                cmtExercise = rsExercise.get(commentExercise.count()) != null ? rsExercise.get(commentExercise.count()) : 0L;
+            }
 
-            return new CommonResponse("Comment" ,cmtBlog + rsExercise.get(commentExercise.count()));
+            return new CommonResponse("Comment" ,cmtBlog + cmtExercise);
         }
 
     @Override
@@ -80,7 +92,11 @@ public class ContributeRepositoryImpl implements ContributeRepositoryCustom {
                 )
                 .groupBy(solutionStorage.user.id)
                 .fetchOne();
+        Long fileStore = 0L;
+        if (result != null) {
+            fileStore = result.get(solutionStorage.count()) != null ? result.get(solutionStorage.count()) : 0L;
+        }
 
-        return new CommonResponse("Storage", result.get(solutionStorage.count()));
+        return new CommonResponse("Storage", fileStore);
     }
 }

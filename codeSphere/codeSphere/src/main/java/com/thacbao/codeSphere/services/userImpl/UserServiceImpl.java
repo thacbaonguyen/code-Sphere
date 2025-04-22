@@ -331,6 +331,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<ApiResponse> viewAvatar() {
         User user = getUser();
+        if (user.getProvider() != null){
+            return CodeSphereResponses.generateResponse(user.getAvatar(), "Avatar view successfully", HttpStatus.OK);
+        }
         try{
             Date expiration = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
             GeneratePresignedUrlRequest preSignedUrlRequest = new GeneratePresignedUrlRequest
